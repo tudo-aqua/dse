@@ -153,6 +153,7 @@ public class ConstraintsTree {
           diverged = true;
           // returning unexpected will fail the current target
           // i.e., mark current target as dont_know
+          failCurrentTargetDiverged();
           return BranchEffect.UNEXPECTED;
         }
 
@@ -163,6 +164,7 @@ public class ConstraintsTree {
           logger.severe("LIKELY A SEVERE BUG IN DSE:" + error);
           // returning inconclusively will fail the current
           // target and stop executing this path
+          failCurrentTargetBuggy("could not validate decision");
           return BranchEffect.BUGGY;
         }
       }
@@ -175,6 +177,7 @@ public class ConstraintsTree {
         logger.severe("LIKELY A SEVERE BUG IN DSE: decision at exhausted leaf: + " + leaf);
         // returning inconclusively will fail the current
         // target and stop executing this path
+        failCurrentTargetBuggy("decision at exhausted leaf");
         return BranchEffect.BUGGY;
       }
 
@@ -255,12 +258,14 @@ public class ConstraintsTree {
 
   /** */
   public void failCurrentTargetDontKnow() {
+    currentTarget.parent().useUnexploredConstraint(currentTarget.childId());
     LeafNode dk = LeafNode.dontKnow(currentTarget.parent(), currentTarget.childId());
     currentTarget.parent().replace(currentTarget, dk);
     currentTarget = dk;
   }
 
   public void failCurrentTargetDiverged() {
+    currentTarget.parent().useUnexploredConstraint(currentTarget.childId());
     LeafNode div =
         new LeafWithValuation(
             currentTarget.parent(),
@@ -272,12 +277,14 @@ public class ConstraintsTree {
   }
 
   public void failCurrentTargetUnsat() {
+    currentTarget.parent().useUnexploredConstraint(currentTarget.childId());
     LeafNode unsat = LeafNode.unsat(currentTarget.parent(), currentTarget.childId());
     currentTarget.parent().replace(currentTarget, unsat);
     currentTarget = unsat;
   }
 
   public void failCurrentTargetBuggy(String cause) {
+    currentTarget.parent().useUnexploredConstraint(currentTarget.childId());
     LeafNode buggy =
         new LeafBuggy(currentTarget.parent(), currentTarget.childId(), currentValues, cause);
     currentTarget.parent().replace(currentTarget, buggy);

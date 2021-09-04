@@ -21,7 +21,6 @@ public class Explorer {
     public void addTrace(Trace t) {
         for (Decision d : t.getDecisions()) {
             ConstraintsTree.BranchEffect effect = ctree.decision(d);
-            // FIXME: what about the branch effect / divergence etc. ???
         }
         ctree.finish(t.getTraceState());
         this.nextValuation = ctree.findNext();

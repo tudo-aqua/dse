@@ -52,6 +52,10 @@ class DecisionNode extends Node {
         }
     }
 
+    void useUnexploredConstraint(int idx) {
+        constraints[idx] = getConstraint(idx);
+    }
+
     Node getChild(int idx) {
         return children[idx];
     }
