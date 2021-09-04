@@ -27,5 +27,14 @@ public class Decision {
     public int getBranchId() {
         return branchId;
     }
+
+    @Override
+    public String toString() {
+        return "Decision{" +
+                "condition=" + condition +
+                ", branches=" + branches +
+                ", branchId=" + branchId +
+                '}';
+    }
 }
 

@@ -3,6 +3,7 @@ package tools.aqua.dse.trace;
 import tools.aqua.dse.paths.PathResult;
 import tools.aqua.dse.paths.PathState;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class Trace {
@@ -22,5 +23,13 @@ public class Trace {
 
     public PathResult getTraceState() {
         return traceState;
+    }
+
+    @Override
+    public String toString() {
+        return "Trace{" +
+                "decisions=" + Arrays.toString(decisions.toArray()) +
+                ", traceState=" + traceState +
+                '}';
     }
 }

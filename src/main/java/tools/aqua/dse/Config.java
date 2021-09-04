@@ -4,8 +4,13 @@ import gov.nasa.jpf.constraints.api.ConstraintSolver;
 import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.solvers.nativez3.NativeZ3SolverProvider;
+import org.apache.commons.cli.CommandLine;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 
 public class Config {
@@ -15,6 +20,12 @@ public class Config {
     private ConstraintSolver solver;
 
     private ExplorationStrategy strategy = ExplorationStrategy.DFS;
+
+    private String executorCmd;
+
+    private String targetClasspath;
+
+    private String targetClass;
 
     public Config() {
         NativeZ3SolverProvider provider = new NativeZ3SolverProvider();
@@ -73,6 +84,57 @@ public class Config {
      */
     public ExplorationStrategy getStrategy() {
         return strategy;
+    }
+
+    public String getExecutorCmd() {
+        return executorCmd;
+    }
+
+    public String getTargetClass() {
+        return targetClass;
+    }
+
+    public String getTargetClasspath() {
+        return targetClasspath;
+    }
+
+    private void parseProperties(Properties props) {
+        if (props.containsKey("target.classpath")) {
+            this.targetClasspath = props.getProperty("target.classpath");
+        }
+        if (props.containsKey("target.class")) {
+            this.targetClass = props.getProperty("target.class");
+        }
+        if (props.containsKey("dse.executor")) {
+            this.executorCmd = props.getProperty("dse.executor");
+        }
+    }
+
+    public static Config fromProperties(Properties props) {
+        Config config = new Config();
+        config.parseProperties(props);
+        return config;
+    }
+
+    public static Config fromCommandLine(CommandLine cli) {
+        Properties props = new Properties();
+        if (cli.hasOption("f")) {
+            String filename = cli.getOptionValue("f");
+            try (FileInputStream fs = new FileInputStream(filename)) {
+                props.load(fs);
+            } catch (IOException e) {
+                System.err.println("Could not read properties file " + filename);
+               throw new RuntimeException();
+            }
+        }
+
+        if (cli.hasOption("D")) {
+            Properties propArgs = cli.getOptionProperties("D");
+            for (Map.Entry<Object,Object> entry : propArgs.entrySet()) {
+                props.setProperty(entry.getKey().toString(), entry.getValue().toString());
+            }
+        }
+        return Config.fromProperties(props);
     }
 
 }
