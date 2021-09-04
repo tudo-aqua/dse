@@ -56,6 +56,7 @@ public class Executor {
         Object obj = null;
         while ((obj = val.getValue(prefix + i)) != null) {
             param.add(obj.toString() );
+            i++;
         }
         return (param.isEmpty()) ? "" : "-D" + optionName + "=" + String.join(",", param);
     }
