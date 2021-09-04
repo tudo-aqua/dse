@@ -36,17 +36,6 @@
 		</license>
 	</licenses>
 
-	<issueManagement>
-		<url>https://github.com/psycopaths/jconstraints/issues</url>
-		<system>GitHub Issues</system>
-	</issueManagement>
-
-	<scm>
-        <developerConnection>scm:git:https://github.com/psycopaths/jconstraints.git</developerConnection>
-      <tag>HEAD</tag>
-  </scm>
-
-
 	<!--	
 	================================= PROPERTIES ================================
 	-->
@@ -54,9 +43,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven-release-plugin.version>2.5.3</maven-release-plugin.version>
 		<compiler-plugin.version>3.1</compiler-plugin.version>
-		<guava.version>14.0.1</guava.version>
-		<antlr.version>3.5.2</antlr.version>
-		<z3.version>0.9</z3.version>
 		<testng.version>6.8</testng.version>		
 	</properties>
 	
@@ -82,18 +68,6 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>${maven-release-plugin.version}</version>
             </plugin>
-			<plugin>
-				<groupId>org.antlr</groupId>
-				<artifactId>antlr3-maven-plugin</artifactId>
-				<version>${antlr.version}</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>antlr</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
 
@@ -102,22 +76,15 @@
 	-->
 	<dependencies>
 		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>${guava.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.antlr</groupId>
-			<artifactId>antlr-runtime</artifactId>
-			<version>${antlr.version}</version>
-		</dependency>
-
-		<dependency>
 			<groupId>tools.aqua</groupId>
-			<artifactId>jconstraints-core-all</artifactId>
+			<artifactId>jconstraints-core</artifactId>
 			<version>0.9.6-SNAPSHOT</version>
 		</dependency>
-
+		<dependency>
+			<groupId>tools.aqua</groupId>
+			<artifactId>jconstraints-z3</artifactId>
+			<version>0.9.6-SNAPSHOT</version>
+		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>

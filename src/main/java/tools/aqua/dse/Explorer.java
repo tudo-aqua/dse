@@ -28,7 +28,7 @@ public class Explorer {
     }
 
     public boolean hasNextValuation() {
-        return nextValuation == null;
+        return nextValuation != null;
     }
 
     public Valuation getNextValuation() {

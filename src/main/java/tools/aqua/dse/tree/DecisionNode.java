@@ -16,6 +16,7 @@ class DecisionNode extends Node {
         super(parent, pos);
 
         this.constraints = new Expression[d.getBranches()];
+        this.constraints[d.getBranchId()] = d.getCondition();
         this.children = new Node[constraints.length];
 
         if (!explore) {
@@ -35,13 +36,13 @@ class DecisionNode extends Node {
             return constraints[idx];
         }
         else {
-            Expression<Boolean> knowOthers = null;
+            Expression<Boolean> knownOthers = null;
             for (Expression<Boolean> cond : constraints) {
                 if (cond != null) {
-                    knowOthers = (knowOthers == null) ? cond : ExpressionUtil.or(knowOthers, cond);
+                    knownOthers = (knownOthers == null) ? cond : ExpressionUtil.or(knownOthers, cond);
                 }
             }
-            return (knowOthers == null) ? ExpressionUtil.TRUE : new Negation(knowOthers);
+            return (knownOthers == null) ? ExpressionUtil.TRUE : new Negation(knownOthers);
         }
     }
 

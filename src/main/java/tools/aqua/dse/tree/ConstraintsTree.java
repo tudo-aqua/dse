@@ -21,6 +21,7 @@ import gov.nasa.jpf.constraints.api.ConstraintSolver.Result;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Valuation;
+import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import tools.aqua.dse.Config;
 import tools.aqua.dse.paths.PathResult;
 import tools.aqua.dse.trace.Decision;
@@ -225,7 +226,7 @@ public class ConstraintsTree {
             new LeafOK(
                 current.parent(),
                 current.childId(),
-                currentValues,
+                ((PathResult.OkResult) result).getValuation(),
                 ((PathResult.OkResult) result).getPostCondition());
         break;
       case ERROR:
@@ -233,7 +234,7 @@ public class ConstraintsTree {
             new LeafError(
                 current.parent(),
                 current.childId(),
-                currentValues,
+                ((PathResult.OkResult) result).getValuation(),
                 ((PathResult.ErrorResult) result).getExceptionClass(),
                 ((PathResult.ErrorResult) result).getStackTrace());
         break;
@@ -382,7 +383,6 @@ public class ConstraintsTree {
 
     // else: find next open node to explore
     while (strategy.hasMoreNodes()) {
-
       LeafNode nextOpen = null;
       while (nextOpen == null) {
         // no more nodes to explore ...
