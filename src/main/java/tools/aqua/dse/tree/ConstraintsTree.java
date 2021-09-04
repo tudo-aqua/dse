@@ -234,7 +234,7 @@ public class ConstraintsTree {
             new LeafError(
                 current.parent(),
                 current.childId(),
-                ((PathResult.OkResult) result).getValuation(),
+                ((PathResult.ErrorResult) result).getValuation(),
                 ((PathResult.ErrorResult) result).getExceptionClass(),
                 ((PathResult.ErrorResult) result).getStackTrace());
         break;
