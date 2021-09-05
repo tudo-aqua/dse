@@ -30,6 +30,7 @@ public class Executor {
             this.executurCmd,
             "-cp " + this.targetClasspath,
             generateParam("concolic.ints", "__int_", val),
+            generateParam("concolic.strings", "__string_", val),
             this.targetClass
         };
         System.out.println(String.join(" ", cmd));
@@ -55,7 +56,7 @@ public class Executor {
         int i = 0;
         Object obj = null;
         while ((obj = val.getValue(prefix + i)) != null) {
-            param.add(obj.toString() );
+            param.add( obj.toString() );
             i++;
         }
         return (param.isEmpty()) ? "" : "-D" + optionName + "=" + String.join(",", param);
