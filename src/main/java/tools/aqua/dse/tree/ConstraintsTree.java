@@ -24,6 +24,7 @@ import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import tools.aqua.dse.Config;
 import tools.aqua.dse.paths.PathResult;
+import tools.aqua.dse.paths.PathState;
 import tools.aqua.dse.trace.Decision;
 
 import java.util.ArrayList;
@@ -240,6 +241,15 @@ public class ConstraintsTree {
                 ((PathResult.ErrorResult) result).getValuation(),
                 ((PathResult.ErrorResult) result).getExceptionClass(),
                 ((PathResult.ErrorResult) result).getStackTrace());
+        break;
+      case ABORT:
+        ((LeafNode) current).setComplete(false);
+        updatedLeaf =
+            new LeafAbort(
+                current.parent(),
+                current.childId(),
+                ((PathResult.AbortResult) result).getValuation(),
+                ((PathResult.AbortResult) result).getReason());
         break;
     }
 

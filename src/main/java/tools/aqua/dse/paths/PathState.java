@@ -22,4 +22,5 @@ public enum PathState {
   OK, 
   ERROR, // path leads to exception
   DONT_KNOW, // constrained for path could not be solved
+  ABORT, // analysis was aborted
 }

@@ -28,6 +28,9 @@ public class TraceParser {
             else if (line.startsWith("[ERROR]")) {
                 result = PathResult.error(vals, line.substring("[ERROR]".length()).trim(), "");
             }
+            else if (line.startsWith("[ABORT]")) {
+                result = PathResult.abort(vals, line.substring("[ABORT]".length()).trim());
+            }
         }
         return new Trace(decisions, result);
     }

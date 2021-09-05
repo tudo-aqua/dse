@@ -64,7 +64,29 @@ public class PathResult {
     }
     
   }
-  
+
+  public static final class AbortResult extends ValuationResult {
+    private final String reason;
+
+    public AbortResult(Valuation valuation, String reason) {
+      super(PathState.ABORT, valuation);
+      this.reason = reason;
+    }
+
+    public String getReason() {
+      return reason;
+    }
+
+    public void print(Appendable a, boolean printExcName, boolean printValues) throws IOException {
+      super.print(a, printExcName, printValues);
+      if(printExcName) {
+        a.append((printValues) ? ", " : ": ");
+        a.append(reason);
+      }
+    }
+  }
+
+
   public static final class ErrorResult extends ValuationResult {
     private final String exceptionClass;
     private final String stackTrace;
@@ -95,7 +117,11 @@ public class PathResult {
   public static OkResult ok(Valuation valuation, PostCondition pc) {
     return new OkResult(valuation, pc);
   }
-  
+
+  public static AbortResult abort(Valuation valuation, String reason) {
+    return new AbortResult(valuation, reason);
+  }
+
   public static ErrorResult error(Valuation valuation, String exceptionClass, String stackTrace) {
     return new ErrorResult(valuation, exceptionClass, stackTrace);
   }
