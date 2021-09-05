@@ -217,7 +217,7 @@ public class ConstraintsTree {
   /** @param result */
   public void finish(PathResult result) {
     LeafNode updatedLeaf = null;
-
+    diverged = false;
     // explored to here before ...
     if (((LeafNode) current).isFinal()) {
       return;
