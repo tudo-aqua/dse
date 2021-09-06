@@ -4,6 +4,5 @@ build:
   stage: build
   image: $CI_REGISTRY/psyco/gdart/development:21.2.0
   script:
-    - DEBIAN_FRONTEND="noninteractive" apt-get install -y maven
     - mvn package
 
