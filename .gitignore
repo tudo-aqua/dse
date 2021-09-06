@@ -4,3 +4,4 @@ bin/*
 *.orig
 *.DS_Store
 /bin/
+target/*
