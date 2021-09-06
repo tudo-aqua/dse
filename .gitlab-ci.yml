@@ -4,6 +4,6 @@ build:
   stage: build
   image: $CI_REGISTRY/psyco/gdart/development:21.2.0
   script:
-    - apt install maven
+    - apt install -y maven
     - mvn package
 
