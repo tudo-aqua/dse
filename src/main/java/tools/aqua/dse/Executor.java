@@ -1,11 +1,9 @@
 package tools.aqua.dse;
 
 import gov.nasa.jpf.constraints.api.Valuation;
-import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParserException;
 import tools.aqua.dse.trace.Trace;
 import tools.aqua.dse.trace.TraceParser;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -45,9 +43,9 @@ public class Executor {
             List<String> lines = Files.readAllLines(output);
             Files.delete(output);
             return TraceParser.parseTrace(lines, val);
-        } catch (IOException | InterruptedException | SMTLIBParserException e) {
-            e.printStackTrace();
-            throw new RuntimeException();
+        } catch (Throwable t) {
+            t.printStackTrace();
+            return null;
         }
     }
 

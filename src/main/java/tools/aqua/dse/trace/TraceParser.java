@@ -37,7 +37,13 @@ public class TraceParser {
 
     public static Decision parseDecision(String decision, String decl) throws IOException, SMTLIBParserException {
         String[] parts = decision.split("\\/\\/ branchCount=|, branchId=");
-        SMTProblem smt = SMTLIBParser.parseSMTProgram(decl + parts[0]);
+        SMTProblem smt = null;
+        try {
+            smt = SMTLIBParser.parseSMTProgram(decl + parts[0]);
+        } catch (Throwable e) {
+            System.err.println("Could not parse: " + decl + parts[0]);
+            throw e;
+        }
         int branches = Integer.parseInt(parts[1]);
         int branchId = Integer.parseInt(parts[2]);
         return new Decision( ExpressionUtil.and(smt.assertions), branches, branchId);

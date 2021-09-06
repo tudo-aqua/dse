@@ -7,7 +7,7 @@ class LeafBuggy extends LeafWithValuation {
     private final String cause;
 
     LeafBuggy(DecisionNode parent, int pos, Valuation val, String cause) {
-        super(parent, NodeType.ERROR, pos, val);
+        super(parent, NodeType.BUGGY, pos, val);
         this.cause = cause;
     }
 

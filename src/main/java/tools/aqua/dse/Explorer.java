@@ -19,10 +19,15 @@ public class Explorer {
     }
 
     public void addTrace(Trace t) {
-        for (Decision d : t.getDecisions()) {
-            ConstraintsTree.BranchEffect effect = ctree.decision(d);
+        if (t == null) {
+            ctree.failCurrentTargetBuggy("not executed or failed");
         }
-        ctree.finish(t.getTraceState());
+        else {
+            for (Decision d : t.getDecisions()) {
+                ConstraintsTree.BranchEffect effect = ctree.decision(d);
+            }
+            ctree.finish(t.getTraceState());
+        }
         this.nextValuation = ctree.findNext();
     }
 
