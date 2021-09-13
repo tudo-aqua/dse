@@ -27,7 +27,14 @@ public class Executor {
         String[] cmd = new String[] {
             this.executurCmd,
             "-cp " + this.targetClasspath,
+            generateParam("concolic.bools", "__bool_", val),
+            generateParam("concolic.bytes", "__byte_", val),
+            generateParam("concolic.chars", "__char_", val),
+            generateParam("concolic.shorts", "__short_", val),
             generateParam("concolic.ints", "__int_", val),
+            generateParam("concolic.longs", "__long_", val),
+            generateParam("concolic.floats", "__float_", val),
+            generateParam("concolic.doubles", "__double_", val),
             generateParam("concolic.strings", "__string_", val),
             this.targetClass
         };
