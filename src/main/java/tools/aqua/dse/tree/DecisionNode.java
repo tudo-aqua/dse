@@ -25,8 +25,13 @@ class DecisionNode extends Node {
             }
         } else {
             for (int i = 0; i < constraints.length; i++) {
-                this.children[i] = LeafNode.open(this, i);
-                strategy.newOpen( (LeafNode) this.children[i] );
+                if (d.isSatBranchOfAssumption() && i != d.getBranchId()) {
+                    this.children[i] = LeafNode.skipped(this, i);
+                }
+                else {
+                    this.children[i] = LeafNode.open(this, i);
+                    strategy.newOpen( (LeafNode) this.children[i] );
+                }
             }
         }
     }

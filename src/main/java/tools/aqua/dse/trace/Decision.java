@@ -10,10 +10,17 @@ public class Decision {
 
     private final int branchId;
 
+    private final boolean assumption;
+
     public Decision(Expression<Boolean> condition, int branches, int branchId) {
+        this(condition, branches, branchId, false);
+    }
+
+    public Decision(Expression<Boolean> condition, int branches, int branchId, boolean assumption) {
         this.condition = condition;
         this.branches = branches;
         this.branchId= branchId;
+        this.assumption = assumption;
     }
 
     public Expression<Boolean> getCondition() {
@@ -28,12 +35,17 @@ public class Decision {
         return branchId;
     }
 
+    public boolean isSatBranchOfAssumption() {
+        return assumption && (branchId == 1);
+    }
+
     @Override
     public String toString() {
         return "Decision{" +
                 "condition=" + condition +
                 ", branches=" + branches +
                 ", branchId=" + branchId +
+                ", assumption=" + assumption +
                 '}';
     }
 }

@@ -294,10 +294,15 @@ public class ConstraintsTree {
   }
 
   public void failCurrentTargetBuggy(String cause) {
-    currentTarget.parent().useUnexploredConstraint(currentTarget.childId());
     LeafNode buggy =
-        new LeafBuggy(currentTarget.parent(), currentTarget.childId(), currentValues, cause);
-    currentTarget.parent().replace(currentTarget, buggy);
+            new LeafBuggy(currentTarget.parent(), currentTarget.childId(), currentValues, cause);
+    if (currentTarget.parent() != null) {
+      currentTarget.parent().useUnexploredConstraint(currentTarget.childId());
+      currentTarget.parent().replace(currentTarget, buggy);
+    }
+    else {
+      root = buggy;
+    }
     currentTarget = buggy;
   }
 
