@@ -3,6 +3,8 @@ package tools.aqua.dse;
 import gov.nasa.jpf.constraints.api.ConstraintSolver;
 import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Valuation;
+import gov.nasa.jpf.constraints.solvers.ConstraintSolverFactory;
+import gov.nasa.jpf.constraints.solvers.SolvingService;
 import gov.nasa.jpf.constraints.solvers.nativez3.NativeZ3SolverProvider;
 import org.apache.commons.cli.CommandLine;
 
@@ -26,6 +28,8 @@ public class Config {
     private String targetClasspath;
 
     private String targetClass;
+
+    private boolean b64encodeExecutorValue = false;
 
     public Config() {
         NativeZ3SolverProvider provider = new NativeZ3SolverProvider();
@@ -98,6 +102,10 @@ public class Config {
         return targetClasspath;
     }
 
+    public boolean isB64encodeExecutorValue() {
+        return b64encodeExecutorValue;
+    }
+
     private void parseProperties(Properties props) {
         if (props.containsKey("target.classpath")) {
             this.targetClasspath = props.getProperty("target.classpath");
@@ -107,6 +115,9 @@ public class Config {
         }
         if (props.containsKey("dse.executor")) {
             this.executorCmd = props.getProperty("dse.executor");
+        }
+        if (props.containsKey("dse.b64encode")) {
+            this.b64encodeExecutorValue = Boolean.parseBoolean( props.getProperty("dse.b64encode") );
         }
     }
 
