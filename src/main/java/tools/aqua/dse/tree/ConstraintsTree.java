@@ -445,6 +445,7 @@ public class ConstraintsTree {
           failCurrentTargetDontKnow();
           break;
         case SAT:
+          /* discbled b/c jconstraints cant evaluate currently
           LeafNode predictedTarget = simulate(val);
           if (predictedTarget != null && predictedTarget != currentTarget) {
             boolean inconclusive = predictedTarget.isExhausted();
@@ -455,6 +456,7 @@ public class ConstraintsTree {
               break;
             }
           }
+           */
           expectedPath = expectedPathTo(currentTarget);
           return val;
       }
