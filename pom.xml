@@ -117,7 +117,7 @@
 		<dependency>
 			<groupId>tools.aqua</groupId>
 			<artifactId>jconstraints-core</artifactId>
-			<version>0.9.6-SNAPSHOT</version>
+			<version>0.9.6-BV-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>tools.aqua</groupId>
