@@ -5,6 +5,6 @@ pushd jconstraints;
     git clone https://github.com/tudo-aqua/jconstraints.git
     cd jconstraints;
     git checkout bv-support;
-    gradle publishToMavenLocal;
+    ./gradlew publishToMavenLocal;
 popd;
 rm -rf jconstraints
