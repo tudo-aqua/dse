@@ -91,9 +91,9 @@
 				<version>3.1.1</version>
 
 				<configuration>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
+					<descriptors>
+						<descriptor>src/assembly/dse-jar-with-dependency.xml</descriptor>
+					</descriptors>
 				</configuration>
 
 				<executions>
