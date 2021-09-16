@@ -67,6 +67,10 @@ public class ConstraintsTree {
   private boolean isDepthBounded = false;
   /** exploration strategy */
   private ExplorationStrategy strategy = new DFSExplorationStrategy();
+  /** termination condition */
+  private int termination;
+  /** termination flag **/
+  private boolean terminate = false;
 
   public ConstraintsTree(Config config) {
     this.config = config;
@@ -74,9 +78,11 @@ public class ConstraintsTree {
     this.exploreMode = config.getExploreMode();
     this.replayValues = config.getReplayValues();
     this.incremental = config.isIncremental();
+    this.termination = config.getTermination();
 
     logger.info("Exploration Strategy: " + strategy);
     logger.info("Incremental solving: " + incremental);
+
     switch (config.getStrategy()) {
       case BFS:
         this.strategy = new BFSExplorationStrategy();
@@ -241,6 +247,12 @@ public class ConstraintsTree {
                 ((PathResult.ErrorResult) result).getValuation(),
                 ((PathResult.ErrorResult) result).getExceptionClass(),
                 ((PathResult.ErrorResult) result).getStackTrace());
+
+        if ((termination & Config.TERMINATE_ON_ASSERTION_VIOLATION) > 0
+                && ((PathResult.ErrorResult) result).getExceptionClass().equals("java/lang/AssertionError")) {
+          terminate = true;
+        }
+
         break;
       case ABORT:
         ((LeafNode) current).setComplete(false);
@@ -389,6 +401,11 @@ public class ConstraintsTree {
    * @return
    */
   public Valuation findNext() {
+    if (terminate) {
+      //TODO: close tree somehow?
+      return null;
+    }
+
     // mark root for re-execution
     current = root;
 

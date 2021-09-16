@@ -19,6 +19,11 @@ public class Config {
 
     public enum ExplorationStrategy  {BFS, DFS, IN_ORDER};
 
+    public static final int TERMINATE_WHEN_COMPLETE = 0;
+    public static final int TERMINATE_ON_ASSERTION_VIOLATION = 1;
+    public static final int TERMINATE_ON_ERROR = 2;
+    public static final int TERMINATE_ON_BUG = 4;
+
     private ConstraintSolver solver;
 
     private ExplorationStrategy strategy = ExplorationStrategy.DFS;
@@ -30,6 +35,9 @@ public class Config {
     private String targetClass;
 
     private boolean b64encodeExecutorValue = false;
+
+    // TODO: make this configurable
+    private int termination = TERMINATE_ON_ASSERTION_VIOLATION;
 
     public Config() {
         NativeZ3SolverProvider provider = new NativeZ3SolverProvider();
@@ -104,6 +112,10 @@ public class Config {
 
     public boolean isB64encodeExecutorValue() {
         return b64encodeExecutorValue;
+    }
+
+    public int getTermination() {
+        return termination;
     }
 
     private void parseProperties(Properties props) {
