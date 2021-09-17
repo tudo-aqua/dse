@@ -94,6 +94,11 @@
 					<descriptors>
 						<descriptor>src/assembly/dse-jar-with-dependency.xml</descriptor>
 					</descriptors>
+					<archive>
+						<manifest>
+							<mainClass>tools.aqua.dse.DSELauncher</mainClass>
+						</manifest>
+					</archive>
 				</configuration>
 
 				<executions>
