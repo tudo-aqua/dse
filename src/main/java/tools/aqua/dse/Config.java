@@ -7,6 +7,7 @@ import gov.nasa.jpf.constraints.solvers.ConstraintSolverFactory;
 import gov.nasa.jpf.constraints.solvers.SolvingService;
 import gov.nasa.jpf.constraints.solvers.nativez3.NativeZ3SolverProvider;
 import org.apache.commons.cli.CommandLine;
+import tools.aqua.dse.bounds.BoundedSolverProvider;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -39,9 +40,10 @@ public class Config {
     // TODO: make this configurable
     private int termination = TERMINATE_ON_ASSERTION_VIOLATION;
 
-    public Config() {
-        NativeZ3SolverProvider provider = new NativeZ3SolverProvider();
-        this.solver= provider.createSolver(new Properties());
+    private final Properties properties;
+
+    private Config(Properties properties) {
+        this.properties = properties;
     }
 
     /**
@@ -131,10 +133,20 @@ public class Config {
         if (props.containsKey("dse.b64encode")) {
             this.b64encodeExecutorValue = Boolean.parseBoolean( props.getProperty("dse.b64encode") );
         }
+
+        if (props.containsKey("dse.bounds")
+                && Boolean.parseBoolean( props.getProperty("dse.bounds"))) {
+            BoundedSolverProvider bp = new BoundedSolverProvider();
+            this.solver = bp.createSolver(props);
+        }
+        else {
+            String solverName = props.getProperty("dse.dp");
+            this.solver = ConstraintSolverFactory.createSolver(solverName, props);
+        }
     }
 
     public static Config fromProperties(Properties props) {
-        Config config = new Config();
+        Config config = new Config(props);
         config.parseProperties(props);
         return config;
     }

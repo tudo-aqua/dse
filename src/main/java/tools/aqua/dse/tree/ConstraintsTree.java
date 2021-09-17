@@ -82,6 +82,7 @@ public class ConstraintsTree {
 
     logger.info("Exploration Strategy: " + strategy);
     logger.info("Incremental solving: " + incremental);
+    logger.info("Solver: " + solverCtx.getClass().getSimpleName());
 
     switch (config.getStrategy()) {
       case BFS:

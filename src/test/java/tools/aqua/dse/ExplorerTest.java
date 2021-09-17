@@ -16,12 +16,15 @@ import tools.aqua.dse.trace.Trace;
 
 import java.sql.Types;
 import java.util.Collections;
+import java.util.Properties;
 
 public class ExplorerTest {
 
     @Test
     public void testExplorerTwoMinimalTraces() {
-        Config config = new Config();
+        Properties props = new Properties();
+        props.setProperty("dse.dp", "z3");
+        Config config = Config.fromProperties(props);
         Explorer e = new Explorer(config);
 
         Variable v = Variable.create(BuiltinTypes.SINT32, "x");
@@ -53,7 +56,10 @@ public class ExplorerTest {
 
     @Test
     public void testExplorerTwoMinimalTracesWithError() {
-        Config config = new Config();
+        Properties props = new Properties();
+        props.setProperty("dse.dp", "z3");
+        Config config = Config.fromProperties(props);
+
         Explorer e = new Explorer(config);
 
         Variable v = Variable.create(BuiltinTypes.SINT32, "x");
@@ -85,7 +91,10 @@ public class ExplorerTest {
 
     @Test
     public void testExplorerThreeBranches() {
-        Config config = new Config();
+        Properties props = new Properties();
+        props.setProperty("dse.dp", "z3");
+        Config config = Config.fromProperties(props);
+
         Explorer e = new Explorer(config);
 
         Variable v = Variable.create(BuiltinTypes.SINT32, "x");
