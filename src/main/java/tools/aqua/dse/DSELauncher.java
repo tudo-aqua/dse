@@ -14,7 +14,7 @@ public class DSELauncher {
             config = Config.fromCommandLine(cli);
         }
         catch (Throwable t) {
-            arguments.usage();
+            arguments.usage(t.getMessage());
             return;
         }
 

@@ -18,7 +18,21 @@ import java.util.Properties;
 
 public class Config {
 
-    public enum ExplorationStrategy  {BFS, DFS, IN_ORDER};
+    public enum ExplorationStrategy  {BFS, DFS, IN_ORDER;
+
+        public static ExplorationStrategy fromString(String property) {
+            switch (property.trim().toLowerCase()) {
+                case "bfs":
+                    return BFS;
+                case "dfs":
+                    return DFS;
+                case "inorder":
+                    return IN_ORDER;
+                default:
+                    throw new IllegalArgumentException("unsupported exploration strategy: " + property);
+            }
+        }
+    };
 
     public static final int TERMINATE_WHEN_COMPLETE = 0;
     public static final int TERMINATE_ON_ASSERTION_VIOLATION = 1;
@@ -36,6 +50,8 @@ public class Config {
     private String targetClass;
 
     private boolean b64encodeExecutorValue = false;
+
+    private boolean incremental = false;
 
     // TODO: make this configurable
     private int termination = TERMINATE_ON_ASSERTION_VIOLATION;
@@ -69,7 +85,7 @@ public class Config {
      * @return
      */
     public boolean isIncremental() {
-        return false;
+        return incremental;
     }
 
     /**
@@ -133,6 +149,15 @@ public class Config {
         if (props.containsKey("dse.b64encode")) {
             this.b64encodeExecutorValue = Boolean.parseBoolean( props.getProperty("dse.b64encode") );
         }
+        if (props.containsKey("dse.explore")) {
+            this.strategy = ExplorationStrategy.fromString(props.getProperty("dse.explore"));
+        }
+        if (props.containsKey("dse.terminate.on")) {
+            this.termination = parseTermination(props.getProperty("dse.terminate.on"));
+        }
+        if (props.containsKey("dse.dp.incremental")) {
+            this.incremental = Boolean.parseBoolean(props.getProperty("dse.dp.incremental"));
+        }
 
         if (props.containsKey("dse.bounds")
                 && Boolean.parseBoolean( props.getProperty("dse.bounds"))) {
@@ -143,6 +168,32 @@ public class Config {
             String solverName = props.getProperty("dse.dp");
             this.solver = ConstraintSolverFactory.createSolver(solverName, props);
         }
+    }
+
+    private int parseTermination(String property) {
+        int terminate = TERMINATE_WHEN_COMPLETE;
+        String[] flags = property.split("\\|");
+        for (String flag : flags) {
+            flag = flag.trim();
+            if (!flag.isEmpty()) {
+                switch (flag.toLowerCase()) {
+                    case "assertion":
+                        terminate |= TERMINATE_ON_ASSERTION_VIOLATION;
+                        break;
+                    case "error":
+                        terminate |= TERMINATE_ON_ERROR;
+                        break;
+                    case "bug":
+                        terminate |= TERMINATE_ON_BUG;
+                        break;
+                    case "completion":
+                        break;
+                    default:
+                        throw new IllegalArgumentException("unsupported termination flag: " + flag);
+                }
+            }
+        }
+        return terminate;
     }
 
     public static Config fromProperties(Properties props) {

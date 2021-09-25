@@ -79,20 +79,23 @@ public class ConstraintsTree {
     this.replayValues = config.getReplayValues();
     this.incremental = config.isIncremental();
     this.termination = config.getTermination();
-
-    logger.info("Exploration Strategy: " + strategy);
-    logger.info("Incremental solving: " + incremental);
-    logger.info("Solver: " + solverCtx.getClass().getSimpleName());
+    this.incremental = config.isIncremental();
 
     switch (config.getStrategy()) {
       case BFS:
         this.strategy = new BFSExplorationStrategy();
+        break;
       case IN_ORDER:
         this.strategy = new InOrderExplorationStrategy();
+        break;
       case DFS:
       default:
         // already defaults to DFS
     }
+
+    logger.info("Exploration Strategy: " + strategy.toString());
+    logger.info("Incremental solving: " + incremental);
+    logger.info("Solver: " + solverCtx.getClass().getSimpleName());
 
     solverCtx.push();
   }
