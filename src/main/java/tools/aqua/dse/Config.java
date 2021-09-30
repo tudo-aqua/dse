@@ -54,7 +54,7 @@ public class Config {
     private boolean incremental = false;
 
     // TODO: make this configurable
-    private int termination = TERMINATE_ON_ASSERTION_VIOLATION;
+    private int termination = TERMINATE_WHEN_COMPLETE;
 
     private final Properties properties;
 
