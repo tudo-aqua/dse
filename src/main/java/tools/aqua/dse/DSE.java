@@ -22,5 +22,6 @@ public class DSE {
         }
 
         System.out.println(explorer.getAnalysis());
+        System.exit(0);
     }
 }
