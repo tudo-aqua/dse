@@ -2,6 +2,14 @@
 
 DSE (dynamic symbolic execution) is a generic dynamic symbolic execution.
 
+Some components of DSE were originally developed as part of JDart, first 
+at NASA Ames Research Center, and later at TU Dortmund University.
+Original JDart repositories can be found here:
+
+- https://github.com/psycopaths/jdart
+- https://github.com/tudo-aqua/jdart
+
+
 ## Installation
 
 ### Dependencies
