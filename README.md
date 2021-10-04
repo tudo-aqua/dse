@@ -80,3 +80,21 @@ assumption ::= "[ASSUMPTION] " <SMTLib assertion>
 [ERROR] java/lang/AssertionError
 [ENDOFTRACE]
 ```
+
+## Executor Parameters set by DSE
+
+DSE passed values to be seeded to the executor. Values are seeded as 
+return values of calls to methods of the ```tools.aqua.concolic.Verifier``` 
+class from here: https://github.com/tudo-aqua/verifier-stub
+
+```
+-Dconcolic.bools=[comma separated list of Boolean values]
+-Dconcolic.bytes=[comma separated list of byte values]
+-Dconcolic.chars=[comma separated list of char values]
+-Dconcolic.shorts=[comma separated list of short values]
+-Dconcolic.ints=[comma separated list of int values]
+-Dconcolic.longs=[comma separated list of long values]
+-Dconcolic.floats=[comma separated list of float values]
+-Dconcolic.doubles=[comma separated list of double values]
+-Dconcolic.strings=[comma separated list of string values]
+```
