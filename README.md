@@ -56,7 +56,20 @@ DSE observes the standard output of the executor command for lines of the
 following format:
 
 ```
-TBD
+trace ::= (decision|declaration|error|abort|assumption)* 
+    "[ENDOFTRACE]\n"
+
+declaration ::= "[DECLARE] " <SMTLib variable declaration>  "\n"
+
+decision ::= "[DECISION] "  <SMTLib assertion> 
+    " // branchCount=" <int> ", branchId=" <int> "\n"
+
+error ::= "[ERROR] " <cause, e.g., exception class>  "\n"
+
+abort ::= "[ABORT] " <causen>  "\n"
+
+assumption ::= "[ASSUMPTION] " <SMTLib assertion> 
+    " // sat=" <true|false>  "\n"
 ```
 
 ### Concrete Example:
