@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2021, Automated Quality Assurance Group,
+ * TU Dortmund University, Germany. All rights reserved.
+ *
+ * DSE (dynamic symbolic execution) is licensed under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
 package tools.aqua.dse;
 
 
@@ -7,14 +22,11 @@ import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.expressions.*;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
-import org.testng.TestNG;
 import org.testng.annotations.Test;
 import tools.aqua.dse.paths.PathResult;
-import tools.aqua.dse.paths.PostCondition;
 import tools.aqua.dse.trace.Decision;
 import tools.aqua.dse.trace.Trace;
 
-import java.sql.Types;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -24,6 +36,7 @@ public class ExplorerTest {
     public void testExplorerTwoMinimalTraces() {
         Properties props = new Properties();
         props.setProperty("dse.dp", "z3");
+        props.setProperty("dse.executor", "dummy");
         Config config = Config.fromProperties(props);
         Explorer e = new Explorer(config);
 
@@ -38,14 +51,14 @@ public class ExplorerTest {
         assert e.hasNextValuation();
 
         Valuation v1 = e.getNextValuation();
-        PathResult pr1 = new PathResult.OkResult(v1, new PostCondition());
+        PathResult pr1 = new PathResult.OkResult(v1);
         Trace t1 = new Trace(Collections.singletonList(d1), pr1);
         e.addTrace(t1);
 
         assert e.hasNextValuation();
 
         Valuation v2 = e.getNextValuation();
-        PathResult pr2 = new PathResult.OkResult(v2, new PostCondition());
+        PathResult pr2 = new PathResult.OkResult(v2);
         Trace t2 = new Trace(Collections.singletonList(d2), pr2);
         e.addTrace(t2);
 
@@ -58,6 +71,7 @@ public class ExplorerTest {
     public void testExplorerTwoMinimalTracesWithError() {
         Properties props = new Properties();
         props.setProperty("dse.dp", "z3");
+        props.setProperty("dse.executor", "dummy");
         Config config = Config.fromProperties(props);
 
         Explorer e = new Explorer(config);
@@ -73,7 +87,7 @@ public class ExplorerTest {
         assert e.hasNextValuation();
 
         Valuation v1 = e.getNextValuation();
-        PathResult pr1 = new PathResult.OkResult(v1, new PostCondition());
+        PathResult pr1 = new PathResult.OkResult(v1);
         Trace t1 = new Trace(Collections.singletonList(d1), pr1);
         e.addTrace(t1);
 
@@ -93,6 +107,7 @@ public class ExplorerTest {
     public void testExplorerThreeBranches() {
         Properties props = new Properties();
         props.setProperty("dse.dp", "z3");
+        props.setProperty("dse.executor", "dummy");
         Config config = Config.fromProperties(props);
 
         Explorer e = new Explorer(config);
@@ -112,7 +127,7 @@ public class ExplorerTest {
         assert e.hasNextValuation();
 
         Valuation v1 = e.getNextValuation();
-        PathResult pr1 = new PathResult.OkResult(v1, new PostCondition());
+        PathResult pr1 = new PathResult.OkResult(v1);
         Trace t1 = new Trace(Collections.singletonList(d1), pr1);
         e.addTrace(t1);
 
@@ -120,14 +135,14 @@ public class ExplorerTest {
 
         Valuation v2 = e.getNextValuation();
         assert v2.getValue(v).equals(0);
-        PathResult pr2 = new PathResult.OkResult(v2, new PostCondition());
+        PathResult pr2 = new PathResult.OkResult(v2);
         Trace t2 = new Trace(Collections.singletonList(d2), pr2);
         e.addTrace(t2);
 
         assert e.hasNextValuation();
 
         Valuation v3 = e.getNextValuation();
-        PathResult pr3 = new PathResult.OkResult(v3, new PostCondition());
+        PathResult pr3 = new PathResult.OkResult(v3);
         Trace t3 = new Trace(Collections.singletonList(d3), pr3);
         e.addTrace(t3);
 

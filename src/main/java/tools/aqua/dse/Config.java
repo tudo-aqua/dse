@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2021, Automated Quality Assurance Group,
+ * TU Dortmund University, Germany. All rights reserved.
+ *
+ * DSE (dynamic symbolic execution) is licensed under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
 package tools.aqua.dse;
 
 import gov.nasa.jpf.constraints.api.ConstraintSolver;
@@ -5,12 +20,10 @@ import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.solvers.ConstraintSolverFactory;
 import gov.nasa.jpf.constraints.solvers.SolvingService;
-import gov.nasa.jpf.constraints.solvers.nativez3.NativeZ3SolverProvider;
 import org.apache.commons.cli.CommandLine;
 import tools.aqua.dse.bounds.BoundedSolverProvider;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
@@ -45,9 +58,7 @@ public class Config {
 
     private String executorCmd;
 
-    private String targetClasspath;
-
-    private String targetClass;
+    private String executorArgs;
 
     private boolean b64encodeExecutorValue = false;
 
@@ -120,12 +131,8 @@ public class Config {
         return executorCmd;
     }
 
-    public String getTargetClass() {
-        return targetClass;
-    }
-
-    public String getTargetClasspath() {
-        return targetClasspath;
+    public String getExecutorArgs() {
+        return executorArgs;
     }
 
     public boolean isB64encodeExecutorValue() {
@@ -137,14 +144,14 @@ public class Config {
     }
 
     private void parseProperties(Properties props) {
-        if (props.containsKey("target.classpath")) {
-            this.targetClasspath = props.getProperty("target.classpath");
-        }
-        if (props.containsKey("target.class")) {
-            this.targetClass = props.getProperty("target.class");
+        if (props.containsKey("dse.executor.args")) {
+            this.executorArgs = props.getProperty("dse.executor.args");
         }
         if (props.containsKey("dse.executor")) {
             this.executorCmd = props.getProperty("dse.executor");
+        }
+        else {
+            throw new IllegalStateException("no executor command specified");
         }
         if (props.containsKey("dse.b64encode")) {
             this.b64encodeExecutorValue = Boolean.parseBoolean( props.getProperty("dse.b64encode") );

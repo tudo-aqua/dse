@@ -19,6 +19,9 @@ import gov.nasa.jpf.constraints.api.Valuation;
 
 import java.io.IOException;
 
+/*
+ * this file was originally part of the JDart concolic execution engine
+ */
 public class PathResult {
   
   public static abstract class ValuationResult extends PathResult {
@@ -32,8 +35,7 @@ public class PathResult {
     public Valuation getValuation() {
       return valuation;
     }
-    
-    
+
     public void print(Appendable a, boolean printDetails, boolean printValues) throws IOException {
       super.print(a, printValues, printDetails);
       if(printValues) {
@@ -44,22 +46,15 @@ public class PathResult {
   }
   
   public static final class OkResult extends ValuationResult {
-    private final PostCondition postCondition;
-    
-    public OkResult(Valuation valuation, PostCondition postCondition) {
+
+    public OkResult(Valuation valuation) {
       super(PathState.OK, valuation);
-      this.postCondition = postCondition;
-    }
-    
-    public PostCondition getPostCondition() {
-      return postCondition;
     }
     
     public void print(Appendable a, boolean printPost, boolean printValues) throws IOException {
       super.print(a, printPost, printValues);
       if(printPost) {
         a.append((printValues) ? ", " : ": ");
-        postCondition.print(a);
       }
     }
     
@@ -114,8 +109,8 @@ public class PathResult {
     }
   }
   
-  public static OkResult ok(Valuation valuation, PostCondition pc) {
-    return new OkResult(valuation, pc);
+  public static OkResult ok(Valuation valuation) {
+    return new OkResult(valuation);
   }
 
   public static AbortResult abort(Valuation valuation, String reason) {
@@ -129,14 +124,9 @@ public class PathResult {
   public static PathResult dontKnow() {
     return DONT_KNOW;
   }
-  
-  
+
   public static PathResult DONT_KNOW = new PathResult(PathState.DONT_KNOW);
-  
-  
-  
-  
-  
+
   private final PathState state;
   
   protected PathResult(PathState state) {

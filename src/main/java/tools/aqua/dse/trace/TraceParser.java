@@ -1,13 +1,27 @@
+/*
+Copyright [yyyy] [name of copyright owner]
+
+        Licensed under the Apache License, Version 2.0 (the "License");
+        you may not use this file except in compliance with the License.
+        You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+        Unless required by applicable law or agreed to in writing, software
+        distributed under the License is distributed on an "AS IS" BASIS,
+        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        See the License for the specific language governing permissions and
+        limitations under the License.
+*/
+
 package tools.aqua.dse.trace;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.smtlibUtility.SMTProblem;
 import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParser;
 import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParserException;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import tools.aqua.dse.paths.PathResult;
-import tools.aqua.dse.paths.PostCondition;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -17,7 +31,7 @@ public class TraceParser {
 
     public static Trace parseTrace(List<String> lines, Valuation vals) throws IOException, SMTLIBParserException {
         List<Decision> decisions = new LinkedList<>();
-        PathResult result = PathResult.ok(vals, new PostCondition());
+        PathResult result = PathResult.ok(vals);
         String decl = "";
         boolean traceComplete = false;
         for (String line : lines) {

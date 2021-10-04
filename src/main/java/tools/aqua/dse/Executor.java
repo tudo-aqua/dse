@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2021, Automated Quality Assurance Group,
+ * TU Dortmund University, Germany. All rights reserved.
+ *
+ * DSE (dynamic symbolic execution) is licensed under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
 package tools.aqua.dse;
 
 import gov.nasa.jpf.constraints.api.Valuation;
@@ -16,23 +31,19 @@ public class Executor {
 
     private String executurCmd;
 
-    private String targetClass;
-
-    private String targetClasspath;
+    private String executorArgs;
 
     private boolean b64encode;
 
     public Executor(Config config) {
         this.executurCmd = config.getExecutorCmd();
-        this.targetClass = config.getTargetClass();
-        this.targetClasspath = config.getTargetClasspath();
+        this.executorArgs = config.getExecutorArgs();
         this.b64encode = config.isB64encodeExecutorValue();
     }
 
     public Trace execute(Valuation val) {
         String[] cmd = new String[] {
             this.executurCmd,
-            "-cp " + this.targetClasspath,
             generateParam("concolic.bools", "__bool_", val),
             generateParam("concolic.bytes", "__byte_", val),
             generateParam("concolic.chars", "__char_", val),
@@ -42,7 +53,7 @@ public class Executor {
             generateParam("concolic.floats", "__float_", val),
             generateParam("concolic.doubles", "__double_", val),
             generateParam("concolic.strings", "__string_", val),
-            this.targetClass
+            this.executorArgs
         };
         System.out.println(String.join(" ", cmd));
         try {
@@ -71,7 +82,9 @@ public class Executor {
             String p = (value != null) ? value.toString() : defaultValue(prefix);
             param.add( b64encode ? b64Encode(p) : p);
         }
-        return (param.isEmpty()) ? "" : "-D" + optionName + "=" + (b64encode ? "[b64]" : "") + String.join(",", param);
+        return (param.isEmpty()) ? "" : "-D" + optionName + "=" +
+                (b64encode ? "[b64]" : "") +
+                String.join(",", param);
     }
 
     private String b64Encode(String p) {
