@@ -72,7 +72,7 @@ assumption ::= "[ASSUMPTION] " <SMTLib assertion>
     " // sat=" <true|false>  "\n"
 ```
 
-### Concrete Example:
+### Concrete Example of expected Trace:
 
 ```
 [DECLARE] (declare-fun __string_0 () String)
@@ -83,7 +83,7 @@ assumption ::= "[ASSUMPTION] " <SMTLib assertion>
 
 ## Executor Parameters set by DSE
 
-DSE passed values to be seeded to the executor. Values are seeded as 
+DSE passes values to be seeded to the executor. Values are seeded as 
 return values of calls to methods of the ```tools.aqua.concolic.Verifier``` 
 class from here: https://github.com/tudo-aqua/verifier-stub
 
@@ -98,3 +98,76 @@ class from here: https://github.com/tudo-aqua/verifier-stub
 -Dconcolic.doubles=[comma separated list of double values]
 -Dconcolic.strings=[comma separated list of string values]
 ```
+
+When using the ```dse.b64encode``` option, comma separated values are 
+base64-encloded individually. This indicated to an executor 
+by prepending a list of values with [64]. E.g. ```-Dconcolic-ints=[b64]...```
+
+## Example
+
+Assume the following Java class:
+
+```java
+import tools.aqua.concolic.Verifier;
+
+public class Main {
+
+    public static void main(String[] args) {
+        int i = Verifier.nondetInt();
+        int[] arr = new int[10];
+        arr[2] = i;
+        if (40 > arr[2]) {
+            assert false;
+        }
+    }
+}
+```
+
+And the following executor script that uses [SPouT](https://github.com/tudo-aqua/spout) as a concolic executor:
+
+```bash
+#!/bin/bash
+export JAVA_HOME=[path-to-graalvm-ce-java11-21.2.0]
+[path-to-graalvm-espresso-native-ce-java11-21.2.0]/bin/java -truffle -ea $@
+```
+
+We anaylze this class with DSE like this: 
+
+```bash
+ java -cp target/dse-0.0.1-SNAPSHOT-jar-with-dependencies.jar tools.aqua.dse.DSELauncher \
+     -Ddse.executor=./executor.sh \
+     -Ddse.executor.args="-cp [classpath]  Main" \
+     -Ddse.dp=z3 \
+     -Ddse.terminate.on=completion \
+     -Ddse.explore=BFS
+```
+
+DSE produces the following output (removed prefix and added spaces for readability):
+
+```
+./executor.sh          -cp /home/falk/workspace/tests:../tests/Test4  Main
+
+Decision{condition=('__int_0' bvslt 40), branches=2, branchId=0, assumption=false}
+
+ERROR: java/lang/AssertionError
+
+./executor.sh     -Dconcolic.ints=41     -cp /home/falk/workspace/tests:../tests/Test4  Main
+
+Decision{condition=('__int_0' bvsge 40), branches=2, branchId=1, assumption=false}
+
+OK: 
+
+
++ 0 : ('__int_0' bvslt 40)
+  + ERROR[complete path:true] .  . java/lang/AssertionError
++ 1 : ('__int_0' bvsge 40)
+  + OK[complete path:true] . __int_0:=41
+
+```
+
+
+
+
+
+
+
