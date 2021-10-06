@@ -18,7 +18,7 @@ Original JDart repositories can be found here:
 
 ### Building
 
-- Install JConstraints to local maven repository (```./gradlew publishToMavenLocal```)
+- Install JConstraints to local maven repository (```./compile-jconstraints.sh```)
 - Clone this repository
 - Run ```mvn clean package```
 
@@ -145,13 +145,13 @@ We anaylze this class with DSE like this:
 DSE produces the following output (removed prefix and added spaces for readability):
 
 ```
-./executor.sh          -cp /home/falk/workspace/tests:../tests/Test4  Main
+./executor.sh          -cp [classpath]  Main
 
 Decision{condition=('__int_0' bvslt 40), branches=2, branchId=0, assumption=false}
 
 ERROR: java/lang/AssertionError
 
-./executor.sh     -Dconcolic.ints=41     -cp /home/falk/workspace/tests:../tests/Test4  Main
+./executor.sh     -Dconcolic.ints=41     -cp [classpath]  Main
 
 Decision{condition=('__int_0' bvsge 40), branches=2, branchId=1, assumption=false}
 
