@@ -33,11 +33,16 @@ public class DSE {
         while (explorer.hasNextValuation()) {
             Valuation val = explorer.getNextValuation();
             Trace trace = executor.execute(val);
-            trace.print();
+            if (trace != null) {
+                trace.print();
+            } else {
+                System.out.println("== no trace obtained.");
+            }
             explorer.addTrace(trace);
         }
 
         System.out.println(explorer.getAnalysis());
+        System.out.println("[END OF OUTPUT]");
         System.exit(0);
     }
 }

@@ -38,12 +38,12 @@ public class BoundedSolverProvider implements ConstraintSolverProvider {
 		BoundedSolver.BoundType type = BoundedSolver.BoundType.linear;
 
 		if (config.containsKey("dse.bounds.step")) {
-			bound = Integer.parseInt(config.getProperty("bounded.bound"));
+			bound = Integer.parseInt(config.getProperty("dse.bounds.step"));
 		}
 		if (config.containsKey("dse.bounds.iter")) {
-			iter = Integer.parseInt(config.getProperty("bounded.iter"));
+			iter = Integer.parseInt(config.getProperty("dse.bounds.iter"));
 		}
-		if (config.containsKey("dse.bounds.type") && config.getProperty("dse.bound.type").equals("fibonacci")) {
+		if (config.containsKey("dse.bounds.type") && config.getProperty("dse.bounds.type").equals("fibonacci")) {
 			type = BoundedSolver.BoundType.fibonacci;
 		}
 
