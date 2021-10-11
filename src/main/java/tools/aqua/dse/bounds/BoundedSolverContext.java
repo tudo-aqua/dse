@@ -20,7 +20,6 @@ import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -91,18 +90,20 @@ public class BoundedSolverContext extends SolverContext {
 		}
 
 		Result res = null;
-		for (int i = 1; i <= itr; i++) {
-			Expression<Boolean> boundExpr = solver.getBound(all, i);
-			ArrayList<Expression<Boolean>> bounds = new ArrayList<>();
-			bounds.add(boundExpr);
-			push();
-			add(bounds);
-			res = ctx.solve(vals);
-			pop();
-			if (res == Result.SAT) {
-				return res;
-			}
-		}
+    if (BoundedSolver.isBoundable(all)) {
+      for (int i = 1; i <= itr; i++) {
+        Expression<Boolean> boundExpr = solver.getBound(all, i);
+        ArrayList<Expression<Boolean>> bounds = new ArrayList<>();
+        bounds.add(boundExpr);
+        push();
+        add(bounds);
+        res = ctx.solve(vals);
+        pop();
+        if (res == Result.SAT) {
+          return res;
+        }
+      }
+    }
 		return ctx.solve(vals);
 	}
 

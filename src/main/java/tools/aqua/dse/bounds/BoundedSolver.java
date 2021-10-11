@@ -50,18 +50,20 @@ public class BoundedSolver extends ConstraintSolver {
 		this.type = type;
 	}
 
-	@Override
-	public Result solve(Expression<Boolean> exprsn, Valuation vltn) {
+  @Override
+  public Result solve(Expression<Boolean> exprsn, Valuation vltn) {
 
-		Result res = null;
-		for (int i = 1; i <= itr; i++) {
-			res = back.solve(ExpressionUtil.and(exprsn, getBound(exprsn, i)), vltn);
-			if (res == Result.SAT) {
-				return res;
-			}
-		}
-		return back.solve(exprsn, vltn);
-	}
+    Result res = null;
+    if (isBoundable(exprsn)) {
+      for (int i = 1; i <= itr; i++) {
+        res = back.solve(ExpressionUtil.and(exprsn, getBound(exprsn, i)), vltn);
+        if (res == Result.SAT) {
+          return res;
+        }
+      }
+    }
+    return back.solve(exprsn, vltn);
+  }
 
 	@Override
 	public BoundedSolverContext createContext() {
@@ -92,5 +94,14 @@ public class BoundedSolver extends ConstraintSolver {
 			}
 		}
 		return ret;
+	}
+
+	public static boolean isBoundable(Expression<Boolean> e){
+		for (Variable v : ExpressionUtil.freeVariables(e)) {
+			if (v.getType().equals(BuiltinTypes.SINT32)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
