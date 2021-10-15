@@ -42,6 +42,7 @@ public class Executor {
     }
 
     public Trace execute(Valuation val) {
+        //System.out.println("model: " + val);
         String[] cmd = new String[] {
             this.executurCmd,
             generateParam("concolic.bools", "__bool_", val),

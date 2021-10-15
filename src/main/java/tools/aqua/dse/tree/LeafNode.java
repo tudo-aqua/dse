@@ -52,7 +52,8 @@ class LeafNode extends Node {
     boolean isFinal() {
         return type == NodeType.BUGGY ||
                type == NodeType.OK ||
-               type == NodeType.ERROR;
+               type == NodeType.ERROR ||
+               type == NodeType.SKIPPED;
     }
 
     @Override

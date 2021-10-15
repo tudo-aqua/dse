@@ -76,6 +76,16 @@ class DecisionNode extends Node {
         constraints[idx] = getConstraint(idx);
     }
 
+    int missingConstraints() {
+        int i = 0;
+        for (Expression<Boolean> e : constraints) {
+            if (e == null) {
+                i++;
+            }
+        }
+        return i;
+    }
+
     Node getChild(int idx) {
         return children[idx];
     }

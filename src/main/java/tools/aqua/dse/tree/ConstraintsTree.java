@@ -28,10 +28,7 @@ import tools.aqua.dse.paths.PathResult;
 import tools.aqua.dse.paths.PathState;
 import tools.aqua.dse.trace.Decision;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class ConstraintsTree {
@@ -161,7 +158,7 @@ public class ConstraintsTree {
         // check if still in expected path
         int depth = dn.depth();
         int expectedBranch = expectedPath.get(depth).intValue();
-        if (expectedBranch != d.getBranchId()) {
+        if ((expectedBranch != d.getBranchId()) && (dn.missingConstraints() == 0))  {
           diverged = true;
           // returning unexpected will fail the current target
           // i.e., mark current target as dont_know
@@ -233,6 +230,12 @@ public class ConstraintsTree {
     // explored to here before ...
     if (((LeafNode) current).isFinal()) {
       return;
+    }
+
+    // can happen b/c when exploring switching bytecodes
+    if (currentTarget != current) {
+      strategy.newOpen(currentTarget);
+      //currentTarget = (LeafNode) current;
     }
 
     switch (result.getState()) {
@@ -340,7 +343,7 @@ public class ConstraintsTree {
       solverCtx.pop();
       solverCtx.push();
       List<Expression<Boolean>> path = pathConstraint(to, root);
-      // System.out.println("solving: " + Arrays.toString( path.toArray() ));
+      //System.out.println("solving: " + Arrays.toString( path.toArray() ));
       solverCtx.add(path);
     }
   }
@@ -437,7 +440,8 @@ public class ConstraintsTree {
         // check if node is still valid
         if ((nextOpen.parent() == null && root != nextOpen)
             || (nextOpen.parent() != null
-                && nextOpen.parent().getChild(nextOpen.childId()) != nextOpen)) {
+                && nextOpen.parent().getChild(nextOpen.childId()) != nextOpen)
+            || nextOpen.isFinal()) {
           nextOpen = null;
           continue;
         }
