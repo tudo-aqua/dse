@@ -149,6 +149,7 @@ public class ConstraintsTree {
 
       // move down
       DecisionNode dn = (DecisionNode) current;
+      boolean multipleOpen =  dn.missingConstraints() > 1;
       dn.update(d);
       current = dn.getChild(d.getBranchId());
 
@@ -158,7 +159,8 @@ public class ConstraintsTree {
         // check if still in expected path
         int depth = dn.depth();
         int expectedBranch = expectedPath.get(depth).intValue();
-        if ((expectedBranch != d.getBranchId()) && (dn.missingConstraints() == 0))  {
+        // FIXME: this could go wrong on true divergence in switch/case
+        if ((expectedBranch != d.getBranchId()) && !multipleOpen)  {
           diverged = true;
           // returning unexpected will fail the current target
           // i.e., mark current target as dont_know
