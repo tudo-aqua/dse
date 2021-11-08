@@ -38,7 +38,7 @@ public class TraceParser {
             if (line.startsWith("[DECISION]")) {
                 decisions.add(parseDecision( line.substring("[DECISION]".length()), decl));
             }
-            if (line.startsWith("[DECLARE]")) {
+            else if (line.startsWith("[DECLARE]")) {
                 decl += line.substring("[DECLARE]".length());
             }
             else if (line.startsWith("[ERROR]")) {
