@@ -61,6 +61,7 @@ public class Executor {
             Path output = Files.createTempFile("dse", "");
             int rc = (new ProcessBuilder())
                     .command(cmd)
+                    .redirectErrorStream(true)
                     .redirectOutput(ProcessBuilder.Redirect.to(output.toFile()))
                     .start()
                     .waitFor();
