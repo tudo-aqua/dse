@@ -110,7 +110,7 @@ public class DSE {
         st.add("edges", edges);
         String result = st.render();
         try {
-            Files.write(Paths.get("witness.GraphML"), result.getBytes());
+            Files.write(Paths.get("witness.graphml"), result.getBytes());
         } catch (IOException e) {
             System.err.println("Error writing witness to file: " + e.getMessage());
         }
