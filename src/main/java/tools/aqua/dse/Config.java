@@ -25,6 +25,10 @@ import tools.aqua.dse.bounds.BoundedSolverProvider;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
@@ -66,7 +70,7 @@ public class Config {
 
     private boolean witness = false;
 
-    private String sourcePath = "";
+    private ClassLoader sourceLoader = Config.class.getClassLoader();
 
     // TODO: make this configurable
     private int termination = TERMINATE_WHEN_COMPLETE;
@@ -139,8 +143,8 @@ public class Config {
         return executorArgs;
     }
 
-    public String getSourcePath() {
-        return sourcePath;
+    public ClassLoader getSourceLoader() {
+        return sourceLoader;
     }
 
     public boolean isB64encodeExecutorValue() {
@@ -190,7 +194,19 @@ public class Config {
             this.witness = Boolean.parseBoolean(props.getProperty("dse.witness"));
         }
         if (props.containsKey("dse.sources")) {
-            this.sourcePath = props.getProperty("dse.sources");
+            String sources = props.getProperty("dse.sources");
+            String[] folders = sources.split("\\:");
+            URL urls[] = new URL[folders.length];
+            int i=0;
+            for (String f : folders) {
+                try {
+                    urls[i++] = Paths.get(f.trim()).toAbsolutePath().toUri().toURL();
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            sourceLoader = new URLClassLoader(urls);
         }
     }
 

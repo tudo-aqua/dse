@@ -18,7 +18,6 @@ package tools.aqua.dse;
 import gov.nasa.jpf.constraints.api.Valuation;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
-import org.stringtemplate.v4.STGroupDir;
 import org.stringtemplate.v4.STRawGroupDir;
 import tools.aqua.dse.paths.PathResult;
 import tools.aqua.dse.trace.Trace;
@@ -26,8 +25,7 @@ import tools.aqua.dse.trace.WitnessAssumption;
 import tools.aqua.dse.witness.WitnessEdge;
 import tools.aqua.dse.witness.WitnessNode;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -94,7 +92,7 @@ public class DSE {
         WitnessNode curNode = initNode;
 
         for (WitnessAssumption wa : trace.getWitness()) {
-            String loc = getLineOfCode(config.getSourcePath() + File.separator + wa.getClazz(), wa.getLine());
+            String loc = getLineOfCode(wa.getClazz(), wa.getLine());
             String assumption = computeAssumption(loc, wa);
 
             WitnessNode prevNode = curNode;
@@ -139,7 +137,16 @@ public class DSE {
 
     private String getLineOfCode(String filename, int line) {
         try {
-            return Files.readAllLines(Paths.get(filename)).get(line-1);
+            InputStream is = config.getSourceLoader().getResourceAsStream(filename);
+            if (is == null) {
+                return null;
+            }
+            BufferedReader res = new BufferedReader(new InputStreamReader(is));
+            String loc = "";
+            for (int i = 0; i<line; i++) {
+                loc = res.readLine();
+            }
+            return loc;
         } catch (IOException e) {
             return null;
         }
