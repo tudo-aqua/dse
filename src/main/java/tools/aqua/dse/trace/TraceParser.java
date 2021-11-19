@@ -31,6 +31,7 @@ public class TraceParser {
 
     public static Trace parseTrace(List<String> lines, Valuation vals) throws IOException, SMTLIBParserException {
         List<Decision> decisions = new LinkedList<>();
+        List<WitnessAssumption> witness = new LinkedList<>();
         PathResult result = PathResult.ok(vals);
         String decl = "";
         boolean traceComplete = false;
@@ -50,6 +51,9 @@ public class TraceParser {
             else if (line.startsWith("[ASSUMPTION]")) {
                 decisions.add(parseAssumption( line.substring("[ASSUMPTION]".length()), decl));
             }
+            else if (line.startsWith("[WITNESS]")) {
+                witness.add(parseWitnessAssumption( line.substring("[WITNESS]".length()).trim() ));
+            }
             else if (line.startsWith("[ENDOFTRACE]")) {
                 traceComplete = true;
             }
@@ -60,10 +64,8 @@ public class TraceParser {
             return null;
         }
 
-        return new Trace(decisions, result);
+        return new Trace(decisions, witness, result);
     }
-
-
 
     public static Decision parseDecision(String decision, String decl) throws IOException, SMTLIBParserException {
         String[] parts = decision.split("\\/\\/ branchCount=|, branchId=");
@@ -91,4 +93,11 @@ public class TraceParser {
         }
         boolean sat = Boolean.parseBoolean(parts[1]);
         return new Decision( ExpressionUtil.and(smt.assertions), 2, sat ? 1 : 0, true);
-    }}
+    }
+
+    private static WitnessAssumption parseWitnessAssumption(String data) {
+        String[] parts = data.split("\\:", 4);
+        return new WitnessAssumption(parts[3].trim(), parts[0].trim(), parts[1].trim(), Integer.parseInt(parts[2].trim()));
+    }
+
+}

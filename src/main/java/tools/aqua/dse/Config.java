@@ -64,6 +64,10 @@ public class Config {
 
     private boolean incremental = false;
 
+    private boolean witness = false;
+
+    private String sourcePath = "";
+
     // TODO: make this configurable
     private int termination = TERMINATE_WHEN_COMPLETE;
 
@@ -135,6 +139,10 @@ public class Config {
         return executorArgs;
     }
 
+    public String getSourcePath() {
+        return sourcePath;
+    }
+
     public boolean isB64encodeExecutorValue() {
         return b64encodeExecutorValue;
     }
@@ -142,6 +150,8 @@ public class Config {
     public int getTermination() {
         return termination;
     }
+
+    public boolean isWitness() { return witness; }
 
     private void parseProperties(Properties props) {
         if (props.containsKey("dse.executor.args")) {
@@ -174,6 +184,13 @@ public class Config {
         else {
             String solverName = props.getProperty("dse.dp");
             this.solver = ConstraintSolverFactory.createSolver(solverName, props);
+        }
+
+        if (props.containsKey("dse.witness")) {
+            this.witness = Boolean.parseBoolean(props.getProperty("dse.witness"));
+        }
+        if (props.containsKey("dse.sources")) {
+            this.sourcePath = props.getProperty("dse.sources");
         }
     }
 

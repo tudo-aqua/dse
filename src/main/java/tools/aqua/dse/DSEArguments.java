@@ -79,6 +79,8 @@ public class DSEArguments {
         printDSEOptionHelp("dse.bounds.step", "step width (increase of bounds) when using bounds iteratively");
         printDSEOptionHelp("dse.bounds.iter", "no. of bounded solving attempts before dropping bounds");
         printDSEOptionHelp("dse.bounds.type", "fibonacci: uses fibonacci seq. from index 2 (1, 2, 3, 5, ...) as steps");
+        printDSEOptionHelp("dse.witness", "save witness file if possible: true / false (default)");
+        printDSEOptionHelp("dse.sources", "path to folder with sources");
         System.out.println();
     }
 

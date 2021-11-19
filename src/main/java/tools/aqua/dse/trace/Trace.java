@@ -24,15 +24,30 @@ public class Trace {
 
     private final List<Decision> decisions;
 
+    private final List<WitnessAssumption> witness;
+
     private final PathResult traceState;
 
     public Trace(List<Decision> decisions, PathResult state) {
+        this(decisions, null, state);
+    }
+
+    public Trace(List<Decision> decisions, List<WitnessAssumption> witness, PathResult state) {
         this.decisions = decisions;
+        this.witness = witness;
         this.traceState = state;
     }
 
     public List<Decision> getDecisions() {
         return decisions;
+    }
+
+    public boolean hasWitness() {
+        return witness != null;
+    }
+
+    public List<WitnessAssumption> getWitness() {
+        return witness;
     }
 
     public PathResult getTraceState() {
