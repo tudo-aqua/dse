@@ -132,6 +132,10 @@ public class DSE {
         lineOfCode = lineOfCode.substring(0, idx).trim();
         String[] parts = lineOfCode.split(" ");
         String id = parts[parts.length-1].trim();
+        if (wa.getValue().contains("\"") && !wa.getValue().contains("parse")) {
+            // its a string constant
+            return "" + id + ".equals(" + wa.getValue() + ")";
+        }
         return "" + id +" = " + wa.getValue();
     }
 
