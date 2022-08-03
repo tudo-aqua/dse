@@ -29,6 +29,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class DSE {
@@ -45,11 +46,14 @@ public class DSE {
         Explorer explorer = new Explorer(config);
         Executor executor = new Executor(config);
 
+        List<String> flows = new LinkedList<>();
+
         while (explorer.hasNextValuation()) {
             Valuation val = explorer.getNextValuation();
             Trace trace = executor.execute(val);
             if (trace != null) {
                 trace.print();
+                flows.addAll(trace.getFlows());
             } else {
                 System.out.println("== no trace obtained.");
             }
@@ -61,6 +65,11 @@ public class DSE {
 
         System.out.println(explorer.getAnalysis());
         System.out.println("[END OF OUTPUT]");
+
+        for (String f : flows) {
+            System.out.println("FLOW: " + f);
+        }
+
         System.exit(0);
     }
 

@@ -33,6 +33,7 @@ public class TraceParser {
         List<Decision> decisions = new LinkedList<>();
         List<WitnessAssumption> witness = new LinkedList<>();
         List<String> taintViolations = new LinkedList<>();
+        List<String> flows = new LinkedList<>();
         PathResult result = PathResult.ok(vals);
         String decl = "";
         boolean traceComplete = false;
@@ -61,6 +62,9 @@ public class TraceParser {
             else if (line.startsWith("[WITNESS]")) {
                 witness.add(parseWitnessAssumption( line.substring("[WITNESS]".length()).trim() ));
             }
+            else if (line.startsWith("[FLOW]")) {
+                flows.add( line.substring("[FLOW]".length()).trim() );
+            }
             else if (line.startsWith("[ENDOFTRACE]")) {
                 traceComplete = true;
             }
@@ -72,8 +76,7 @@ public class TraceParser {
         }
 
         result.setTaintViolations(taintViolations);
-
-        return new Trace(decisions, witness, result);
+        return new Trace(decisions, witness, flows, result);
     }
 
     public static Decision parseDecision(String decision, String decl) throws IOException, SMTLIBParserException {
