@@ -65,6 +65,9 @@ public class TraceParser {
             else if (line.startsWith("[FLOW]")) {
                 flows.add( line.substring("[FLOW]".length()).trim() );
             }
+            else if (line.startsWith("[TAINTCHECK]")) {
+                flows.add( line.substring("[TAINTCHECK]".length()).trim() );
+            }
             else if (line.startsWith("[ENDOFTRACE]")) {
                 traceComplete = true;
             }

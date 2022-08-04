@@ -19,6 +19,7 @@ import gov.nasa.jpf.constraints.api.Valuation;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.STRawGroupDir;
+import tools.aqua.dse.iflow.InformationFlowAnalysis;
 import tools.aqua.dse.paths.PathResult;
 import tools.aqua.dse.trace.Trace;
 import tools.aqua.dse.trace.WitnessAssumption;
@@ -66,9 +67,12 @@ public class DSE {
         System.out.println(explorer.getAnalysis());
         System.out.println("[END OF OUTPUT]");
 
+        InformationFlowAnalysis ia = new InformationFlowAnalysis(config);
         for (String f : flows) {
-            System.out.println("FLOW: " + f);
+            ia.addFlow(f);
         }
+        ia.listFlows();
+        ia.generate();
 
         System.exit(0);
     }
