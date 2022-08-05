@@ -71,8 +71,8 @@ public class DSE {
         for (String f : flows) {
             ia.addFlow(f);
         }
-        ia.listFlows();
-        ia.generate();
+        //ia.listFlows();
+        ia.runChecks();
 
         System.exit(0);
     }

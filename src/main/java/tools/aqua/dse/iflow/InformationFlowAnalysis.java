@@ -1,5 +1,6 @@
 package tools.aqua.dse.iflow;
 
+import gov.nasa.jpf.constraints.api.ConstraintSolver;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Variable;
@@ -25,7 +26,7 @@ public class InformationFlowAnalysis {
     }
 
     public void addFlow(String flowInfo) {
-        System.out.println("-- " + flowInfo);
+        //System.out.println("-- " + flowInfo);
         if (flowInfo.startsWith("checkFor")) {
             addCheck(flowInfo);
         }
@@ -79,8 +80,28 @@ public class InformationFlowAnalysis {
         }
     }
 
-    public void generate() {
+    public void runChecks() {
         Map<String, Variable> vars = new HashMap<>();
+        solverCtx.push();
+        generate(vars);
+        solverCtx.push();
+
+        for (String v : taintchecks.keySet()) {
+            solverCtx.add(new PropositionalCompound(getOrCreate(v, vars), LogicalOperator.EQUIV, ExpressionUtil.TRUE));
+
+            for (String vOther : vars.keySet()) {
+                if (!vOther.startsWith("if") && !vOther.equals(v)) {
+                    solverCtx.add(new PropositionalCompound(
+                            getOrCreate(vOther, vars), LogicalOperator.EQUIV, ExpressionUtil.FALSE));
+                }
+            }
+            boolean violation = (solverCtx.isSatisfiable() == ConstraintSolver.Result.SAT);
+            System.out.println("INFORMATION FLOW/TAINT for " + v + " " + (violation ? "discovered" : "not found"));
+            solverCtx.pop();
+        }
+    }
+
+    private void generate(Map<String, Variable> vars) {
 
         for (String v : flows.keySet()) {
             Set<String> taint = flows.get(v);
@@ -106,10 +127,6 @@ public class InformationFlowAnalysis {
             solverCtx.add(ExpressionUtil.or(checkVars));
         }
 
-        solverCtx.add(new PropositionalCompound(getOrCreate("1", vars), LogicalOperator.EQUIV, ExpressionUtil.TRUE));
-        solverCtx.add(new PropositionalCompound(getOrCreate("2", vars), LogicalOperator.EQUIV, ExpressionUtil.FALSE));
-
-        System.out.println("IFLOW violation: " + solverCtx.isSatisfiable());
     }
 
     private Variable getOrCreate(String name, Map<String, Variable> vars) {
