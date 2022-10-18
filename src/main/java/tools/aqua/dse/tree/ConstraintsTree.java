@@ -486,6 +486,8 @@ public class ConstraintsTree {
            */
           expectedPath = expectedPathTo(currentTarget);
           return val;
+        default:
+          throw new IllegalStateException("There is an unhandeld result state: " + res);
       }
     }
 

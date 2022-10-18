@@ -23,8 +23,11 @@ import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.expressions.Constant;
 import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
 import gov.nasa.jpf.constraints.expressions.NumericComparator;
+import gov.nasa.jpf.constraints.expressions.StringIntegerExpression;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
+
+import java.math.BigInteger;
 
 public class BoundedSolver extends ConstraintSolver {
 
@@ -92,6 +95,12 @@ public class BoundedSolver extends ConstraintSolver {
 				Expression<Boolean> upper = new NumericBooleanExpression(v, NumericComparator.LE, high);
 				ret = ExpressionUtil.and(ret, lower, upper);
 			}
+			if(v.getType().equals(BuiltinTypes.STRING)){
+				Expression<BigInteger> strLen = StringIntegerExpression.createLength(v);
+				Constant<BigInteger> upperBound = Constant.create(BuiltinTypes.INTEGER, BigInteger.valueOf(bound*10));
+				Expression<Boolean> upper = new NumericBooleanExpression(strLen, NumericComparator.LE, upperBound);
+				ret = ExpressionUtil.and(ret, upper);
+			}
 		}
 		return ret;
 	}
@@ -99,6 +108,9 @@ public class BoundedSolver extends ConstraintSolver {
 	public static boolean isBoundable(Expression<Boolean> e){
 		for (Variable v : ExpressionUtil.freeVariables(e)) {
 			if (v.getType().equals(BuiltinTypes.SINT32)) {
+				return true;
+			}
+			if(v.getType().equals(BuiltinTypes.STRING)){
 				return true;
 			}
 		}

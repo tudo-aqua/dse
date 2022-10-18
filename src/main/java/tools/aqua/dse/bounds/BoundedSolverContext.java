@@ -70,9 +70,13 @@ public class BoundedSolverContext extends SolverContext {
 
 	@Override
 	public void add(List<Expression<Boolean>> list) {
-		for (Expression<Boolean> e : list) {
-			ctx.add(e);
-			current.exprsn.add(e);
+		try {
+			for (Expression<Boolean> e : list) {
+				ctx.add(e);
+				current.exprsn.add(e);
+			}
+		}catch (Throwable t){
+			t.printStackTrace();
 		}
 	}
 
@@ -98,6 +102,9 @@ public class BoundedSolverContext extends SolverContext {
         push();
         add(bounds);
         res = ctx.solve(vals);
+		if(res == Result.ERROR){
+			return res;
+		}
         pop();
         if (res == Result.SAT) {
           return res;
