@@ -76,7 +76,7 @@ public class DSE {
             return;
         }
         PathResult.ErrorResult res = (PathResult.ErrorResult) trace.getTraceState();
-        if (!res.getExceptionClass().equals("java/lang/AssertionError")) {
+        if (!res.getExceptionClass().equals("java/lang/AssertionError") && !res.getExceptionClass().equals("error encountered")) {
             return;
         }
 
