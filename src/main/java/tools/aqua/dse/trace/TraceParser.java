@@ -46,7 +46,9 @@ public class TraceParser {
                 result = PathResult.error(vals, line.substring("[ERROR]".length()).trim(), "");
             }
             else if (line.startsWith("[TAINT VIOLATION]")) {
-                result = PathResult.error(vals, line.trim(), "");
+                //result = PathResult.error(vals, line.trim(), "");
+                //TODO: not sure what we should do in this case?
+                System.out.println(line.trim());
             }
             else if (line.startsWith("[ABORT]")) {
                 result = PathResult.abort(vals, line.substring("[ABORT]".length()).trim());
