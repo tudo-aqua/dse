@@ -72,7 +72,7 @@ public class DSEArguments {
         printDSEOptionHelp("dse.executor.args", "executor args (e.g. -cp ... Main)");
         printDSEOptionHelp("dse.b64encode", "base64-encode concolic values passed to executor: true / false (default)");
         printDSEOptionHelp("dse.explore", "one of: inorder, bfs, dfs (default)");
-        printDSEOptionHelp("dse.terminate.on", "| separated list of: assertion, error, bug, completion (default)");
+        printDSEOptionHelp("dse.terminate.on", "| separated list of: assertion, error, bug, taint, completion (default)");
         printDSEOptionHelp("dse.dp", "jconstraints id of solving backend");
         printDSEOptionHelp("dse.dp.incremental", "use incremental solving: true / false (default)");
         printDSEOptionHelp("dse.bounds", "use bounds on integer values when solving: true / false (default)");

@@ -56,6 +56,8 @@ public class Config {
     public static final int TERMINATE_ON_ERROR = 2;
     public static final int TERMINATE_ON_BUG = 4;
 
+    public static final int TERMINATE_ON_TAINT = 8;
+
     private ConstraintSolver solver;
 
     private ExplorationStrategy strategy = ExplorationStrategy.DFS;
@@ -225,6 +227,9 @@ public class Config {
                         break;
                     case "bug":
                         terminate |= TERMINATE_ON_BUG;
+                        break;
+                    case "taint":
+                        terminate |= TERMINATE_ON_TAINT;
                         break;
                     case "completion":
                         break;

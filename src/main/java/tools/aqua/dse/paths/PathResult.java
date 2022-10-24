@@ -18,12 +18,24 @@ package tools.aqua.dse.paths;
 import gov.nasa.jpf.constraints.api.Valuation;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 /*
  * this file was originally part of the JDart concolic execution engine
  */
 public class PathResult {
-  
+
+  private List<String> taintViolations = new LinkedList<>();
+
+  public void setTaintViolations(List<String> taintViolations) {
+    this.taintViolations = taintViolations;
+  }
+
+  public List<String> getTaintViolations() {
+    return taintViolations;
+  }
+
   public static abstract class ValuationResult extends PathResult {
     private final Valuation valuation;
     
@@ -138,6 +150,7 @@ public class PathResult {
   }
   
   public void print(Appendable a, boolean printDetails, boolean printValues) throws IOException {
+    // TODO: maybe print taint?
     a.append(state.toString());
   }
   

@@ -32,6 +32,7 @@ public class TraceParser {
     public static Trace parseTrace(List<String> lines, Valuation vals) throws IOException, SMTLIBParserException {
         List<Decision> decisions = new LinkedList<>();
         List<WitnessAssumption> witness = new LinkedList<>();
+        List<String> taintViolations = new LinkedList<>();
         PathResult result = PathResult.ok(vals);
         String decl = "";
         boolean traceComplete = false;
@@ -49,6 +50,7 @@ public class TraceParser {
                 //result = PathResult.error(vals, line.trim(), "");
                 //TODO: not sure what we should do in this case?
                 System.out.println(line.trim());
+                taintViolations.add(line.substring("[TAINT VIOLATION]".length()).trim());
             }
             else if (line.startsWith("[ABORT]")) {
                 result = PathResult.abort(vals, line.substring("[ABORT]".length()).trim());
@@ -68,6 +70,8 @@ public class TraceParser {
         if (!traceComplete) {
             return null;
         }
+
+        result.setTaintViolations(taintViolations);
 
         return new Trace(decisions, witness, result);
     }

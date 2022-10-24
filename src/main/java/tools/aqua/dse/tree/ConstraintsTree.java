@@ -259,6 +259,7 @@ public class ConstraintsTree {
 
         if ((termination & Config.TERMINATE_ON_ASSERTION_VIOLATION) > 0
                 && ((PathResult.ErrorResult) result).getExceptionClass().equals("java/lang/AssertionError")) {
+          System.out.println("--- terminating DSE after assertion violation");
           terminate = true;
         }
 
@@ -272,6 +273,12 @@ public class ConstraintsTree {
                 ((PathResult.AbortResult) result).getValuation(),
                 ((PathResult.AbortResult) result).getReason());
         break;
+    }
+
+    if ((termination & Config.TERMINATE_ON_TAINT) > 0
+            &&  result.getTaintViolations().size() > 0) {
+      System.out.println("--- terminating DSE after tainting violation");
+      terminate = true;
     }
 
     updatedLeaf.setComplete(((LeafNode) current).complete());
