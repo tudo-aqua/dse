@@ -67,9 +67,9 @@ public class Executor {
                     .waitFor();
 
             List<String> lines = Files.readAllLines(output);
-            System.out.println("%%%%%%%%%%% Executor Output Start");
-            lines.forEach(n ->{System.out.println(n);});
-            System.out.println("%%%%%%%%%%% Executor Output End");
+//            System.out.println("%%%%%%%%%%% Executor Output Start");
+//            lines.forEach(n ->{System.out.println(n);});
+//            System.out.println("%%%%%%%%%%% Executor Output End");
             Files.delete(output);
             return TraceParser.parseTrace(lines, val);
         } catch (Throwable t) {
