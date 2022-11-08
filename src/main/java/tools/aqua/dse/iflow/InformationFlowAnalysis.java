@@ -96,7 +96,7 @@ public class InformationFlowAnalysis {
                 }
             }
             boolean violation = (solverCtx.isSatisfiable() == ConstraintSolver.Result.SAT);
-            System.out.println("INFORMATION FLOW/TAINT for " + v + " " + (violation ? "discovered" : "not found"));
+            System.out.println(violation ? "[TAINT VIOLATION] INFORMATION FLOW/TAINT for " + v + " " + "discovered" : "No information flow found");
             solverCtx.pop();
         }
     }
