@@ -20,8 +20,10 @@ import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.STRawGroupDir;
 import tools.aqua.dse.paths.PathResult;
+import tools.aqua.dse.trace.ResultWitnessAssumption;
 import tools.aqua.dse.trace.Trace;
 import tools.aqua.dse.trace.WitnessAssumption;
+import tools.aqua.dse.witness.ResultWitnessEdge;
 import tools.aqua.dse.witness.WitnessEdge;
 import tools.aqua.dse.witness.WitnessNode;
 
@@ -84,12 +86,17 @@ public class DSE {
 
         List<WitnessNode> nodes = new ArrayList<>();
         List<WitnessEdge> edges = new ArrayList<>();
+        List<ResultWitnessEdge> resultEdges = new ArrayList<>();
 
         int nodeId = 0;
         WitnessNode initNode = new WitnessNode(nodeId++);
         nodes.add(initNode);
         initNode.addData("entry", "true");
         WitnessNode curNode = initNode;
+
+        if (!trace.getWitness().isEmpty() && !trace.getResultWitness().isEmpty()) {
+            throw new IllegalStateException("cannot handle multiple witness types");
+        }
 
         for (WitnessAssumption wa : trace.getWitness()) {
             String loc = getLineOfCode(wa.getClazz(), wa.getLine());
@@ -102,12 +109,21 @@ public class DSE {
             edges.add(edge);
         }
 
+        for (ResultWitnessAssumption rwa : trace.getResultWitness()) {
+            WitnessNode prevNode = curNode;
+            curNode = new WitnessNode(nodeId++);
+            nodes.add(curNode);
+            ResultWitnessEdge edge = new ResultWitnessEdge(prevNode, rwa, curNode);
+            resultEdges.add(edge);
+        }
+
         curNode.addData("violation", "true");
 
         STGroup group = new STRawGroupDir("witnesses", '$','$');
         ST st = group.getInstanceOf("witness");
         st.add("nodes", nodes);
         st.add("edges", edges);
+        st.add("resultedges", resultEdges);
         String result = st.render();
         try {
             Files.write(Paths.get("witness.graphml"), result.getBytes());

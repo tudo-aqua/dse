@@ -32,6 +32,7 @@ public class TraceParser {
     public static Trace parseTrace(List<String> lines, Valuation vals) throws IOException, SMTLIBParserException {
         List<Decision> decisions = new LinkedList<>();
         List<WitnessAssumption> witness = new LinkedList<>();
+        List<ResultWitnessAssumption> resultWitness = new LinkedList<>();
         List<String> taintViolations = new LinkedList<>();
         PathResult result = PathResult.ok(vals);
         String decl = "";
@@ -61,6 +62,9 @@ public class TraceParser {
             else if (line.startsWith("[WITNESS]")) {
                 witness.add(parseWitnessAssumption( line.substring("[WITNESS]".length()).trim() ));
             }
+            else if (line.startsWith("[RESULTWITNESS]")) {
+                resultWitness.add(parseResultWitnessAssumption( line.substring("[RESULTWITNESS]".length()).trim() ));
+            }
             else if (line.startsWith("[ENDOFTRACE]")) {
                 traceComplete = true;
             }
@@ -73,7 +77,7 @@ public class TraceParser {
 
         result.setTaintViolations(taintViolations);
 
-        return new Trace(decisions, witness, result);
+        return new Trace(decisions, witness, resultWitness, result);
     }
 
     public static Decision parseDecision(String decision, String decl) throws IOException, SMTLIBParserException {
@@ -107,6 +111,11 @@ public class TraceParser {
     private static WitnessAssumption parseWitnessAssumption(String data) {
         String[] parts = data.split("\\:", 4);
         return new WitnessAssumption(parts[3].trim(), parts[0].trim(), parts[1].trim(), Integer.parseInt(parts[2].trim()));
+    }
+
+    private static ResultWitnessAssumption parseResultWitnessAssumption(String data) {
+        String[] parts = data.split(":", 4);
+        return new ResultWitnessAssumption(parts[0].trim(), Integer.parseInt(parts[1].trim()), parts[2].trim(), parts[3].trim());
     }
 
 }

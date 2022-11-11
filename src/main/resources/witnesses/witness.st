@@ -66,5 +66,14 @@
       <data key="assumption.scope">java::$e.witness.scope$</data>
     </edge> }$
 
+    $resultedges:{ e |
+     <edge source="n$e.source.id$" target="n$e.dest.id$">
+       <data key="threadId">0</data>
+       <data key="startline">$e.witness.line$</data>
+       <data key="assumption">\result == $e.witness.result$</data>
+       <data key="assumption.scope">$e.witness.caller$</data>
+       <data key="assumption.resultfunction">$e.witness.callee$</data>
+     </edge> }$
+
   </graph>
 </graphml>

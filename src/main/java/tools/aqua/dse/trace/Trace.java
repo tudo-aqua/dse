@@ -25,16 +25,18 @@ public class Trace {
     private final List<Decision> decisions;
 
     private final List<WitnessAssumption> witness;
+    private final List<ResultWitnessAssumption> resultWitness;
 
     private final PathResult traceState;
 
     public Trace(List<Decision> decisions, PathResult state) {
-        this(decisions, null, state);
+        this(decisions, null, null, state);
     }
 
-    public Trace(List<Decision> decisions, List<WitnessAssumption> witness, PathResult state) {
+    public Trace(List<Decision> decisions, List<WitnessAssumption> witness, List<ResultWitnessAssumption> resultWitness, PathResult state) {
         this.decisions = decisions;
         this.witness = witness;
+        this.resultWitness = resultWitness;
         this.traceState = state;
     }
 
@@ -48,6 +50,10 @@ public class Trace {
 
     public List<WitnessAssumption> getWitness() {
         return witness;
+    }
+
+    public List<ResultWitnessAssumption> getResultWitness() {
+        return resultWitness;
     }
 
     public PathResult getTraceState() {
