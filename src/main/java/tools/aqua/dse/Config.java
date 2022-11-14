@@ -19,7 +19,6 @@ import gov.nasa.jpf.constraints.api.ConstraintSolver;
 import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.solvers.ConstraintSolverFactory;
-import gov.nasa.jpf.constraints.solvers.SolvingService;
 import org.apache.commons.cli.CommandLine;
 import tools.aqua.dse.bounds.BoundedSolverProvider;
 
@@ -29,9 +28,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 public class Config {
 
@@ -73,6 +75,8 @@ public class Config {
     private boolean witness = false;
 
     private ClassLoader sourceLoader = Config.class.getClassLoader();
+
+    private List<String> sourceFiles;
 
     // TODO: make this configurable
     private int termination = TERMINATE_WHEN_COMPLETE;
@@ -149,6 +153,10 @@ public class Config {
         return sourceLoader;
     }
 
+    public List<String> getSourceFiles() {
+        return sourceFiles;
+    }
+
     public boolean isB64encodeExecutorValue() {
         return b64encodeExecutorValue;
     }
@@ -209,6 +217,10 @@ public class Config {
             }
 
             sourceLoader = new URLClassLoader(urls);
+        }
+        if (props.containsKey("dse.sourcefiles")) {
+            this.sourceFiles = Arrays.stream(props.getProperty("dse.sourcefiles").trim().split("\\s+")).map(String::trim).collect(
+                    Collectors.toList());
         }
     }
 

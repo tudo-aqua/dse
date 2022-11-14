@@ -15,6 +15,7 @@
 
 package tools.aqua.dse;
 
+import com.google.common.io.BaseEncoding;
 import gov.nasa.jpf.constraints.api.Valuation;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
@@ -27,13 +28,40 @@ import tools.aqua.dse.witness.ResultWitnessEdge;
 import tools.aqua.dse.witness.WitnessEdge;
 import tools.aqua.dse.witness.WitnessNode;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
+import static java.time.temporal.ChronoField.HOUR_OF_DAY;
+import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
+import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
+
 public class DSE {
+
+    private static final DateTimeFormatter WITNESS_COMPLIANT_DATE_TIME = new DateTimeFormatterBuilder()
+            .parseCaseInsensitive()
+            .append(ISO_LOCAL_DATE)
+            .appendLiteral('T')
+            .appendValue(HOUR_OF_DAY, 2)
+            .appendLiteral(':')
+            .appendValue(MINUTE_OF_HOUR, 2)
+            .optionalStart()
+            .appendLiteral(':')
+            .appendValue(SECOND_OF_MINUTE, 2)
+            .appendOffsetId()
+            .toFormatter();
 
     private final Config config;
 
@@ -78,7 +106,8 @@ public class DSE {
             return;
         }
         PathResult.ErrorResult res = (PathResult.ErrorResult) trace.getTraceState();
-        if (!res.getExceptionClass().equals("java/lang/AssertionError") && !res.getExceptionClass().equals("error encountered")) {
+        if (!res.getExceptionClass().equals("java/lang/AssertionError") &&
+                !res.getExceptionClass().equals("error encountered")) {
             return;
         }
 
@@ -119,8 +148,34 @@ public class DSE {
 
         curNode.addData("violation", "true");
 
-        STGroup group = new STRawGroupDir("witnesses", '$','$');
+        String programFile;
+        String programFileSHA256;
+        List<String> sourceFiles = config.getSourceFiles();
+        if (sourceFiles.isEmpty()) {
+            System.err.println("Missing source file, information will be omitted from witness");
+            programFile = "";
+            programFileSHA256 = "";
+        } else {
+            if (sourceFiles.size() > 1) {
+                System.err.println("Multiple source files are not supported");
+            }
+            programFile = sourceFiles.get(0);
+            try {
+                programFileSHA256 = BaseEncoding.base16().encode(
+                        MessageDigest.getInstance("SHA-256").digest(
+                                Files.readAllBytes(Path.of(programFile))));
+            } catch (NoSuchAlgorithmException | IOException e) {
+                System.err.println("Hashing error: " + e.getMessage());
+                programFileSHA256 = "";
+            }
+        }
+
+        STGroup group = new STRawGroupDir("witnesses", '$', '$');
         ST st = group.getInstanceOf("witness");
+        st.add("creationtime", ZonedDateTime.now().format(WITNESS_COMPLIANT_DATE_TIME));
+        st.add("programfile", programFile);
+        st.add("programhash", programFileSHA256);
+
         st.add("nodes", nodes);
         st.add("edges", edges);
         st.add("resultedges", resultEdges);
@@ -147,12 +202,12 @@ public class DSE {
         }
         lineOfCode = lineOfCode.substring(0, idx).trim();
         String[] parts = lineOfCode.split(" ");
-        String id = parts[parts.length-1].trim();
+        String id = parts[parts.length - 1].trim();
         if (wa.getValue().contains("\"") && !wa.getValue().contains("parse")) {
             // its a string constant
             return "" + id + ".equals(" + wa.getValue() + ")";
         }
-        return "" + id +" = " + wa.getValue();
+        return "" + id + " = " + wa.getValue();
     }
 
     private String getLineOfCode(String filename, int line) {
@@ -163,7 +218,7 @@ public class DSE {
             }
             BufferedReader res = new BufferedReader(new InputStreamReader(is));
             String loc = "";
-            for (int i = 0; i<line; i++) {
+            for (int i = 0; i < line; i++) {
                 loc = res.readLine();
             }
             return loc;
