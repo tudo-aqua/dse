@@ -15,8 +15,6 @@
   <key attr.name="isSinkNode" attr.type="boolean" for="node" id="sink"><default>false</default></key>
 
   <key attr.name="assumption" attr.type="string" for="edge" id="assumption"/>
-  <key attr.name="assumption.scope" attr.type="string" for="edge" id="assumption.scope"/>
-  <key attr.name="assumption.resultfunction" attr.type="string" for="edge" id="assumption.resultfunction"/>
   <key attr.name="threadId" attr.type="int" for="edge" id="threadId"><default>0</default></key>
 
   <graph edgedefault="directed">
@@ -32,34 +30,17 @@
     <node id="sink">
       <data key="sink">true</data>
     </node>
+    <node id="n0">
+      <data key="entry">true</data>
+    </node>
+    <node id="n1">
+      <data key="violation">true</data>
+    </node>
 
-$nodes:{ n |
-    <node id="n$n.id$">
-$n.data.keys:{ k |
-      <data key="$k$">$n.data.(k)$</data>}$
-    </node>}$
-
-$edges:{ e |
-    <edge source="n$e.source.id$" target="n$e.dest.id$">
-      <data key="originfile">$e.witness.clazz$</data>
-      <data key="threadId">0</data>
-      <data key="assumption">$e.assumption$</data>
-      <data key="assumption.scope">java::$e.witness.scope$</data>
-    </edge>}$
-
-$resultedges:{ e |
-    <edge source="n$e.source.id$" target="n$e.dest.id$">
-      <data key="threadId">0</data>
-      <data key="assumption">\result == $e.witness.result$</data>
-      <data key="assumption.scope">$e.witness.caller$</data>
-      <data key="assumption.resultfunction">$e.witness.callee$</data>
-    </edge>}$
-
-$trueedges:{ e |
-    <edge source="n$e.source.id$" target="n$e.dest.id$">
+    <edge source="n0" target="n1">
       <data key="threadId">0</data>
       <data key="assumption">true</data>
-    </edge>}$
+    </edge>
 
   </graph>
 </graphml>

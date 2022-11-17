@@ -24,8 +24,8 @@ import tools.aqua.dse.paths.PathResult;
 import tools.aqua.dse.trace.ResultWitnessAssumption;
 import tools.aqua.dse.trace.Trace;
 import tools.aqua.dse.trace.WitnessAssumption;
+import tools.aqua.dse.tree.ConstraintsTreeAnalysis;
 import tools.aqua.dse.witness.ResultWitnessEdge;
-import tools.aqua.dse.witness.WitnessEdge;
 import tools.aqua.dse.witness.WitnessNode;
 
 import java.io.BufferedReader;
@@ -75,18 +75,27 @@ public class DSE {
         Explorer explorer = new Explorer(config);
         Executor executor = new Executor(config);
 
+        Trace trace = null;
         while (explorer.hasNextValuation()) {
             Valuation val = explorer.getNextValuation();
-            Trace trace = executor.execute(val);
+            trace = executor.execute(val);
             if (trace != null) {
                 trace.print();
             } else {
                 System.out.println("== no trace obtained.");
             }
             explorer.addTrace(trace);
-
+        }
+        if (trace != null) {
             // check if we should save a witness
-            checkAndSaveWitness(trace);
+            ConstraintsTreeAnalysis analysis = explorer.getAnalysis();
+
+            if (!analysis.getErrorLeafs().isEmpty()) {
+                checkAndSaveViolationWitness(trace);
+            } else if (analysis.getBuggyLeafs().isEmpty() && analysis.getSkippedLeafs().isEmpty() &&
+                    analysis.getDivergedLeafs().isEmpty() && !analysis.getOkLeafs().isEmpty()) {
+                checkAndSaveCorrectnessWitness();
+            }
         }
 
         System.out.println(explorer.getAnalysis());
@@ -99,12 +108,13 @@ public class DSE {
      *
      */
 
-    private void checkAndSaveWitness(Trace trace) {
+    private void checkAndSaveViolationWitness(Trace trace) {
         if (!config.isWitness() || savedWitness ||
                 !(trace.getTraceState() instanceof PathResult.ErrorResult) ||
                 !trace.hasWitness()) {
             return;
         }
+
         PathResult.ErrorResult res = (PathResult.ErrorResult) trace.getTraceState();
         if (!res.getExceptionClass().equals("java/lang/AssertionError") &&
                 !res.getExceptionClass().equals("error encountered")) {
@@ -113,41 +123,64 @@ public class DSE {
 
         savedWitness = true;
 
-        List<WitnessNode> nodes = new ArrayList<>();
-        List<WitnessEdge> edges = new ArrayList<>();
-        List<ResultWitnessEdge> resultEdges = new ArrayList<>();
-
-        int nodeId = 0;
-        WitnessNode initNode = new WitnessNode(nodeId++);
-        nodes.add(initNode);
-        initNode.addData("entry", "true");
-        WitnessNode curNode = initNode;
-
-        if (!trace.getWitness().isEmpty() && !trace.getResultWitness().isEmpty()) {
-            throw new IllegalStateException("cannot handle multiple witness types");
+        if (!trace.getWitness().isEmpty()) {
+            throw new IllegalStateException("regular witnesses unsupported");
         }
 
-        for (WitnessAssumption wa : trace.getWitness()) {
-            String loc = getLineOfCode(wa.getClazz(), wa.getLine());
-            String assumption = computeAssumption(loc, wa);
+        ST st;
+        if (trace.getResultWitness().isEmpty()) {
+            st = prepareTemplate("trivial_violation_witness");
+        } else {
+            List<WitnessNode> nodes = new ArrayList<>();
+            List<ResultWitnessEdge> resultEdges = new ArrayList<>();
 
-            WitnessNode prevNode = curNode;
-            curNode = new WitnessNode(nodeId++);
-            nodes.add(curNode);
-            WitnessEdge edge = new WitnessEdge(prevNode, wa, assumption, curNode);
-            edges.add(edge);
+            int nodeId = 0;
+            WitnessNode initNode = new WitnessNode(nodeId++);
+            nodes.add(initNode);
+            initNode.addData("entry", "true");
+            WitnessNode curNode = initNode;
+
+            for (ResultWitnessAssumption rwa : trace.getResultWitness()) {
+                WitnessNode prevNode = curNode;
+                curNode = new WitnessNode(nodeId++);
+                nodes.add(curNode);
+                ResultWitnessEdge edge = new ResultWitnessEdge(prevNode, rwa, curNode);
+                resultEdges.add(edge);
+            }
+            curNode.addData("violation", "true");
+
+            st = prepareTemplate("result_violation_witness");
+
+            st.add("nodes", nodes);
+            st.add("resultedges", resultEdges);
         }
 
-        for (ResultWitnessAssumption rwa : trace.getResultWitness()) {
-            WitnessNode prevNode = curNode;
-            curNode = new WitnessNode(nodeId++);
-            nodes.add(curNode);
-            ResultWitnessEdge edge = new ResultWitnessEdge(prevNode, rwa, curNode);
-            resultEdges.add(edge);
+        String result = st.render();
+        try {
+            Files.write(Paths.get("witness.graphml"), result.getBytes());
+        } catch (IOException e) {
+            System.err.println("Error writing witness to file: " + e.getMessage());
+        }
+    }
+
+    private void checkAndSaveCorrectnessWitness() {
+        if (!config.isWitness() || savedWitness) {
+            return;
         }
 
-        curNode.addData("violation", "true");
+        savedWitness = true;
 
+
+        ST st = prepareTemplate("trivial_correctness_witness");
+        String result = st.render();
+        try {
+            Files.write(Paths.get("witness.graphml"), result.getBytes());
+        } catch (IOException e) {
+            System.err.println("Error writing witness to file: " + e.getMessage());
+        }
+    }
+
+    private ST prepareTemplate(String template) {
         String programFile;
         String programFileSHA256;
         List<String> sourceFiles = config.getSourceFiles();
@@ -171,20 +204,11 @@ public class DSE {
         }
 
         STGroup group = new STRawGroupDir("witnesses", '$', '$');
-        ST st = group.getInstanceOf("witness");
+        ST st = group.getInstanceOf(template);
         st.add("creationtime", ZonedDateTime.now().format(WITNESS_COMPLIANT_DATE_TIME));
         st.add("programfile", programFile);
         st.add("programhash", programFileSHA256);
-
-        st.add("nodes", nodes);
-        st.add("edges", edges);
-        st.add("resultedges", resultEdges);
-        String result = st.render();
-        try {
-            Files.write(Paths.get("witness.graphml"), result.getBytes());
-        } catch (IOException e) {
-            System.err.println("Error writing witness to file: " + e.getMessage());
-        }
+        return st;
     }
 
     private String computeAssumption(String lineOfCode, WitnessAssumption wa) {

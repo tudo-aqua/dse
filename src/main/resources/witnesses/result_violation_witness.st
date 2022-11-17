@@ -39,26 +39,12 @@ $n.data.keys:{ k |
       <data key="$k$">$n.data.(k)$</data>}$
     </node>}$
 
-$edges:{ e |
-    <edge source="n$e.source.id$" target="n$e.dest.id$">
-      <data key="originfile">$e.witness.clazz$</data>
-      <data key="threadId">0</data>
-      <data key="assumption">$e.assumption$</data>
-      <data key="assumption.scope">java::$e.witness.scope$</data>
-    </edge>}$
-
 $resultedges:{ e |
     <edge source="n$e.source.id$" target="n$e.dest.id$">
       <data key="threadId">0</data>
       <data key="assumption">\result == $e.witness.result$</data>
       <data key="assumption.scope">$e.witness.caller$</data>
       <data key="assumption.resultfunction">$e.witness.callee$</data>
-    </edge>}$
-
-$trueedges:{ e |
-    <edge source="n$e.source.id$" target="n$e.dest.id$">
-      <data key="threadId">0</data>
-      <data key="assumption">true</data>
     </edge>}$
 
   </graph>
