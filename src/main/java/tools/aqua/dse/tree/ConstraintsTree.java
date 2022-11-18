@@ -475,9 +475,6 @@ public class ConstraintsTree {
         case UNSAT:
           failCurrentTargetUnsat();
           break;
-        case DONT_KNOW:
-          failCurrentTargetDontKnow();
-          break;
         case SAT:
           /* discbled b/c jconstraints cant evaluate currently
           LeafNode predictedTarget = simulate(val);
@@ -494,7 +491,8 @@ public class ConstraintsTree {
           expectedPath = expectedPathTo(currentTarget);
           return val;
         default:
-          throw new IllegalStateException("There is an unhandeld result state: " + res);
+          failCurrentTargetDontKnow();
+          break;
       }
     }
 

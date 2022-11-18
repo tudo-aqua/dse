@@ -74,6 +74,7 @@ public class DSE {
         //ia.listFlows();
         ia.runChecks();
 
+        System.out.println("[END OF OUTPUT]");
         System.exit(0);
     }
 
