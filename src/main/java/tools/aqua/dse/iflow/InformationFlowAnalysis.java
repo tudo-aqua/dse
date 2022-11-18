@@ -81,21 +81,27 @@ public class InformationFlowAnalysis {
     }
 
     public void runChecks() {
+        //listFlows();
         Map<String, Variable> vars = new HashMap<>();
         solverCtx.push();
         generate(vars);
         solverCtx.push();
 
         for (String v : taintchecks.keySet()) {
+            //System.out.println("---");
+            //System.out.println(new PropositionalCompound(getOrCreate(v, vars), LogicalOperator.EQUIV, ExpressionUtil.TRUE));
             solverCtx.add(new PropositionalCompound(getOrCreate(v, vars), LogicalOperator.EQUIV, ExpressionUtil.TRUE));
 
-            for (String vOther : vars.keySet()) {
-                if (!vOther.startsWith("if") && !vOther.equals(v)) {
-                    solverCtx.add(new PropositionalCompound(
-                            getOrCreate(vOther, vars), LogicalOperator.EQUIV, ExpressionUtil.FALSE));
-                }
+            Variable check = getOrCreate("check", vars);
+            for (String val : taintchecks.get(v)) {
+                //System.out.println(new PropositionalCompound(getOrCreate(val, vars), LogicalOperator.EQUIV, check));
+                solverCtx.add(new PropositionalCompound(getOrCreate(val, vars), LogicalOperator.EQUIV, check));
             }
-            boolean violation = (solverCtx.isSatisfiable() == ConstraintSolver.Result.SAT);
+
+            //System.out.println(new PropositionalCompound(check, LogicalOperator.XOR, getOrCreate(v, vars)));
+            solverCtx.add(new PropositionalCompound(check, LogicalOperator.XOR, getOrCreate(v, vars)));
+
+            boolean violation = (solverCtx.isSatisfiable() == ConstraintSolver.Result.UNSAT);
             System.out.println(violation ? "[TAINT VIOLATION] INFORMATION FLOW/TAINT for " + v + " " + "discovered" : "No information flow found");
             solverCtx.pop();
         }
@@ -113,20 +119,12 @@ public class InformationFlowAnalysis {
                 taintVars[i++] = getOrCreate(t, vars);
             }
 
-            Expression flow = new PropositionalCompound(key, LogicalOperator.EQUIV, ExpressionUtil.or(taintVars));
-            solverCtx.add(flow);
-        }
-
-        for (Set<String> check : taintchecks.values()) {
-            Expression[] checkVars = new Expression[check.size()];
-            int i=0;
-            for (String t : check) {
-                checkVars[i++] = getOrCreate(t, vars);
+            for (Expression tv : taintVars) {
+                Expression flow = new PropositionalCompound(tv, LogicalOperator.IMPLY, key);
+                //System.out.println(flow);
+                solverCtx.add(flow);
             }
-
-            solverCtx.add(ExpressionUtil.or(checkVars));
         }
-
     }
 
     private Variable getOrCreate(String name, Map<String, Variable> vars) {
