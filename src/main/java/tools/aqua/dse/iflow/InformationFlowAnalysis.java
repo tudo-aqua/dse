@@ -127,10 +127,13 @@ public class InformationFlowAnalysis {
         }
     }
 
+    private int id = 0;
+
     private Variable getOrCreate(String name, Map<String, Variable> vars) {
         Variable v = vars.get(name);
         if (v == null) {
-            v = new Variable(BuiltinTypes.BOOL, name);
+            v = new Variable(BuiltinTypes.BOOL, "t_" + (id++));
+            vars.put(name, v);
         }
         return v;
     }
