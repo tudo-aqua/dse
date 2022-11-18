@@ -65,7 +65,6 @@ public class DSE {
         }
 
         System.out.println(explorer.getAnalysis());
-        System.out.println("[END OF OUTPUT]");
 
         InformationFlowAnalysis ia = new InformationFlowAnalysis(config);
         for (String f : flows) {
