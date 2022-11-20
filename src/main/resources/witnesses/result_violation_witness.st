@@ -20,7 +20,7 @@
   <key attr.name="threadId" attr.type="int" for="edge" id="threadId"><default>0</default></key>
 
   <graph edgedefault="directed">
-    <data key="architecture">64bit</data>
+    <data key="architecture">32bit</data>
     <data key="creationtime">$creationtime$</data>
     <data key="producer">GDart-LLVM</data>
     <data key="programfile">$programfile$</data>
@@ -37,7 +37,8 @@ $nodes:{ n |
     <node id="n$n.id$">
 $n.data.keys:{ k |
       <data key="$k$">$n.data.(k)$</data>}$
-    </node>}$
+    </node>
+}$
 
 $resultedges:{ e |
     <edge source="n$e.source.id$" target="n$e.dest.id$">
@@ -45,7 +46,8 @@ $resultedges:{ e |
       <data key="assumption">\result == $e.witness.result$</data>
       <data key="assumption.scope">$e.witness.caller$</data>
       <data key="assumption.resultfunction">$e.witness.callee$</data>
-    </edge>}$
+    </edge>
+}$
 
   </graph>
 </graphml>

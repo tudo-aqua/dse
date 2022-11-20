@@ -16,7 +16,7 @@
   <key attr.name="threadId" attr.type="int" for="edge" id="threadId"><default>0</default></key>
 
   <graph edgedefault="directed">
-    <data key="architecture">64bit</data>
+    <data key="architecture">32bit</data>
     <data key="creationtime">$creationtime$</data>
     <data key="producer">GDart-LLVM</data>
     <data key="programfile">$programfile$</data>

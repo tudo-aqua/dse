@@ -42,11 +42,13 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
 import static java.time.temporal.ChronoField.HOUR_OF_DAY;
 import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
 import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
+import static java.util.Locale.ROOT;
 
 public class DSE {
 
@@ -196,7 +198,8 @@ public class DSE {
             try {
                 programFileSHA256 = BaseEncoding.base16().encode(
                         MessageDigest.getInstance("SHA-256").digest(
-                                Files.readAllBytes(Path.of(programFile))));
+                                Files.readAllBytes(Path.of(programFile))))
+                        .toLowerCase(ROOT);
             } catch (NoSuchAlgorithmException | IOException e) {
                 System.err.println("Hashing error: " + e.getMessage());
                 programFileSHA256 = "";
