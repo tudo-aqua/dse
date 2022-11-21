@@ -475,6 +475,8 @@ public class ConstraintsTree {
         case UNSAT:
           failCurrentTargetUnsat();
           break;
+        case ERROR:
+          System.out.println("Error SMT result");
         case DONT_KNOW:
           failCurrentTargetDontKnow();
           break;
