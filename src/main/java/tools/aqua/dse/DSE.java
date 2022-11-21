@@ -83,7 +83,7 @@ public class DSE {
      */
 
     private void checkAndSaveWitness(Trace trace) {
-        if (!config.isWitness() || savedWitness ||
+        if (!config.isWitness() || savedWitness || trace == null ||
                 !(trace.getTraceState() instanceof PathResult.ErrorResult) ||
                 !trace.hasWitness()) {
             return;
