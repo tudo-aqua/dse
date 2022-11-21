@@ -2,7 +2,7 @@ stages:
     - build
 build:
   stage: build
-  image: $CI_REGISTRY/psyco/gdart/development:21.2.0
+  image: $CI_REGISTRY/psyco/gdart/development:22.2.0
   script:
     - ./compile-jconstraints.sh
     - mvn package
