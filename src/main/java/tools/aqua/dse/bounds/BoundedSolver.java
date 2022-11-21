@@ -20,12 +20,10 @@ import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.Variable;
-import gov.nasa.jpf.constraints.expressions.Constant;
-import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
-import gov.nasa.jpf.constraints.expressions.NumericComparator;
-import gov.nasa.jpf.constraints.expressions.StringIntegerExpression;
+import gov.nasa.jpf.constraints.expressions.*;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
+import tools.aqua.redistribution.org.smtlib.sexpr.Sexpr;
 
 import java.math.BigInteger;
 
@@ -101,6 +99,11 @@ public class BoundedSolver extends ConstraintSolver {
 				Expression<Boolean> upper = new NumericBooleanExpression(strLen, NumericComparator.LE, upperBound);
 				ret = ExpressionUtil.and(ret, upper);
 			}
+			if(v.getType().equals(BuiltinTypes.DOUBLE)){
+				Expression<Boolean> bound1 = new Negation(new FloatingPointBooleanExpression(FPComparator.FP_IS_NAN, v));
+				Expression<Boolean> bound2 = new Negation(new FloatingPointBooleanExpression(FPComparator.FP_IS_INFINITE, v));
+				ret = ExpressionUtil.and(ret, bound1, bound2);
+			}
 		}
 		return ret;
 	}
@@ -111,6 +114,9 @@ public class BoundedSolver extends ConstraintSolver {
 				return true;
 			}
 			if(v.getType().equals(BuiltinTypes.STRING)){
+				return true;
+			}
+			if(v.getType().equals(BuiltinTypes.DOUBLE)){
 				return true;
 			}
 		}

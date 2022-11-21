@@ -475,6 +475,11 @@ public class ConstraintsTree {
         case UNSAT:
           failCurrentTargetUnsat();
           break;
+        case ERROR:
+          System.out.println("Error SMT result");
+        case DONT_KNOW:
+          failCurrentTargetDontKnow();
+          break;
         case SAT:
           /* discbled b/c jconstraints cant evaluate currently
           LeafNode predictedTarget = simulate(val);
