@@ -109,6 +109,7 @@ public class InformationFlowAnalysis {
 
     private void generate(Map<String, Variable> vars) {
 
+        ArrayList<Expression<Boolean>> flowConstraints = new ArrayList<>();
         for (String v : flows.keySet()) {
             Set<String> taint = flows.get(v);
             Variable key = getOrCreate(v, vars);
@@ -122,9 +123,10 @@ public class InformationFlowAnalysis {
             for (Expression tv : taintVars) {
                 Expression flow = new PropositionalCompound(tv, LogicalOperator.IMPLY, key);
                 //System.out.println(flow);
-                solverCtx.add(flow);
+                flowConstraints.add(flow);
             }
         }
+        solverCtx.add(flowConstraints);
     }
 
     private int id = 0;
