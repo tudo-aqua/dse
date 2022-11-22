@@ -27,10 +27,10 @@
 
     <node id="n0">
       <data key="entry">true</data>
-      <data key="invariant">true</data>
+      <data key="invariant">1</data>
     </node>
     <node id="n1">
-      <data key="invariant">true</data>
+      <data key="invariant">1</data>
     </node>
 
     <edge source="n0" target="n1">

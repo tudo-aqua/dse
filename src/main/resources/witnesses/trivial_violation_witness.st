@@ -39,7 +39,7 @@
 
     <edge source="n0" target="n1">
       <data key="threadId">0</data>
-      <data key="assumption">true</data>
+      <data key="assumption">1</data>
     </edge>
 
   </graph>
