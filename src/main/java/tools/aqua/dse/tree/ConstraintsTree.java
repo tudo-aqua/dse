@@ -230,10 +230,7 @@ public class ConstraintsTree {
     LeafNode updatedLeaf = null;
     diverged = false;
     // explored to here before ...
-    if ( (!(current instanceof LeafNode) || ((LeafNode) current).isFinal())) {
-      if (currentTarget.nodeType() != LeafNode.NodeType.DIVERGED) {
-        failCurrentTargetDiverged();
-      }
+    if (((LeafNode) current).isFinal()) {
       return;
     }
 
