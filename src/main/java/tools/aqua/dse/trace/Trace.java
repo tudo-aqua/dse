@@ -15,6 +15,7 @@
 
 package tools.aqua.dse.trace;
 
+import gov.nasa.jpf.constraints.api.Expression;
 import tools.aqua.dse.paths.PathResult;
 
 import java.util.Arrays;
@@ -30,15 +31,19 @@ public class Trace {
 
     private final PathResult traceState;
 
+    private final Expression<Boolean> symTaintCheck;
+
     public Trace(List<Decision> decisions, PathResult state) {
-        this(decisions, null, null, state);
+        this(decisions, null, null, state, null);
     }
 
-    public Trace(List<Decision> decisions, List<WitnessAssumption> witness, List<String> flows, PathResult state) {
+    public Trace(List<Decision> decisions, List<WitnessAssumption> witness, List<String> flows,
+                 PathResult state, Expression<Boolean> symTaintCheck) {
         this.decisions = decisions;
         this.witness = witness;
         this.flows = flows;
         this.traceState = state;
+        this.symTaintCheck = symTaintCheck;
     }
 
     public List<Decision> getDecisions() {
@@ -61,6 +66,10 @@ public class Trace {
         return traceState;
     }
 
+    public Expression<Boolean> getSymTaintCheck() {
+        return symTaintCheck;
+    }
+
     public void print() {
         for (Decision d : decisions) {
             System.out.println(d);
@@ -74,6 +83,7 @@ public class Trace {
                 "decisions=" + Arrays.toString(decisions.toArray()) +
                 ", traceState=" + traceState +
                 ", flows=" + flows +
+                ", symTaint=" + symTaintCheck +
                 '}';
     }
 }

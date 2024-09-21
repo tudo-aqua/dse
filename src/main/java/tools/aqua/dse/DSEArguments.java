@@ -81,6 +81,7 @@ public class DSEArguments {
         printDSEOptionHelp("dse.bounds.type", "fibonacci: uses fibonacci seq. from index 2 (1, 2, 3, 5, ...) as steps");
         printDSEOptionHelp("dse.witness", "save witness file if possible: true / false (default)");
         printDSEOptionHelp("dse.sources", "path to folder with sources");
+        printDSEOptionHelp("dse.symtaint", "perform a taint symbolic taint/information flow check after DSE: true / false (default)");
         printDSEOptionHelp("iflow.fraction", "fraction of paths to use in information flow analysis (double)");
         printDSEOptionHelp("static.info", "static information on inheritance and constructors for objects (filename)");
         printDSEOptionHelp("random.seed", "random seed (long value)");

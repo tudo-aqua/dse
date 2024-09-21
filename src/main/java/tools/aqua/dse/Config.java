@@ -73,6 +73,8 @@ public class Config {
 
     private boolean witness = false;
 
+    private boolean symtaint = false;
+
     private Random random = null;
 
     private double fraction = 1.0;
@@ -115,6 +117,8 @@ public class Config {
     public boolean isIncremental() {
         return incremental;
     }
+
+    public boolean analyzeSymtaint() { return symtaint; }
 
     /**
      * constraint solver context
@@ -215,6 +219,9 @@ public class Config {
 
         if (props.containsKey("dse.witness")) {
             this.witness = Boolean.parseBoolean(props.getProperty("dse.witness"));
+        }
+        if (props.containsKey("dse.symtaint")) {
+            this.symtaint = Boolean.parseBoolean(props.getProperty("dse.symtaint"));
         }
         if (props.containsKey("dse.sources")) {
             String sources = props.getProperty("dse.sources");

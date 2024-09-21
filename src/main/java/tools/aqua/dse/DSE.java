@@ -21,8 +21,11 @@ import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.STRawGroupDir;
 import tools.aqua.dse.iflow.InformationFlowAnalysis;
 import tools.aqua.dse.paths.PathResult;
+import tools.aqua.dse.paths.PathState;
+import tools.aqua.dse.symtaint.SymTaintAnalysis;
 import tools.aqua.dse.trace.Trace;
 import tools.aqua.dse.trace.WitnessAssumption;
+import tools.aqua.dse.tree.ConstraintsTreeAnalysis;
 import tools.aqua.dse.witness.WitnessEdge;
 import tools.aqua.dse.witness.WitnessNode;
 
@@ -44,7 +47,7 @@ public class DSE {
     public void executeAnalysis() {
         Explorer explorer = new Explorer(config);
         Executor executor = new Executor(config);
-
+        SymTaintAnalysis symTaintAnalysis = new SymTaintAnalysis(config);
         List<List<String>> flows = new LinkedList<>();
 
         while (explorer.hasNextValuation()) {
@@ -53,8 +56,13 @@ public class DSE {
             if (trace != null) {
                 trace.print();
                 flows.add(new LinkedList<>(trace.getFlows()));
+                if (trace.getTraceState().getState() == PathState.OK ||
+                    trace.getTraceState().getState() == PathState.ERROR) {
+                    symTaintAnalysis.addPath(trace.getDecisions(), trace.getSymTaintCheck());
+                }
             } else {
                 System.out.println("== no trace obtained.");
+                symTaintAnalysis.invalidate();
             }
             explorer.addTrace(trace);
 
@@ -63,6 +71,22 @@ public class DSE {
         }
 
         System.out.println(explorer.getAnalysis());
+
+        // ---- symbolic taint analysis
+        if (config.analyzeSymtaint()) {
+            ConstraintsTreeAnalysis a = explorer.getAnalysis();
+            boolean ni = true;
+            if (a.getOpenLeafs().size() + a.getBuggyLeafs().size() + a.getDivergedLeafs().size() +
+                    a.getDontKnowLeafs().size() > 0) {
+                System.out.println("Cannot proof non-interference on this tree");
+                ni = false;
+            }
+            symTaintAnalysis.analyze(ni);
+        }
+        // ----
+
+
+        // ---- taint-based information flow analysis
 
         InformationFlowAnalysis ia = new InformationFlowAnalysis(config);
 
@@ -86,6 +110,8 @@ public class DSE {
         }
         //ia.listFlows();
         ia.runChecks();
+
+        // ---
 
         System.out.println("[END OF OUTPUT]");
         System.exit(0);

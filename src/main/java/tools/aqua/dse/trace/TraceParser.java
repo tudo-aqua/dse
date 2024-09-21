@@ -16,6 +16,7 @@ Copyright [yyyy] [name of copyright owner]
 
 package tools.aqua.dse.trace;
 
+import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.smtlibUtility.SMTProblem;
 import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParser;
@@ -35,6 +36,8 @@ public class TraceParser {
         List<String> taintViolations = new LinkedList<>();
         List<String> flows = new LinkedList<>();
         PathResult result = PathResult.ok(vals);
+        List<Expression<Boolean>> symTaintCheck = new LinkedList<>();
+        String symTaintDecl = "";
         String decl = "";
         boolean traceComplete = false;
         for (String line : lines) {
@@ -42,7 +45,11 @@ public class TraceParser {
                 decisions.add(parseDecision( line.substring("[DECISION]".length()), decl));
             }
             else if (line.startsWith("[DECLARE]")) {
-                decl += line.substring("[DECLARE]".length());
+                if (line.contains("check")) {
+                    symTaintDecl += line.substring("[DECLARE]".length());
+                } else {
+                    decl += line.substring("[DECLARE]".length());
+                }
             }
             else if (line.startsWith("[ERROR]")) {
                 result = PathResult.error(vals, line.substring("[ERROR]".length()).trim(), "");
@@ -68,6 +75,9 @@ public class TraceParser {
             else if (line.startsWith("[TAINTCHECK]")) {
                 flows.add( line.substring("[TAINTCHECK]".length()).trim() );
             }
+            else if (line.startsWith("[SYMTAINT]")) {
+                symTaintCheck.add(parseSymTaint( line.substring("[SYMTAINT]".length()), decl, symTaintDecl));
+            }
             else if (line.startsWith("[ENDOFTRACE]")) {
                 traceComplete = true;
             }
@@ -79,7 +89,20 @@ public class TraceParser {
         }
 
         result.setTaintViolations(taintViolations);
-        return new Trace(decisions, witness, flows, result);
+        return new Trace(decisions, witness, flows, result, symTaintCheck.size() == 1 ? symTaintCheck.get(0) : null);
+    }
+
+    public static Expression<Boolean> parseSymTaint(String check, String decl, String symTaintDecl)
+            throws IOException, SMTLIBParserException {
+        String smtProg = decl + symTaintDecl + check;
+        SMTProblem smt = null;
+        try {
+            smt = SMTLIBParser.parseSMTProgram(smtProg);
+        } catch (Throwable e) {
+            System.err.println("Could not parse: " + smtProg);
+            throw e;
+        }
+        return ExpressionUtil.and(smt.assertions);
     }
 
     public static Decision parseDecision(String decision, String decl) throws IOException, SMTLIBParserException {
