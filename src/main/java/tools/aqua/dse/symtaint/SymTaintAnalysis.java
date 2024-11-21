@@ -14,9 +14,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import tools.aqua.dse.Config;
 import tools.aqua.dse.trace.Decision;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class SymTaintAnalysis {
 
@@ -26,7 +24,7 @@ public class SymTaintAnalysis {
 
     private final SolverContext solverCtx;
 
-    private Variable<?> refCheckVar = null;
+    private HashSet<Variable<?> >refCheckVars = new HashSet<>();
 
     public SymTaintAnalysis(Config config) {
         this.solverCtx = config.getSolverContext();
@@ -45,17 +43,15 @@ public class SymTaintAnalysis {
     }
 
     private boolean hasTaintCheck(Expression<Boolean> check) {
-        String name = refCheckVar == null ? "taint" : refCheckVar.getName();
-        System.out.println(name);
-        System.out.println(check);
-        Optional<Variable<?>> v = ExpressionUtil.freeVariables(check).stream().filter(
-                it -> it.getName().contains(name)).findFirst();
-
-        if (refCheckVar == null && v.isPresent()) {
-            refCheckVar = v.get();
+        List<Variable<?>> v = new ArrayList<>();
+        for (Variable<?> it : ExpressionUtil.freeVariables(check)) {
+            if (it.getName().contains("taint")) {
+                v.add(it);
+            }
         }
 
-        return v.isPresent();
+        refCheckVars.addAll(v);
+        return !v.isEmpty();
     }
 
     public void invalidate() {
@@ -72,16 +68,18 @@ public class SymTaintAnalysis {
             return;
         }
 
-        if (!refCheckVar.getType().equals(BuiltinTypes.STRING) &&
-        !refCheckVar.getType().equals(BuiltinTypes.BOOL) &&
-        !refCheckVar.getType().equals(BuiltinTypes.DOUBLE) &&
-        !refCheckVar.getType().equals(BuiltinTypes.FLOAT) &&
-        !refCheckVar.getType().equals(BuiltinTypes.SINT8) &&
-        !refCheckVar.getType().equals(BuiltinTypes.SINT16) &&
-        !refCheckVar.getType().equals(BuiltinTypes.SINT32) &&
-        !refCheckVar.getType().equals(BuiltinTypes.SINT64)) {
-            System.out.println("Unsupported type for symbolic taint: " + refCheckVar.getType());
-            return;
+        for (Variable<?> v : refCheckVars) {
+            if (!v.getType().equals(BuiltinTypes.STRING) &&
+                    !v.getType().equals(BuiltinTypes.BOOL) &&
+                    !v.getType().equals(BuiltinTypes.DOUBLE) &&
+                    !v.getType().equals(BuiltinTypes.FLOAT) &&
+                    !v.getType().equals(BuiltinTypes.SINT8) &&
+                    !v.getType().equals(BuiltinTypes.SINT16) &&
+                    !v.getType().equals(BuiltinTypes.SINT32) &&
+                    !v.getType().equals(BuiltinTypes.SINT64)) {
+                System.out.println("Unsupported type for symbolic taint: " + v.getType());
+                return;
+            }
         }
 
         Expression<Boolean> values = uniqueVars(paths.get(0), 0);
@@ -91,9 +89,11 @@ public class SymTaintAnalysis {
         for (Expression<Boolean> p : paths) {
             values = ExpressionUtil.and(values, uniqueVars(p, idx));
             // todo: check the type and create correct expression!
-            eqs = ExpressionUtil.or(eqs, new Negation(check(
-                new Variable(refCheckVar.getType(), "p0" + refCheckVar.getName()),
-                new Variable(refCheckVar.getType(), "p" + idx + refCheckVar.getName()))));
+            for (Variable<?> v : refCheckVars) {
+                eqs = ExpressionUtil.or(eqs, new Negation(check(
+                        new Variable(v.getType(), "p0" + v.getName()),
+                        new Variable(v.getType(), "p" + idx + v.getName()))));
+            }
             idx++;
         }
         Expression<Boolean> test = ExpressionUtil.and(values, eqs);
@@ -117,9 +117,9 @@ public class SymTaintAnalysis {
     }
 
     private Expression<Boolean> check(Variable v1, Variable v2) {
-        if (refCheckVar.getType().equals(BuiltinTypes.STRING)) {
+        if (v1.getType().equals(BuiltinTypes.STRING)) {
             return new StringBooleanExpression(v1, StringBooleanOperator.EQUALS, v2);
-        } else if (refCheckVar.getType().equals(BuiltinTypes.BOOL)) {
+        } else if (v1.getType().equals(BuiltinTypes.BOOL)) {
             return new PropositionalCompound(v1, LogicalOperator.EQUIV, v2);
         } else {
             return new NumericBooleanExpression(v1, NumericComparator.EQ, v2);

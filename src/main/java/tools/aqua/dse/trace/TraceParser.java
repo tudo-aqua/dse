@@ -90,7 +90,8 @@ public class TraceParser {
         }
 
         result.setTaintViolations(taintViolations);
-        return new Trace(decisions, witness, flows, result, symTaintCheck.size() == 1 ? symTaintCheck.get(0) : null);
+        return new Trace(decisions, witness, flows, result,
+                !symTaintCheck.isEmpty() ? ExpressionUtil.and(symTaintCheck) : null);
     }
 
     public static Expression<Boolean> parseSymTaint(String check, String decl, String symTaintDecl)
