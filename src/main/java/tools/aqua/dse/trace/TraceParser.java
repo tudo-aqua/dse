@@ -18,9 +18,14 @@ package tools.aqua.dse.trace;
 
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Valuation;
+import gov.nasa.jpf.constraints.api.Variable;
+import gov.nasa.jpf.constraints.expressions.Constant;
+import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
+import gov.nasa.jpf.constraints.expressions.NumericComparator;
 import gov.nasa.jpf.constraints.smtlibUtility.SMTProblem;
 import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParser;
 import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParserException;
+import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import tools.aqua.dse.paths.PathResult;
 
@@ -91,7 +96,11 @@ public class TraceParser {
 
         result.setTaintViolations(taintViolations);
         return new Trace(decisions, witness, flows, result,
-                !symTaintCheck.isEmpty() ? ExpressionUtil.and(symTaintCheck) : ExpressionUtil.FALSE);
+                !symTaintCheck.isEmpty() ? ExpressionUtil.and(symTaintCheck) :
+                        new NumericBooleanExpression(
+                                new Constant<>(BuiltinTypes.SINT32, 0),
+                                NumericComparator.EQ,
+                                new Variable<>(BuiltinTypes.SINT32, "taint_dummy")));
     }
 
     public static Expression<Boolean> parseSymTaint(String check, String decl, String symTaintDecl)
