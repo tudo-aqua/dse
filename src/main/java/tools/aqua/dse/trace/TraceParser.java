@@ -41,6 +41,7 @@ public class TraceParser {
         String decl = "";
         boolean traceComplete = false;
         for (String line : lines) {
+            System.out.println(line);
             if (line.startsWith("[DECISION]")) {
                 decisions.add(parseDecision( line.substring("[DECISION]".length()), decl));
             }
