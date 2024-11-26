@@ -31,7 +31,7 @@ public class SymTaintAnalysis {
     }
 
     public void addPath(List<Decision> pc, Expression<Boolean> check) {
-        if (check == null || !hasTaintCheck(check)) {
+        if (check == null || !validTaintCheck(check)) {
             invalidate();
         } else {
             Expression<Boolean> expr = ExpressionUtil.TRUE;
@@ -42,14 +42,14 @@ public class SymTaintAnalysis {
         }
     }
 
-    private boolean hasTaintCheck(Expression<Boolean> check) {
+    private boolean validTaintCheck(Expression<Boolean> check) {
         List<Variable<?>> v = new ArrayList<>();
         for (Variable<?> it : ExpressionUtil.freeVariables(check)) {
             if (it.getName().contains("taint")) {
                 v.add(it);
             }
         }
-
+        boolean ret = paths.isEmpty() || (refCheckVars.containsAll(v) && v.containsAll(refCheckVars));
         refCheckVars.addAll(v);
         return !v.isEmpty();
     }
@@ -66,6 +66,10 @@ public class SymTaintAnalysis {
         if (paths.isEmpty()) {
             System.out.println("No paths to analyze");
             return;
+        }
+
+        if (!isValid()) {
+            ni = false;
         }
 
         for (Variable<?> v : refCheckVars) {
