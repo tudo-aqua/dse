@@ -45,8 +45,15 @@ public class TraceParser {
         String symTaintDecl = "";
         String decl = "";
         boolean traceComplete = false;
+        boolean lastLineSymTaint = false;
+        String currentSymTaint = "";
         for (String line : lines) {
-            System.out.println(line);
+            // Technically, this parser might be manipulated by specific benchmark tasks into error state.
+            if (lastLineSymTaint && (line.startsWith("[") || line.startsWith("======================== END "))){
+                symTaintCheck.add(parseSymTaint( currentSymTaint.substring("[SYMTAINT]".length()), decl, symTaintDecl));
+                lastLineSymTaint = false;
+                currentSymTaint = "";
+            }
             if (line.startsWith("[DECISION]")) {
                 decisions.add(parseDecision( line.substring("[DECISION]".length()), decl));
             }
@@ -81,8 +88,9 @@ public class TraceParser {
             else if (line.startsWith("[TAINTCHECK]")) {
                 flows.add( line.substring("[TAINTCHECK]".length()).trim() );
             }
-            else if (line.startsWith("[SYMTAINT]")) {
-                symTaintCheck.add(parseSymTaint( line.substring("[SYMTAINT]".length()), decl, symTaintDecl));
+            else if (line.startsWith("[SYMTAINT]") || lastLineSymTaint && !line.startsWith("[")) {
+                lastLineSymTaint = true;
+                currentSymTaint += line;
             }
             else if (line.startsWith("[ENDOFTRACE]")) {
                 traceComplete = true;
