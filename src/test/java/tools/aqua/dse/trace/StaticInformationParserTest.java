@@ -3,7 +3,7 @@ package tools.aqua.dse.trace;
 import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParserException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import tools.aqua.dse.objects.Objects;
+import tools.aqua.dse.objects.ClazzModel;
 
 import java.io.IOException;
 
@@ -17,8 +17,10 @@ public class StaticInformationParserTest {
                 "class C {}" +
                 "class B extends A, C { B(), B(II) }";
 
-        Objects o = new Objects(info);
+        ClazzModel o = new ClazzModel(info);
+        System.out.println(o);
         Assert.assertEquals(o.getClazzes().size(), 4);
 
     }
+
 }

@@ -19,10 +19,9 @@ import gov.nasa.jpf.constraints.api.ConstraintSolver;
 import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.solvers.ConstraintSolverFactory;
-import gov.nasa.jpf.constraints.solvers.SolvingService;
 import org.apache.commons.cli.CommandLine;
 import tools.aqua.dse.bounds.BoundedSolverProvider;
-import tools.aqua.dse.objects.Objects;
+import tools.aqua.dse.objects.ClazzModel;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -84,7 +83,7 @@ public class Config {
 
     private final Properties properties;
 
-    private Objects objects = null;
+    private ClazzModel clazzModel = null;
 
     private Config(Properties properties) {
         this.properties = properties;
@@ -124,8 +123,8 @@ public class Config {
     public SolverContext getSolverContext() {
         SolverContext ctx = this.solver.createContext();
         // init object constraints signature
-        if (objects != null) {
-            objects.initObjectsStructure(ctx);
+        if (clazzModel != null) {
+            clazzModel.initObjectsStructure(ctx);
         }
         return ctx;
     }
@@ -248,7 +247,7 @@ public class Config {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            this.objects = new Objects(sb.toString());
+            this.clazzModel = new ClazzModel(sb.toString());
         }
 
         long seed = (new Random()).nextLong();
