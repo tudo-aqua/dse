@@ -36,7 +36,9 @@ public class TraceParser {
         List<String> flows = new LinkedList<>();
         PathResult result = PathResult.ok(vals);
         String decl = "";
+        int objectCount = 0;
         boolean traceComplete = false;
+
         for (String line : lines) {
             if (line.startsWith("[DECISION]")) {
                 decisions.add(parseDecision( line.substring("[DECISION]".length()), decl));
@@ -68,6 +70,9 @@ public class TraceParser {
             else if (line.startsWith("[TAINTCHECK]")) {
                 flows.add( line.substring("[TAINTCHECK]".length()).trim() );
             }
+            else if (line.startsWith("[META_INFOS]")) {
+                objectCount = Integer.parseInt(line.substring("[META_INFOS] object_count:".length()).trim());
+            }
             else if (line.startsWith("[ENDOFTRACE]")) {
                 traceComplete = true;
             }
@@ -79,7 +84,7 @@ public class TraceParser {
         }
 
         result.setTaintViolations(taintViolations);
-        return new Trace(decisions, witness, flows, result);
+        return new Trace(decisions, witness, flows, result, objectCount);
     }
 
     public static Decision parseDecision(String decision, String decl) throws IOException, SMTLIBParserException {

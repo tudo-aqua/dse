@@ -121,13 +121,28 @@ public class Config {
      * @return
      */
     public SolverContext getSolverContext() {
+        System.out.println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
         SolverContext ctx = this.solver.createContext();
         // init object constraints signature
         if (clazzModel != null) {
             clazzModel.initObjectsStructure(ctx);
+            clazzModel.addFiniteDomainConstraints(ctx, 0);
+
         }
         return ctx;
     }
+
+//    public SolverContext getSolverContext(int objectCount) {
+//        SolverContext ctx = this.solver.createContext();
+//        // init object constraints signature
+//        if (clazzModel != null) {
+//            clazzModel.initObjectsStructure(ctx);
+//            clazzModel.addConstructorInitializationConstraints(ctx, 0);
+//            clazzModel.addFiniteDomainConstraints(ctx, 0);
+//        }
+//        return ctx;
+//    }
+
 
     /**
      * max depth of exploration exceeded at depth

@@ -38,9 +38,11 @@ public class TraceParserTest {
         log.add("[DECISION] (assert (<= 50 (+ 11 __int_0))) // branchCount=2, branchId=1");
         log.add("[ERROR] java.lang.ArrayIndexOutOfBoundsException");
         log.add("======================== END PATH [END].");
+        log.add("[META_INFOS] object_count: 4");
         log.add("[ENDOFTRACE]");
 
         Trace t = TraceParser.parseTrace(log, new Valuation());
+        assert t.getObjectCount() == 4;
         assert t != null;
         System.out.println(t);
     }

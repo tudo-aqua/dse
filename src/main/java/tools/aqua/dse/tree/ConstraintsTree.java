@@ -77,7 +77,7 @@ public class ConstraintsTree {
     this.replayValues = config.getReplayValues();
     this.incremental = config.isIncremental();
     this.termination = config.getTermination();
-    this.incremental = config.isIncremental();
+
 
     switch (config.getStrategy()) {
       case BFS:
@@ -352,7 +352,7 @@ public class ConstraintsTree {
       solverCtx.pop();
       solverCtx.push();
       List<Expression<Boolean>> path = pathConstraint(to, root);
-      //System.out.println("solving: " + Arrays.toString( path.toArray() ));
+      System.out.println("current decision path: " + Arrays.toString( path.toArray() )); //todo:
       solverCtx.add(path);
     }
   }

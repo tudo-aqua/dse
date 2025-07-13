@@ -15,6 +15,7 @@
 
 package tools.aqua.dse;
 
+import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Valuation;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
@@ -49,7 +50,10 @@ public class DSE {
 
         while (explorer.hasNextValuation()) {
             Valuation val = explorer.getNextValuation();
+//            SolverContext solverContext = config.getSolverContext();
+
             Trace trace = executor.execute(val);
+            //todo: Add
             if (trace != null) {
                 trace.print();
                 flows.add(new LinkedList<>(trace.getFlows()));
@@ -62,7 +66,7 @@ public class DSE {
             checkAndSaveWitness(trace);
         }
 
-        System.out.println(explorer.getAnalysis());
+        System.out.println(explorer.getAnalysis()); //todo:
 
         InformationFlowAnalysis ia = new InformationFlowAnalysis(config);
 
@@ -88,7 +92,7 @@ public class DSE {
         ia.runChecks();
 
         System.out.println("[END OF OUTPUT]");
-        System.exit(0);
+//        System.exit(0);
     }
 
     /*

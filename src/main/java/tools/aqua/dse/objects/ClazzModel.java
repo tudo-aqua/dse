@@ -1,9 +1,12 @@
 package tools.aqua.dse.objects;
 
+import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.SolverContext;
+import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.expressions.Constant;
 import gov.nasa.jpf.constraints.expressions.LogicalOperator;
 import gov.nasa.jpf.constraints.expressions.PropositionalCompound;
+import gov.nasa.jpf.constraints.expressions.StringBooleanExpression;
 import gov.nasa.jpf.constraints.expressions.functions.Function;
 import gov.nasa.jpf.constraints.expressions.functions.FunctionExpression;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
@@ -12,6 +15,10 @@ import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static gov.nasa.jpf.constraints.expressions.StringBooleanOperator.EQUALS;
 
 public class ClazzModel {
 
@@ -32,49 +39,6 @@ public class ClazzModel {
     /** Map of class names to their corresponding Clazz instances */
     private final HashMap<String, Clazz> clazzes = new HashMap<>();
 
-    /**
-     * Converts the class model stored in {@link #clazzes} into a SMT-LIB problem.
-     * The SMT-LIB problem is encoded with the help of the classes of the JAVA PATH FINDER.
-     *
-     * @param ctx context of the SMT solver used to check this SMT problem
-     */
-    public void initObjectsStructure(SolverContext ctx) {
-        ArrayList<String> allConstructorNames = new ArrayList<>();
-
-        //Add an "extends" constraint for each combination of classes
-        for (Clazz clazz : clazzes.values()) {
-            allConstructorNames.addAll(Arrays.asList(clazz.getConstructors()));
-
-            //Iterator over all other classes
-            for (String clazzName : clazzes.keySet()) {
-                addConstraint(ctx, extendsFct, clazz.getName(), clazzName, clazz.isSuperClazz(clazzName));
-            }
-        }
-
-        // Add an "initialize" constraint for each combination of class and constructor
-        for (Clazz clazz : clazzes.values()) {
-            for (String constructor : allConstructorNames) {
-                addConstraint(ctx, initializesFct, constructor, clazz.getName(), clazz.hasConstructor(constructor));
-            }
-        }
-    }
-
-    /**
-     * Adds a constraint to the solver context
-     * @param ctx           solver context
-     * @param function      reference function
-     * @param arg1          first argument
-     * @param arg2          second argument
-     * @param condition     indicates whether the relation is true or false
-     */
-    private void addConstraint(SolverContext ctx, Function<BuiltinTypes.BoolType> function,
-                               String arg1, String arg2, boolean condition) {
-        FunctionExpression application = new FunctionExpression(function,
-                new Constant<>(BuiltinTypes.STRING, arg1),
-                new Constant<>(BuiltinTypes.STRING, arg2));
-        ctx.add(new PropositionalCompound(application, LogicalOperator.EQUIV,
-                condition ? ExpressionUtil.TRUE : ExpressionUtil.FALSE));
-    }
 
 
     /**
@@ -96,11 +60,11 @@ public class ClazzModel {
 
         //Add NULL class to clazzes
         Clazz NULL = new Clazz(
-                "_NULL",
+                "NULL",
                 cNames,                         // Null is a superclass of every class
-                new String[] {"_NULL()"});      // for a SMT-LIB Problem null needs a dummy constructor
+                new String[] {"NULL"});      // for a SMT-LIB Problem null needs a dummy constructor
 
-        clazzes.put("_NULL", NULL);
+        clazzes.put("NULL", NULL);
     }
 
     /**
@@ -158,6 +122,7 @@ public class ClazzModel {
             }
         }
 
+        //todo: Add one variable "methods" to Clazz and insert methods at this point
         //Extract constructors
         String[] constructors = singleClassDefinition.substring(splitIndex2+1).trim().split(",");
 
@@ -173,6 +138,117 @@ public class ClazzModel {
         // Add the class to the internal map of classes
         this.clazzes.put(clazz, new Clazz(clazz, superClasses, constructors));
     }
+
+
+    /**
+     * Converts the class model stored in {@link #clazzes} into a SMT-LIB problem.
+     * The SMT-LIB problem is encoded with the help of the classes of the JAVA PATH FINDER.
+     *
+     * @param ctx context of the SMT solver used to check this SMT problem
+     */
+    public void initObjectsStructure(SolverContext ctx) {
+        ArrayList<String> allConstructorNames = new ArrayList<>();
+
+        //Add an "extends" constraint for each combination of classes
+        for (Clazz clazz : clazzes.values()) {
+            allConstructorNames.addAll(Arrays.asList(clazz.getConstructors()));
+
+            //Iterator over all other classes
+            for (String clazzName : clazzes.keySet()) {
+                addConstraint(ctx, extendsFct, clazz.getName(), clazzName, clazz.isSuperClazz(clazzName));
+            }
+        }
+
+        // Add an "initialize" constraint for each combination of class and constructor
+        for (Clazz clazz : clazzes.values()) {
+            for (String constructor : allConstructorNames) {
+                addConstraint(ctx, initializesFct, constructor, clazz.getName(), clazz.hasConstructor(constructor));
+            }
+        }
+    }
+
+    public void addFiniteDomainConstraints(SolverContext ctx, int objectCount) {
+        ArrayList<String> classNames = new ArrayList<>(this.clazzes.keySet());
+
+        List<String> constructorNames = this.clazzes.values().stream()
+                .map(Clazz::getConstructors)
+                .flatMap(Arrays::stream)
+                .collect(Collectors.toList());
+
+        List<StringBooleanExpression> classExpressions = new ArrayList<>();
+        List<StringBooleanExpression> constructorExpressions = new ArrayList<>();
+
+        Expression<Boolean>[] orClassExpressions = new Expression[objectCount];
+        Expression<Boolean>[] orConstructorExpressions = new Expression[objectCount];
+
+        for (int i = 0; i < objectCount; i++) {
+            classExpressions.clear();
+            constructorExpressions.clear();
+
+            for (String className : classNames) {
+                classExpressions.add(new StringBooleanExpression(
+                        new Variable<>(BuiltinTypes.STRING, "__object_" + i),
+                        EQUALS,
+                        new Constant<>(BuiltinTypes.STRING, className)));
+            }
+            orClassExpressions[i] = createBigOr(classExpressions);
+
+            for (String constructorName : constructorNames) {
+                constructorExpressions.add(new StringBooleanExpression(
+                        new Variable<>(BuiltinTypes.STRING, "__object_" + i + "_constructor"),
+                        EQUALS,
+                        new Constant<>(BuiltinTypes.STRING, constructorName)));
+            }
+            orConstructorExpressions[i] = createBigOr(constructorExpressions);
+        }
+
+        ctx.add(orClassExpressions);
+        ctx.add(orConstructorExpressions);
+    }
+
+
+    public Expression<Boolean> createBigOr(List<StringBooleanExpression> conditions) {
+        Expression<Boolean> constraint = conditions.get(0);
+
+        for (int i = 1; i < conditions.size(); i++) {
+            constraint = new PropositionalCompound(constraint, LogicalOperator.OR, conditions.get(i));
+        }
+        //todo: ExpressionUtil
+
+        return constraint;
+    }
+
+    public void addConstructorInitializationConstraints(SolverContext ctx, int objectCount) {
+        List<Expression<Boolean>> initConstraints = new ArrayList<>();
+
+        for (int i = 0; i < objectCount; i++) {
+            initConstraints.add(new FunctionExpression(
+                    initializesFct,
+                    new Variable<>(BuiltinTypes.STRING, String.format("__object_%d_constructor", i)),
+                    new Variable<>(BuiltinTypes.STRING, String.format("__object_%d", i)))
+            );
+        }
+        ctx.add(initConstraints);
+    }
+
+    /**
+     * Adds a constraint to the solver context
+     * @param ctx           solver context
+     * @param function      reference function
+     * @param arg1          first argument
+     * @param arg2          second argument
+     * @param condition     indicates whether the relation is true or false
+     */
+    private void addConstraint(SolverContext ctx, Function<BuiltinTypes.BoolType> function,
+                               String arg1, String arg2, boolean condition) {
+        FunctionExpression application = new FunctionExpression(function,
+                new Constant<>(BuiltinTypes.STRING, arg1),
+                new Constant<>(BuiltinTypes.STRING, arg2));
+        ctx.add(new PropositionalCompound(application, LogicalOperator.EQUIV,
+                condition ? ExpressionUtil.TRUE : ExpressionUtil.FALSE));
+    }
+
+
 
     public HashMap<String, Clazz> getClazzes() {
         return clazzes;

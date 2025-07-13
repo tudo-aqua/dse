@@ -30,15 +30,22 @@ public class Trace {
 
     private final PathResult traceState;
 
+    private int objectCount;
+
     public Trace(List<Decision> decisions, PathResult state) {
-        this(decisions, null, null, state);
+        this(decisions, null, null, state, 0);
     }
 
-    public Trace(List<Decision> decisions, List<WitnessAssumption> witness, List<String> flows, PathResult state) {
+    public Trace(List<Decision> decisions,
+                 List<WitnessAssumption> witness,
+                 List<String> flows,
+                 PathResult state,
+                 int objectCount) {
         this.decisions = decisions;
         this.witness = witness;
         this.flows = flows;
         this.traceState = state;
+        this.objectCount = objectCount;
     }
 
     public List<Decision> getDecisions() {
@@ -66,6 +73,10 @@ public class Trace {
             System.out.println(d);
         }
         System.out.println(traceState);
+    }
+
+    public int getObjectCount() {
+        return objectCount;
     }
 
     @Override

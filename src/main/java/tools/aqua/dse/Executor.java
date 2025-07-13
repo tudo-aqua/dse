@@ -54,6 +54,7 @@ public class Executor {
             generateParam("concolic.floats", "__float_", val),
             generateParam("concolic.doubles", "__double_", val),
             generateParam("concolic.strings", "__string_", val),
+            generateParam("concolic.constructors", "__constructor_", val),
             this.executorArgs
         };
         System.out.println(String.join(" ", cmd));
@@ -67,9 +68,9 @@ public class Executor {
                     .waitFor();
 
             List<String> lines = Files.readAllLines(output);
-//            System.out.println("%%%%%%%%%%% Executor Output Start");
-//            lines.forEach(n ->{System.out.println(n);});
-//            System.out.println("%%%%%%%%%%% Executor Output End");
+            System.out.println("%%%%%%%%%%% Executor Output Start");
+            lines.forEach(System.out::println);
+            System.out.println("%%%%%%%%%%% Executor Output End");
             Files.delete(output);
             return TraceParser.parseTrace(lines, val);
         } catch (Throwable t) {
@@ -109,6 +110,7 @@ public class Executor {
             case "__float_":
             case "__double_": return "0.0";
             case "__string_": return ""; //FIXME: not sure if this works on the other end (zero length string disregarded?)
+            case "__constructor_": return "NULL";
             default:
                 throw new IllegalArgumentException("unsupported prefix for default values: " + prefix);
         }
