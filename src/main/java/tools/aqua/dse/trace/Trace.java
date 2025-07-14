@@ -30,7 +30,7 @@ public class Trace {
 
     private final PathResult traceState;
 
-    private int objectCount;
+    private final int objectCount;
 
     public Trace(List<Decision> decisions, PathResult state) {
         this(decisions, null, null, state, 0);

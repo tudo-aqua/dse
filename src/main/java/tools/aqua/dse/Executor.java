@@ -42,7 +42,7 @@ public class Executor {
     }
 
     public Trace execute(Valuation val) {
-        //System.out.println("model: " + val);
+        System.out.println("model: " + val);
         String[] cmd = new String[] {
             this.executurCmd,
             generateParam("concolic.bools", "__bool_", val),
@@ -54,7 +54,7 @@ public class Executor {
             generateParam("concolic.floats", "__float_", val),
             generateParam("concolic.doubles", "__double_", val),
             generateParam("concolic.strings", "__string_", val),
-            generateParam("concolic.constructors", "__constructor_", val),
+            generateParam("concolic.constructors", "__object_constructor_", val),
             this.executorArgs
         };
         System.out.println(String.join(" ", cmd));
@@ -110,7 +110,7 @@ public class Executor {
             case "__float_":
             case "__double_": return "0.0";
             case "__string_": return ""; //FIXME: not sure if this works on the other end (zero length string disregarded?)
-            case "__constructor_": return "NULL";
+            case "__constructor_": return "null";
             default:
                 throw new IllegalArgumentException("unsupported prefix for default values: " + prefix);
         }

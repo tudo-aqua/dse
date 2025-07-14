@@ -60,11 +60,11 @@ public class ClazzModel {
 
         //Add NULL class to clazzes
         Clazz NULL = new Clazz(
-                "NULL",
+                "null",
                 cNames,                         // Null is a superclass of every class
-                new String[] {"NULL"});      // for a SMT-LIB Problem null needs a dummy constructor
+                new String[] {"dummy"});      // for a SMT-LIB Problem null needs a dummy constructor
 
-        clazzes.put("NULL", NULL);
+        clazzes.put("null", NULL);
     }
 
     /**
@@ -195,7 +195,7 @@ public class ClazzModel {
 
             for (String constructorName : constructorNames) {
                 constructorExpressions.add(new StringBooleanExpression(
-                        new Variable<>(BuiltinTypes.STRING, "__object_" + i + "_constructor"),
+                        new Variable<>(BuiltinTypes.STRING, "__object_constructor_"+i),
                         EQUALS,
                         new Constant<>(BuiltinTypes.STRING, constructorName)));
             }
@@ -224,7 +224,7 @@ public class ClazzModel {
         for (int i = 0; i < objectCount; i++) {
             initConstraints.add(new FunctionExpression(
                     initializesFct,
-                    new Variable<>(BuiltinTypes.STRING, String.format("__object_%d_constructor", i)),
+                    new Variable<>(BuiltinTypes.STRING, String.format("__object_constructor_%d", i)),
                     new Variable<>(BuiltinTypes.STRING, String.format("__object_%d", i)))
             );
         }

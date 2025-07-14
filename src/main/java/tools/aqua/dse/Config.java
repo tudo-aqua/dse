@@ -22,6 +22,7 @@ import gov.nasa.jpf.constraints.solvers.ConstraintSolverFactory;
 import org.apache.commons.cli.CommandLine;
 import tools.aqua.dse.bounds.BoundedSolverProvider;
 import tools.aqua.dse.objects.ClazzModel;
+import tools.aqua.dse.objects.LoggingSolverContext;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -115,33 +116,20 @@ public class Config {
         return incremental;
     }
 
-    /**
-     * constraint solver context
-     *
-     * @return
-     */
+
+
     public SolverContext getSolverContext() {
-        System.out.println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-        SolverContext ctx = this.solver.createContext();
+        System.out.println("Create SolverContext");
+        SolverContext ctx = new LoggingSolverContext(this.solver.createContext());
         // init object constraints signature
         if (clazzModel != null) {
+            System.out.println("Claaz Model found");
             clazzModel.initObjectsStructure(ctx);
-            clazzModel.addFiniteDomainConstraints(ctx, 0);
-
+            clazzModel.addConstructorInitializationConstraints(ctx, 1);
+            clazzModel.addFiniteDomainConstraints(ctx, 1);
         }
         return ctx;
     }
-
-//    public SolverContext getSolverContext(int objectCount) {
-//        SolverContext ctx = this.solver.createContext();
-//        // init object constraints signature
-//        if (clazzModel != null) {
-//            clazzModel.initObjectsStructure(ctx);
-//            clazzModel.addConstructorInitializationConstraints(ctx, 0);
-//            clazzModel.addFiniteDomainConstraints(ctx, 0);
-//        }
-//        return ctx;
-//    }
 
 
     /**

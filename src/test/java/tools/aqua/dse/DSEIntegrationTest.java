@@ -2,7 +2,12 @@ package tools.aqua.dse;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Properties;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class DSEIntegrationTest {
     @Test
@@ -14,10 +19,23 @@ public class DSEIntegrationTest {
         props.setProperty("dse.dp.incremental", "false");
         props.setProperty("dse.terminate.on", "completion");
         props.setProperty("dse.explore", "BFS");
+        props.setProperty("static.info", "../class_hierarchy.txt");
 
         Config config = Config.fromProperties(props);
 
         DSE dse = new DSE(config);
         dse.executeAnalysis();
+    }
+
+    @Test
+    void testDateiEinlesen() throws Exception {
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("class_hierarchy.txt");
+
+        assertNotNull(inputStream, "Datei konnte nicht gefunden werden");
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            String inhalt = reader.readLine();
+            System.out.println(inhalt);
+        }
     }
 }
