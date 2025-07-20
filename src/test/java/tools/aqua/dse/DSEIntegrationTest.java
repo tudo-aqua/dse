@@ -1,14 +1,45 @@
 package tools.aqua.dse;
 
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 
 public class DSEIntegrationTest {
-    public void printExample(String pathToExample) {
-        ProcessBuilder pb = new ProcessBuilder("bat", "--color=always", String.format("../examples_concolic/%s", pathToExample));
+    private final ByteArrayOutputStream capturedOutput = new ByteArrayOutputStream();
+    private final ByteArrayOutputStream capturedErr = new ByteArrayOutputStream();
+    private PrintStream originalOut;
+    private boolean debug = false;
+
+    @BeforeEach
+    void setUpStreams() {
+        //get console output
+        this.originalOut = System.out;
+        PrintStream originalErr = System.err;
+
+        // Redirects System.out directly to the ByteArrayOutputStream.
+        // No more output is output to the console.
+        System.setOut(new PrintStream(capturedOutput));
+        System.setErr(new PrintStream(capturedErr));
+    }
+
+    @AfterEach
+    void restoreStreams() {
+        System.setOut(originalOut);
+    }
+
+    public void printExample(String exampleName
+    ) {
+        String filePath = exampleName + ".java";
+        ProcessBuilder pb = new ProcessBuilder("bat", "--color=always", String.format("../examples_concolic/%s", filePath));
         pb.inheritIO(); // direktes Durchreichen der Ausgabe
         Process p = null;
         try {
@@ -20,11 +51,6 @@ public class DSEIntegrationTest {
             throw new RuntimeException(e);
         }
 
-    }
-
-    @Test
-    public void test() {
-        printExample("../examples_concolic/Example1.java");
     }
 
     private static DSE getExecution(String exampleName, String pathToClassHierachy) {
@@ -42,17 +68,42 @@ public class DSEIntegrationTest {
         return  new DSE(config);
     }
 
+
+    private String filterOutPutStream() {
+        if (this.debug) {
+            return String.format("Console Log:%n %s%n Error Log: %n%s", capturedOutput, capturedErr);
+        }
+
+        return Arrays.stream(this.capturedOutput.toString().split("\\R"))
+                .filter(line -> !line.startsWith("Warning:"))
+                .filter(line -> !line.startsWith("Random seed:"))
+                .collect(Collectors.joining(System.lineSeparator()));
+
+
+    }
+
     @Test
     public void Example1() {
         //define example
-        String exampleName = "Example1.java";
+        String exampleName = "Example1";
 
         //execute example
-        printExample(String.format("../examples_concolic/%s", exampleName));
+        printExample(exampleName);
         DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
         dse.executeAnalysis();
 
+        //stop redirection of console log
+        System.setOut(originalOut);
+
         //checks
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        assertThat(output)
+                .contains("+ 0 : (='__object_0'null) \n" +
+                        "  + OK[complete path:true] . \n" +
+                        "+ 1 : !(='__object_0'null) \n" +
+                        "  + OK[complete path:true] . __object_constructor_0:=LB;|()V,__object_0:=LB;");
 
     }
 

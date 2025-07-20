@@ -466,9 +466,10 @@ public class ConstraintsTree {
       // find model
       Valuation val = new Valuation();
       logger.finer("Finding new valuation");
-      System.out.println("Solve SMT-problem");
+      System.out.println("\033[35mSolve SMT-problem");
       Result res = solverCtx.solve(val);
-      System.out.println("Found: " + res + " : " + val);
+      System.out.println("status: "+res);
+      System.out.println("model: "+val+"\033[0m");
       currentValues = val;
       logger.finer("Found: " + res + " : " + val);
 

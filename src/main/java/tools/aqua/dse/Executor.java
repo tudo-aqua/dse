@@ -42,7 +42,7 @@ public class Executor {
     }
 
     public Trace execute(Valuation val) {
-        System.out.println("model: " + val);
+//        System.out.println("model: " + val);
         String[] cmd = new String[] {
             this.executurCmd,
             generateParam("concolic.bools", "__bool_", val),
@@ -68,9 +68,9 @@ public class Executor {
                     .waitFor();
 
             List<String> lines = Files.readAllLines(output);
-            System.out.println("%%%%%%%%%%% Executor Output Start");
+            System.out.println("\033[34m%%%%%%%%%%% Executor Output Start");
             lines.forEach(System.out::println);
-            System.out.println("%%%%%%%%%%% Executor Output End");
+            System.out.println("%%%%%%%%%%% Executor Output End\033[0m");
             Files.delete(output);
             return TraceParser.parseTrace(lines, val);
         } catch (Throwable t) {
