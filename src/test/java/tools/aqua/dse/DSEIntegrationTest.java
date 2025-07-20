@@ -1,41 +1,59 @@
 package tools.aqua.dse;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.IOException;
 import java.util.Properties;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class DSEIntegrationTest {
+    public void printExample(String pathToExample) {
+        ProcessBuilder pb = new ProcessBuilder("bat", "--color=always", String.format("../examples_concolic/%s", pathToExample));
+        pb.inheritIO(); // direktes Durchreichen der Ausgabe
+        Process p = null;
+        try {
+            p = pb.start();
+            p.waitFor();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
     @Test
     public void test() {
+        printExample("../examples_concolic/Example1.java");
+    }
+
+    private static DSE getExecution(String exampleName, String pathToClassHierachy) {
         Properties props = new Properties();
         props.setProperty("dse.dp", "z3");
         props.setProperty("dse.executor", "../executor.sh");
-        props.setProperty("dse.executor.args", "-cp ../examples_concolic/:../verifier-stub/target/verifier-stub-1.0.jar -Dconcolic.execution=true Example3");
+        props.setProperty("dse.executor.args", "-cp ../examples_concolic/:../verifier-stub/target/verifier-stub-1.0.jar -Dconcolic.execution=true " + exampleName);
         props.setProperty("dse.dp.incremental", "false");
         props.setProperty("dse.terminate.on", "completion");
         props.setProperty("dse.explore", "BFS");
-        props.setProperty("static.info", "../class_hierarchy.txt");
+        props.setProperty("static.info", pathToClassHierachy);
 
         Config config = Config.fromProperties(props);
 
-        DSE dse = new DSE(config);
-        dse.executeAnalysis();
+        return  new DSE(config);
     }
 
     @Test
-    void testDateiEinlesen() throws Exception {
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("class_hierarchy.txt");
+    public void Example1() {
+        //define example
+        String exampleName = "Example1.java";
 
-        assertNotNull(inputStream, "Datei konnte nicht gefunden werden");
+        //execute example
+        printExample(String.format("../examples_concolic/%s", exampleName));
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-            String inhalt = reader.readLine();
-            System.out.println(inhalt);
-        }
+        //checks
+
     }
+
 }

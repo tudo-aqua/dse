@@ -32,7 +32,8 @@ public class LoggingSolverContext extends SolverContext {
     @Override
     public void add(List<Expression<Boolean>> list) {
         for (Expression<Boolean> booleanExpression : list) {
-            System.out.println(booleanExpression);
+            System.out.println("\u001B[33m" + booleanExpression + "\u001B[0m");
+
         }
         context.add(list);
     }
