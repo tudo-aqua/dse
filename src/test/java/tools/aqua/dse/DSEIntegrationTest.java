@@ -1,8 +1,7 @@
 package tools.aqua.dse;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+
 import static org.assertj.core.api.Assertions.*;
 
 import java.io.ByteArrayOutputStream;
@@ -12,7 +11,7 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class DSEIntegrationTest {
     private final ByteArrayOutputStream capturedOutput = new ByteArrayOutputStream();
     private final ByteArrayOutputStream capturedErr = new ByteArrayOutputStream();
@@ -83,7 +82,7 @@ public class DSEIntegrationTest {
     }
 
     @Test
-    public void Example1() {
+    public void Example01_basic() {
         //define example
         String exampleName = "Example1";
 
@@ -95,10 +94,11 @@ public class DSEIntegrationTest {
         //stop redirection of console log
         System.setOut(originalOut);
 
-        //checks
+        //printing results
         String output = filterOutPutStream();
         System.out.println(output);
 
+        //checks
         assertThat(output)
                 .contains("+ 0 : (='__object_0'null) \n" +
                         "  + OK[complete path:true] . \n" +
@@ -107,4 +107,748 @@ public class DSEIntegrationTest {
 
     }
 
+    @Test
+    public void Example02_casting() {
+        //define example
+        String exampleName = "Example2";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example03_isNull() {
+        //define example
+        String exampleName = "Example3";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        assertThat(output)
+                .isEqualTo("+ 0 : (='__object_0'null) \n" +
+                        "  + ERROR[complete path:true] .  . java/lang/AssertionError\n" +
+                        "+ 1 : !(='__object_0'null) \n" +
+                        "  + OK[complete path:true] . __object_0:=LB;,__object_constructor_0:=LB;|()V");
+    }
+
+    @Test
+    public void Example04_isNotNull() {
+        //define example
+        String exampleName = "Example4";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        assertThat(output)
+                .contains("+ 0 : !(='__object_0'null) \n" +
+                        "  + ERROR[complete path:true] . __object_0:=LB;,__object_constructor_0:=LB;|()V . java/lang/AssertionError\n" +
+                        "+ 1 : (='__object_0'null) \n" +
+                        "  + OK[complete path:true] . ");
+    }
+
+    @Test
+    public void Example05_towIndependentObjects_checkIdentical() {
+        //define example
+        String exampleName = "Example5";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example06_towIndependentObjects_checkNotIdentical() {
+        //define example
+        String exampleName = "Example6";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example07_OneObject_checkIdentical() {
+        //define example
+        String exampleName = "Example7";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example08_OneObject_checkNotIdentical() {
+        //define example
+        String exampleName = "Example8";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+
+    @Test
+    public void Example09_instanceOfA() {
+        //define example
+        String exampleName = "Example9";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example10_notInstanceOfA() {
+        //define example
+        String exampleName = "Example10";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example11_instanceOfB() {
+        //define example
+        String exampleName = "Example11";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example12_notInstanceOfB() {
+        //define example
+        String exampleName = "Example12";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+
+    @Test
+    public void Example13_aX_isNull() {
+        //define example
+        String exampleName = "Example13";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example14_aX_isNotNull() {
+        //define example
+        String exampleName = "Example14";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example15_aX_smallerNull() {
+        //define example
+        String exampleName = "Example15";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example16_aX_smalerEqualNull() {
+        //define example
+        String exampleName = "Example16";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example17_aX_greaterNull() {
+        //define example
+        String exampleName = "Example17";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example18_aX_greaterEqualNull() {
+        //define example
+        String exampleName = "Example18";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example19_a1X_equals_a2X() {
+        //define example
+        String exampleName = "Example19";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example20_a1X_notEquals_a2X() {
+        //define example
+        String exampleName = "Example20";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example21_a1X_smaller_a2X() {
+        //define example
+        String exampleName = "Example21";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example22_a1X_smallerEquals_a2X() {
+        //define example
+        String exampleName = "Example22";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example23_a1X_greater_a2X() {
+        //define example
+        String exampleName = "Example23";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example24_a1X_greaterEquals_a2X() {
+        //define example
+        String exampleName = "Example24";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example25_a1X_equals_a2Y() {
+        //define example
+        String exampleName = "Example25";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example26_a1X_notEquals_a2Y() {
+        //define example
+        String exampleName = "Example26";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example27_a1X_smaller_a2Y() {
+        //define example
+        String exampleName = "Example27";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example28_a1X_smallerEquals_a2Y() {
+        //define example
+        String exampleName = "Example28";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example29_a1X_greater_a2Y() {
+        //define example
+        String exampleName = "Example29";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example30_a1X_greaterEquals_a2Y() {
+        //define example
+        String exampleName = "Example30";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example31_komplex_condition() {
+        //define example
+        String exampleName = "Example31";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example32_createIntegerFromObject() {
+        //define example
+        String exampleName = "Example32";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example33_createStringFromObject() {
+        //define example
+        String exampleName = "Example33";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example35_instanceOfInterface() {
+        //define example
+        String exampleName = "Example35";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example36_notInstanceOfInterface() {
+        //define example
+        String exampleName = "Example36";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
+
+    @Test
+    public void Example37_a1Y_equals_a2Y() {
+        //define example
+        String exampleName = "Example37";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        System.out.println(output);
+
+        //checks
+        //todo: Add checks
+    }
 }
