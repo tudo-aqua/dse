@@ -22,11 +22,10 @@ import gov.nasa.jpf.constraints.api.ConstraintSolver.Result;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Valuation;
-import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import tools.aqua.dse.Config;
 import tools.aqua.dse.paths.PathResult;
-import tools.aqua.dse.paths.PathState;
 import tools.aqua.dse.trace.Decision;
+import tools.aqua.dse.trace.Trace;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -416,7 +415,7 @@ public class ConstraintsTree {
    *
    * @return
    */
-  public Valuation findNext() {
+  public Valuation findNext(Trace trace) {
     if (terminate) {
       //TODO: close tree somehow?
       return null;
@@ -463,6 +462,12 @@ public class ConstraintsTree {
           nextOpen);
       currentTarget = nextOpen;
 
+      //Add object-specific constraints
+      if (this.config.getClazzModel() != null) {
+        solverCtx.push();
+        this.config.getClazzModel().addObjectConstraintsForTrace(trace, solverCtx);
+      }
+
       // find model
       Valuation val = new Valuation();
       logger.finer("Finding new valuation");
@@ -472,6 +477,9 @@ public class ConstraintsTree {
       System.out.println("model: "+val+"\033[0m");
       currentValues = val;
       logger.finer("Found: " + res + " : " + val);
+
+      //Remove object-specific constraints
+      solverCtx.pop();
 
       // if node is unsat or dont/know -> next
       // if node is satisfiable -> simulate and execute!

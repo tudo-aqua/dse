@@ -11,6 +11,8 @@ import gov.nasa.jpf.constraints.expressions.functions.Function;
 import gov.nasa.jpf.constraints.expressions.functions.FunctionExpression;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
+import io.github.cvc5.Solver;
+import tools.aqua.dse.trace.Trace;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,6 +53,12 @@ public class ClazzModel {
         createNullClazz();
     }
 
+    public void addObjectConstraintsForTrace(Trace trace, SolverContext solverContext) {
+        initObjectsStructure(solverContext);
+        addConstructorInitializationConstraints(solverContext, trace.getObjectCount());
+        addFiniteDomainConstraints(solverContext, trace.getObjectCount());
+    }
+
     /**
      * Creates a NULL clazz and adds it to {@link #clazzes}
      */
@@ -62,7 +70,7 @@ public class ClazzModel {
         Clazz NULL = new Clazz(
                 "null",
                 cNames,                         // Null is a superclass of every class
-                new String[] {"dummy"});      // for a SMT-LIB Problem null needs a dummy constructor
+                new String[] {"NULL"});      // for a SMT-LIB Problem null needs a dummy constructor
 
         clazzes.put("null", NULL);
     }
@@ -149,6 +157,7 @@ public class ClazzModel {
     public void initObjectsStructure(SolverContext ctx) {
         ArrayList<String> allConstructorNames = new ArrayList<>();
 
+        System.out.println("Add general extends constraints");
         //Add an "extends" constraint for each combination of classes
         for (Clazz clazz : clazzes.values()) {
             allConstructorNames.addAll(Arrays.asList(clazz.getConstructors()));
@@ -159,6 +168,7 @@ public class ClazzModel {
             }
         }
 
+        System.out.println("Add general initializes constraints");
         // Add an "initialize" constraint for each combination of class and constructor
         for (Clazz clazz : clazzes.values()) {
             for (String constructor : allConstructorNames) {
@@ -168,6 +178,7 @@ public class ClazzModel {
     }
 
     public void addFiniteDomainConstraints(SolverContext ctx, int objectCount) {
+        System.out.println("Add finite domain constraints");
         ArrayList<String> classNames = new ArrayList<>(this.clazzes.keySet());
 
         List<String> constructorNames = this.clazzes.values().stream()
@@ -219,6 +230,7 @@ public class ClazzModel {
     }
 
     public void addConstructorInitializationConstraints(SolverContext ctx, int objectCount) {
+        System.out.println("Add concrete initialization constraints");
         List<Expression<Boolean>> initConstraints = new ArrayList<>();
 
         for (int i = 0; i < objectCount; i++) {

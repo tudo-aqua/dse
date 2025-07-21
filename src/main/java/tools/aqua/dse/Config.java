@@ -117,17 +117,21 @@ public class Config {
     }
 
 
+    public ClazzModel getClazzModel() {
+        return this.clazzModel;
+    }
+
 
     public SolverContext getSolverContext() {
         System.out.println("Create SolverContext");
         SolverContext ctx = new LoggingSolverContext(this.solver.createContext());
         // init object constraints signature
-        if (clazzModel != null) {
-            System.out.println("Claaz Model found");
-            clazzModel.initObjectsStructure(ctx);
-            clazzModel.addConstructorInitializationConstraints(ctx, 1);
-            clazzModel.addFiniteDomainConstraints(ctx, 1);
-        }
+//        if (clazzModel != null) {
+//            System.out.println("Claaz Model found");
+//            clazzModel.initObjectsStructure(ctx);
+//            clazzModel.addConstructorInitializationConstraints(ctx, 1); //todo:
+//            clazzModel.addFiniteDomainConstraints(ctx, 1); //todo:
+//        }
         return ctx;
     }
 

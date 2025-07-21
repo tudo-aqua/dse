@@ -42,7 +42,7 @@ public class Explorer {
             }
             ctree.finish(t.getTraceState());
         }
-        this.nextValuation = ctree.findNext();
+        this.nextValuation = ctree.findNext(t);
     }
 
     public boolean hasNextValuation() {

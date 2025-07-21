@@ -66,30 +66,30 @@ public class DSE {
             checkAndSaveWitness(trace);
         }
 
-        System.out.println(explorer.getAnalysis()); //todo:
+        System.out.println("\u001b[32m"+explorer.getAnalysis()+"\u001b[0m"); //todo:
 
-        InformationFlowAnalysis ia = new InformationFlowAnalysis(config);
-
-        int slotCount = (int) ((double) flows.size() * config.getFraction());
-        System.out.println("Flows recorded for " + flows.size() + " paths. " +
-                "Using " + slotCount + " (" + config.getFraction() +
-                ") paths for information flow analysis." );
-
-        Random rand = config.getRandom();
-
-        Set<Integer> slots = new TreeSet<>();
-        while (slots.size() < slotCount) {
-            slots.add(rand.nextInt(flows.size()));
-        }
-
-        for (Integer idx : slots) {
-            List<String> fList = flows.get(idx);
-            for (String f : fList) {
-                ia.addFlow(f);
-            }
-        }
-        //ia.listFlows();
-        ia.runChecks();
+//        InformationFlowAnalysis ia = new InformationFlowAnalysis(config);
+//
+//        int slotCount = (int) ((double) flows.size() * config.getFraction());
+//        System.out.println("Flows recorded for " + flows.size() + " paths. " +
+//                "Using " + slotCount + " (" + config.getFraction() +
+//                ") paths for information flow analysis." );
+//
+//        Random rand = config.getRandom();
+//
+//        Set<Integer> slots = new TreeSet<>();
+//        while (slots.size() < slotCount) {
+//            slots.add(rand.nextInt(flows.size()));
+//        }
+//
+//        for (Integer idx : slots) {
+//            List<String> fList = flows.get(idx);
+//            for (String f : fList) {
+//                ia.addFlow(f);
+//            }
+//        }
+//        //ia.listFlows();
+//        ia.runChecks();
 
         System.out.println("[END OF OUTPUT]");
 //        System.exit(0);
