@@ -16,16 +16,24 @@ Copyright [yyyy] [name of copyright owner]
 
 package tools.aqua.dse.trace;
 
+import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Valuation;
+import gov.nasa.jpf.constraints.api.Variable;
+import gov.nasa.jpf.constraints.expressions.Constant;
+import gov.nasa.jpf.constraints.expressions.functions.Function;
+import gov.nasa.jpf.constraints.expressions.functions.FunctionExpression;
 import gov.nasa.jpf.constraints.smtlibUtility.SMTProblem;
 import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParser;
 import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParserException;
+import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import tools.aqua.dse.paths.PathResult;
 
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TraceParser {
 
@@ -90,15 +98,83 @@ public class TraceParser {
     public static Decision parseDecision(String decision, String decl) throws IOException, SMTLIBParserException {
         String[] parts = decision.split("\\/\\/ branchCount=|, branchId=");
         SMTProblem smt = null;
-        try {
-            smt = SMTLIBParser.parseSMTProgram(decl + parts[0]);
-        } catch (Throwable e) {
-            System.err.println("Could not parse: " + decl + parts[0]);
-            throw e;
+        String constraint = parts[0];
+        Expression<Boolean> expr = null;
+
+        if (constraint.contains("extends")) {
+            expr = parseExtends(constraint);
+            int branches = Integer.parseInt(parts[1]);
+            int branchId = Integer.parseInt(parts[2]);
+            return new Decision( expr, branches, branchId);
         }
-        int branches = Integer.parseInt(parts[1]);
-        int branchId = Integer.parseInt(parts[2]);
-        return new Decision( ExpressionUtil.and(smt.assertions), branches, branchId);
+        else {
+            try {
+                smt = SMTLIBParser.parseSMTProgram(decl + parts[0]);
+            } catch (Throwable e) {
+                System.err.println("Could not parse: " + decl + parts[0]);
+                throw e;
+            }
+            int branches = Integer.parseInt(parts[1]);
+            int branchId = Integer.parseInt(parts[2]);
+            return new Decision( ExpressionUtil.and(smt.assertions), branches, branchId);
+        }
+    }
+
+    private static Expression<Boolean> parseExtends(String constraint) {
+
+        // 1. Extract parameter of the extends-assert statement
+        String[] extractedParameters = extractValuesFromExtendAssertStatement(constraint);
+        assert extractedParameters != null;
+        String objectName = extractedParameters[0];
+        String klassName = extractedParameters[1];
+
+        // 1) Erzeuge Variable __object_0 als String
+        Variable<String> obj0Var = Variable.create(BuiltinTypes.STRING, objectName);
+
+        // 2) Erzeuge konstante Klasse "LA"
+        Constant<String> laConst = Constant.create(BuiltinTypes.STRING, klassName);
+
+        // 3) Erzeuge die uninterpreted Funktion „extends(String,String) → Bool“
+        Function<Boolean> extendsFct =
+                new Function<>("extends",
+                        BuiltinTypes.BOOL,
+                        BuiltinTypes.STRING,
+                        BuiltinTypes.STRING);
+
+        // 4) Erzeuge Anwendung extends(__object_0, "LA")
+        Expression<Boolean> extApp =
+                new FunctionExpression<>(extendsFct, obj0Var, laConst);
+
+        return extApp;
+    }
+
+    /**
+     * Extracts "__object_..." and "L..." from a given string.
+     *
+     * @param text The input string.
+     * @return A String array with two elements if a match is found,
+     * otherwise null. The first element is the __object_ value, the second
+     * is the L value without the semicolon.
+     */
+    public static String[] extractValuesFromExtendAssertStatement(String text) {
+        // The regular expression that defines the two values as capturing groups.
+        // Group 1: (__object_[^ ]+)
+        // Group 2: (L[^;]+)
+        String regex = "__object_([0-9]+).*?(L[^;]+);";;
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(text);
+
+        if (matcher.find()) {
+            // Reconstruct the full __object_ string for the first group
+            String var1 = "__object_" + matcher.group(1);
+
+            // The second group already captures the full L string
+            String var2 = matcher.group(2);
+
+            return new String[]{var1, var2};
+        } else {
+            return null;
+        }
     }
 
 
