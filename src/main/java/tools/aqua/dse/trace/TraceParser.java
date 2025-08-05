@@ -27,11 +27,14 @@ import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParser;
 import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParserException;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
+import tools.aqua.dse.objects.ClassHierarchyParser;
 import tools.aqua.dse.paths.PathResult;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -102,12 +105,13 @@ public class TraceParser {
         Expression<Boolean> expr = null;
 
         if (constraint.contains("extends")) {
-            expr = parseExtends(constraint);
+            expr = parseExtends3(constraint);
             int branches = Integer.parseInt(parts[1]);
             int branchId = Integer.parseInt(parts[2]);
             return new Decision( expr, branches, branchId);
         }
-        if (constraint.contains("instance_of")) {
+
+        else if (constraint.contains("instance_of")) {
             expr = parseInstanceOf(constraint);
             int branches = Integer.parseInt(parts[1]);
             int branchId = Integer.parseInt(parts[2]);
@@ -135,24 +139,111 @@ public class TraceParser {
         String objectName = extractedParameters[0];
         String klassName = extractedParameters[1];
 
-        // 1) Erzeuge Variable __object_0 als String
+        // 2. Creates a variable __object_0 as String
         Variable<String> obj0Var = Variable.create(BuiltinTypes.STRING, objectName);
 
-        // 2) Erzeuge konstante Klasse "LA"
+        // 3. Creates a constant for the klassName as String
         Constant<String> laConst = Constant.create(BuiltinTypes.STRING, klassName);
 
-        // 3) Erzeuge die uninterpreted Funktion „extends(String,String) → Bool“
+        // 4. Creates an uninterpreted function „extends(String,String) → Bool“
         Function<Boolean> extendsFct =
                 new Function<>("extends",
                         BuiltinTypes.BOOL,
                         BuiltinTypes.STRING,
                         BuiltinTypes.STRING);
 
-        // 4) Erzeuge Anwendung extends(__object_0, "LA")
+        // 5. creates the application of the uninterpreted function extends(__object_0, "LA")
         Expression<Boolean> extApp =
                 new FunctionExpression<>(extendsFct, obj0Var, laConst);
 
         return extApp;
+    }
+
+    private static Expression<Boolean> parseExtends2(String constraint) {
+
+        // 1. Extract parameter of the extends-assert statement
+        String[] extractedParameters = extractValuesFromExtendAssertStatement(constraint);
+        assert extractedParameters != null;
+        String objectName = extractedParameters[0];
+        String klassName = extractedParameters[1];
+
+        // 2. Creates a variable __object_0 as String
+        Variable<String> obj0Var = Variable.create(BuiltinTypes.STRING, objectName);
+
+        // 3. Creates a constant for the klassName as String
+        Constant<String> const1 = Constant.create(BuiltinTypes.STRING, "null");
+        Constant<String> const2 = Constant.create(BuiltinTypes.STRING, "LB;");
+
+        // 4. Creates an uninterpreted function „extends(String,String) → Bool“
+        Function<Boolean> extendsFct =
+                new Function<>("extends",
+                        BuiltinTypes.BOOL,
+                        BuiltinTypes.STRING,
+                        BuiltinTypes.STRING);
+
+        // 5. creates the application of the uninterpreted function extends(__object_0, "LA")
+        Expression<Boolean> extApp1 =
+                new FunctionExpression<>(extendsFct, obj0Var, const1);
+
+        Expression<Boolean> extApp2 =
+                new FunctionExpression<>(extendsFct, obj0Var, const2);
+
+        List<Expression<Boolean>> expressionList = new ArrayList<>();
+        expressionList.add(extApp1);
+        expressionList.add(extApp2);
+
+        Expression<Boolean> completExpression = ExpressionUtil.or(expressionList);
+
+        return completExpression;
+    }
+
+
+    private static Expression<Boolean> parseExtends3(String constraint) {
+        // 1. Creates an uninterpreted function „extends(String,String) → Bool“
+        Function<Boolean> extendsFct =
+                new Function<>("extends",
+                        BuiltinTypes.BOOL,
+                        BuiltinTypes.STRING,
+                        BuiltinTypes.STRING);
+
+        // 2. Extract parameter of the extends-assert statement
+        String[] extractedParameters = extractValuesFromExtendAssertStatement(constraint);
+        assert extractedParameters != null;
+        String objectName = extractedParameters[0];
+        String klassName = extractedParameters[1];
+
+        // 3. Determine subclasses
+        ClassHierarchyParser parser = new ClassHierarchyParser();
+        parser.parse("class LA; { LA;|()V, LA;|(II)V}\n" +
+                "class LB; extends LA;{ LB;|()V}");
+
+        Set<String> subclasses = parser.getAllSubclasses(klassName);
+
+        // 4. Add the class itself and null to the array (because every class can be casted to itself and null can be
+        // casted to every class)
+        subclasses.add(klassName);
+        subclasses.add("null");
+
+        // 5. Creates a variable __object_{i} as String
+        Variable<String> obj0Var = Variable.create(BuiltinTypes.STRING, objectName);
+
+        // 6. Construct the logic formular for the DecisionNode
+        List<Expression<Boolean>> expressionList = new ArrayList<>();
+        for (String className: subclasses) {
+            // 6.1. Creates a constant for the klassName as String
+            Constant<String> const1 = Constant.create(BuiltinTypes.STRING, className);
+
+            // 6.2. Creates the application of the uninterpreted function extends(__object_{i}, {klassName})
+            Expression<Boolean> extApp1 =
+                    new FunctionExpression<>(extendsFct, obj0Var, const1);
+
+            expressionList.add(extApp1);
+        }
+
+
+        Expression<Boolean> completExpression = ExpressionUtil.or(expressionList);
+
+        return completExpression;
     }
 
     private static Expression<Boolean> parseInstanceOf(String constraint) {
@@ -195,7 +286,7 @@ public class TraceParser {
         // The regular expression that defines the two values as capturing groups.
         // Group 1: (__object_[^ ]+)
         // Group 2: (L[^;]+)
-        String regex = "__object_([0-9]+).*?(L[^;]+);";;
+        String regex = "__object_([0-9]+).*?(L[^;]+;)";;
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(text);
 

@@ -22,6 +22,7 @@ import gov.nasa.jpf.constraints.api.ConstraintSolver.Result;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Valuation;
+import gov.nasa.jpf.constraints.api.ValuationEntry;
 import tools.aqua.dse.Config;
 import tools.aqua.dse.paths.PathResult;
 import tools.aqua.dse.trace.Decision;
@@ -29,6 +30,7 @@ import tools.aqua.dse.trace.Trace;
 
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class ConstraintsTree {
 
@@ -473,7 +475,14 @@ public class ConstraintsTree {
       logger.finer("Finding new valuation");
       System.out.println("\033[35mSolve SMT-problem");
       Result res = solverCtx.solve(val);
+
+
+
       System.out.println("status: "+res);
+//      List<ValuationEntry<?>> sortedEntries = val.entries().stream()
+//              .sorted(Comparator.comparing(e -> e.getVariable().getName()))
+//              .collect(Collectors.toList());
+//      System.out.println("model: "+sortedEntries+"\033[0m");
       System.out.println("model: "+val+"\033[0m");
       currentValues = val;
       logger.finer("Found: " + res + " : " + val);
