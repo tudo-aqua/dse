@@ -37,13 +37,27 @@ public class Clazz {
     }
 
     /**
-     * Evaluates whether the given class is a superclass of the class
+     * Evaluates whether the given class or null is a superclass of the class
      * @param className  name of the class for which shall be checked whether it is a superclass of this class
-     * @return           true, given class is a superclass of this class
+     * @return           true, if className is a superclass of the caller (this)
      *                   false, otherwise
      */
     public boolean isSuperClazz(String className) {
         return name.equals(className) || Arrays.asList(superClasses).contains(className);
+    }
+
+    /**
+     * Evaluates wether the given class or null is an instance of the class
+     * @param className name of the class or null for which shall be checked whether it is a instance of this class
+     * @return          false, if the caller (this) class is "null"
+     *                  true, if the name of this is not "null" and the className is a superclass of the caller (this)
+     *                  false, otherwise
+     */
+    public boolean isInstanceOf(String className) {
+        if (this.name.equals("null")) {
+            return false;
+        }
+        return isSuperClazz(className);
     }
 
     /**

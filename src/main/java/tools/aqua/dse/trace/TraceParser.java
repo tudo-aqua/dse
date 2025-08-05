@@ -107,6 +107,13 @@ public class TraceParser {
             int branchId = Integer.parseInt(parts[2]);
             return new Decision( expr, branches, branchId);
         }
+        if (constraint.contains("instance_of")) {
+            expr = parseInstanceOf(constraint);
+            int branches = Integer.parseInt(parts[1]);
+            int branchId = Integer.parseInt(parts[2]);
+            return new Decision( expr, branches, branchId);
+        }
+
         else {
             try {
                 smt = SMTLIBParser.parseSMTProgram(decl + parts[0]);
@@ -137,6 +144,34 @@ public class TraceParser {
         // 3) Erzeuge die uninterpreted Funktion „extends(String,String) → Bool“
         Function<Boolean> extendsFct =
                 new Function<>("extends",
+                        BuiltinTypes.BOOL,
+                        BuiltinTypes.STRING,
+                        BuiltinTypes.STRING);
+
+        // 4) Erzeuge Anwendung extends(__object_0, "LA")
+        Expression<Boolean> extApp =
+                new FunctionExpression<>(extendsFct, obj0Var, laConst);
+
+        return extApp;
+    }
+
+    private static Expression<Boolean> parseInstanceOf(String constraint) {
+
+        // 1. Extract parameter of the extends-assert statement
+        String[] extractedParameters = extractValuesFromExtendAssertStatement(constraint);
+        assert extractedParameters != null;
+        String objectName = extractedParameters[0];
+        String klassName = extractedParameters[1];
+
+        // 1) Erzeuge Variable __object_0 als String
+        Variable<String> obj0Var = Variable.create(BuiltinTypes.STRING, objectName);
+
+        // 2) Erzeuge konstante Klasse "LA"
+        Constant<String> laConst = Constant.create(BuiltinTypes.STRING, klassName);
+
+        // 3) Erzeuge die uninterpreted Funktion „extends(String,String) → Bool“
+        Function<Boolean> extendsFct =
+                new Function<>("instance_of",
                         BuiltinTypes.BOOL,
                         BuiltinTypes.STRING,
                         BuiltinTypes.STRING);

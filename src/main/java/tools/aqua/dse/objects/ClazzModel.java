@@ -32,6 +32,13 @@ public class ClazzModel {
             BuiltinTypes.BOOL, BuiltinTypes.STRING, BuiltinTypes.STRING);
 
     /**
+     * Function that represents the "instance_of" relationship between classes.
+     * It takes two strings (the names of two classes) and returns a boolean indicating if the first class extends the second class.
+     */
+    public static final Function<BuiltinTypes.BoolType> instanceofFct = new Function("instance_of",
+            BuiltinTypes.BOOL, BuiltinTypes.STRING, BuiltinTypes.STRING);
+
+    /**
      * Function that represents the initialization of a class by a constructor.
      * It takes two strings (a constructor name and a class name) and returns a boolean indicating if the constructor initializes the class.
      */
@@ -165,6 +172,17 @@ public class ClazzModel {
             //Iterator over all other classes
             for (String clazzName : clazzes.keySet()) {
                 addConstraint(ctx, extendsFct, clazz.getName(), clazzName, clazz.isSuperClazz(clazzName));
+            }
+        }
+
+        System.out.println("Add general instance_of constraints");
+        //Add an "instance_of" constraint for each combination of classes
+        for (Clazz clazz : clazzes.values()) {
+            allConstructorNames.addAll(Arrays.asList(clazz.getConstructors()));
+
+            //Iterator over all other classes
+            for (String clazzName : clazzes.keySet()) {
+                addConstraint(ctx, instanceofFct, clazz.getName(), clazzName, clazz.isInstanceOf(clazzName));
             }
         }
 
