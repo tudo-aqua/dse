@@ -28,21 +28,21 @@ public class ClazzModel {
      * Function that represents the "extends" relationship between classes.
      * It takes two strings (the names of two classes) and returns a boolean indicating if the first class extends the second class.
      */
-    public static final Function<BuiltinTypes.BoolType> extendsFct = new Function("extends",
+    public static final Function<Boolean> extendsFct = new Function("extends",
             BuiltinTypes.BOOL, BuiltinTypes.STRING, BuiltinTypes.STRING);
 
     /**
      * Function that represents the "instance_of" relationship between classes.
      * It takes two strings (the names of two classes) and returns a boolean indicating if the first class extends the second class.
      */
-    public static final Function<BuiltinTypes.BoolType> instanceofFct = new Function("instance_of",
+    public static final Function<Boolean> instanceofFct = new Function("instance_of",
             BuiltinTypes.BOOL, BuiltinTypes.STRING, BuiltinTypes.STRING);
 
     /**
      * Function that represents the initialization of a class by a constructor.
      * It takes two strings (a constructor name and a class name) and returns a boolean indicating if the constructor initializes the class.
      */
-    public static final Function<BuiltinTypes.BoolType> initializesFct = new Function("initializes",
+    public static final Function<Boolean> initializesFct = new Function("initializes",
             BuiltinTypes.BOOL, BuiltinTypes.STRING, BuiltinTypes.STRING);
 
     /** Map of class names to their corresponding Clazz instances */
@@ -171,7 +171,7 @@ public class ClazzModel {
 
             //Iterator over all other classes
             for (String clazzName : clazzes.keySet()) {
-                addConstraint(ctx, extendsFct, clazz.getName(), clazzName, clazz.isSuperClazz(clazzName));
+                addConstraint(ctx,  extendsFct, clazz.getName(), clazzName, clazz.isSuperClazz(clazzName));
             }
         }
 
@@ -269,7 +269,7 @@ public class ClazzModel {
      * @param arg2          second argument
      * @param condition     indicates whether the relation is true or false
      */
-    private void addConstraint(SolverContext ctx, Function<BuiltinTypes.BoolType> function,
+    private void addConstraint(SolverContext ctx, Function<Boolean> function,
                                String arg1, String arg2, boolean condition) {
         FunctionExpression application = new FunctionExpression(function,
                 new Constant<>(BuiltinTypes.STRING, arg1),

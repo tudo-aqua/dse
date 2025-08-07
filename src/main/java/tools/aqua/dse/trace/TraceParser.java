@@ -28,6 +28,7 @@ import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParserException;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import tools.aqua.dse.objects.ClassHierarchyParser;
+import tools.aqua.dse.objects.ClazzModel;
 import tools.aqua.dse.paths.PathResult;
 
 import java.io.IOException;
@@ -235,7 +236,7 @@ public class TraceParser {
 
             // 6.2. Creates the application of the uninterpreted function extends(__object_{i}, {klassName})
             Expression<Boolean> extApp1 =
-                    new FunctionExpression<>(extendsFct, obj0Var, const1);
+                    new FunctionExpression<>(ClazzModel.extendsFct, obj0Var, const1);
 
             expressionList.add(extApp1);
         }
@@ -261,15 +262,15 @@ public class TraceParser {
         Constant<String> laConst = Constant.create(BuiltinTypes.STRING, klassName);
 
         // 3) Erzeuge die uninterpreted Funktion „extends(String,String) → Bool“
-        Function<Boolean> extendsFct =
-                new Function<>("instance_of",
-                        BuiltinTypes.BOOL,
-                        BuiltinTypes.STRING,
-                        BuiltinTypes.STRING);
+//        Function<Boolean> extendsFct =
+//                new Function<>("instance_of",
+//                        BuiltinTypes.BOOL,
+//                        BuiltinTypes.STRING,
+//                        BuiltinTypes.STRING);
 
         // 4) Erzeuge Anwendung extends(__object_0, "LA")
         Expression<Boolean> extApp =
-                new FunctionExpression<>(extendsFct, obj0Var, laConst);
+                new FunctionExpression<>(ClazzModel.instanceofFct, obj0Var, laConst);
 
         return extApp;
     }
