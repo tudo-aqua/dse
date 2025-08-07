@@ -3,15 +3,11 @@ package tools.aqua.dse.objects;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Variable;
-import gov.nasa.jpf.constraints.expressions.Constant;
-import gov.nasa.jpf.constraints.expressions.LogicalOperator;
-import gov.nasa.jpf.constraints.expressions.PropositionalCompound;
-import gov.nasa.jpf.constraints.expressions.StringBooleanExpression;
+import gov.nasa.jpf.constraints.expressions.*;
 import gov.nasa.jpf.constraints.expressions.functions.Function;
 import gov.nasa.jpf.constraints.expressions.functions.FunctionExpression;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
-import io.github.cvc5.Solver;
 import tools.aqua.dse.trace.Trace;
 
 import java.util.ArrayList;
@@ -64,6 +60,7 @@ public class ClazzModel {
         initObjectsStructure(solverContext);
         addConstructorInitializationConstraints(solverContext, trace.getObjectCount());
         addFiniteDomainConstraints(solverContext, trace.getObjectCount());
+        addObjectNotIdentityConstraints(solverContext, trace.getObjectCount());
     }
 
     /**
@@ -233,6 +230,23 @@ public class ClazzModel {
 
         ctx.add(orClassExpressions);
         ctx.add(orConstructorExpressions);
+    }
+
+    public void addObjectNotIdentityConstraints(SolverContext ctx, int objectCount) {
+        System.out.println("Add object not identity constraints");
+        for (int i = 0; i < objectCount; i++) {
+            for (int j = i+1; j < objectCount; j++) {
+                    StringBooleanExpression stringBooleanExpression = new StringBooleanExpression(
+                            new Variable<>(BuiltinTypes.STRING, "__object_" + i),
+                            EQUALS,
+                            new Variable<>(BuiltinTypes.STRING, "__object_" + j)
+                    );
+
+                    //negate the stringBoolea Expression
+                    Negation negation = new Negation(stringBooleanExpression);
+                    ctx.add(negation);
+            }
+        }
     }
 
 
