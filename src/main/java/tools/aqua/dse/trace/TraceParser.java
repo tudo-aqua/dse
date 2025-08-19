@@ -20,7 +20,7 @@ import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.expressions.Constant;
-import gov.nasa.jpf.constraints.expressions.functions.Function;
+import gov.nasa.jpf.constraints.expressions.Negation;
 import gov.nasa.jpf.constraints.expressions.functions.FunctionExpression;
 import gov.nasa.jpf.constraints.smtlibUtility.SMTProblem;
 import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParser;
@@ -106,7 +106,7 @@ public class TraceParser {
         Expression<Boolean> expr = null;
 
         if (constraint.contains("extends")) {
-            expr = parseExtends3(constraint);
+            expr = parseExtends(constraint);
             int branches = Integer.parseInt(parts[1]);
             int branchId = Integer.parseInt(parts[2]);
             return new Decision( expr, branches, branchId);
@@ -133,157 +133,85 @@ public class TraceParser {
     }
 
     private static Expression<Boolean> parseExtends(String constraint) {
-
         // 1. Extract parameter of the extends-assert statement
-        String[] extractedParameters = extractValuesFromExtendAssertStatement(constraint);
-        assert extractedParameters != null;
-        String objectName = extractedParameters[0];
-        String klassName = extractedParameters[1];
+        ParseResult parseResult = extractValuesFromExtendAssertStatement(constraint);
 
-        // 2. Creates a variable __object_0 as String
-        Variable<String> obj0Var = Variable.create(BuiltinTypes.STRING, objectName);
-
-        // 3. Creates a constant for the klassName as String
-        Constant<String> laConst = Constant.create(BuiltinTypes.STRING, klassName);
-
-        // 4. Creates an uninterpreted function „extends(String,String) → Bool“
-        Function<Boolean> extendsFct =
-                new Function<>("extends",
-                        BuiltinTypes.BOOL,
-                        BuiltinTypes.STRING,
-                        BuiltinTypes.STRING);
-
-        // 5. creates the application of the uninterpreted function extends(__object_0, "LA")
-        Expression<Boolean> extApp =
-                new FunctionExpression<>(extendsFct, obj0Var, laConst);
-
-        return extApp;
-    }
-
-    private static Expression<Boolean> parseExtends2(String constraint) {
-
-        // 1. Extract parameter of the extends-assert statement
-        String[] extractedParameters = extractValuesFromExtendAssertStatement(constraint);
-        assert extractedParameters != null;
-        String objectName = extractedParameters[0];
-        String klassName = extractedParameters[1];
-
-        // 2. Creates a variable __object_0 as String
-        Variable<String> obj0Var = Variable.create(BuiltinTypes.STRING, objectName);
-
-        // 3. Creates a constant for the klassName as String
-        Constant<String> const1 = Constant.create(BuiltinTypes.STRING, "null");
-        Constant<String> const2 = Constant.create(BuiltinTypes.STRING, "LB;");
-
-        // 4. Creates an uninterpreted function „extends(String,String) → Bool“
-        Function<Boolean> extendsFct =
-                new Function<>("extends",
-                        BuiltinTypes.BOOL,
-                        BuiltinTypes.STRING,
-                        BuiltinTypes.STRING);
-
-        // 5. creates the application of the uninterpreted function extends(__object_0, "LA")
-        Expression<Boolean> extApp1 =
-                new FunctionExpression<>(extendsFct, obj0Var, const1);
-
-        Expression<Boolean> extApp2 =
-                new FunctionExpression<>(extendsFct, obj0Var, const2);
-
-        List<Expression<Boolean>> expressionList = new ArrayList<>();
-        expressionList.add(extApp1);
-        expressionList.add(extApp2);
-
-        Expression<Boolean> completExpression = ExpressionUtil.or(expressionList);
-
-        return completExpression;
-    }
-
-
-    private static Expression<Boolean> parseExtends3(String constraint) {
-        // 1. Creates an uninterpreted function „extends(String,String) → Bool“
-        Function<Boolean> extendsFct =
-                new Function<>("extends",
-                        BuiltinTypes.BOOL,
-                        BuiltinTypes.STRING,
-                        BuiltinTypes.STRING);
-
-        // 2. Extract parameter of the extends-assert statement
-        String[] extractedParameters = extractValuesFromExtendAssertStatement(constraint);
-        assert extractedParameters != null;
-        String objectName = extractedParameters[0];
-        String klassName = extractedParameters[1];
-
-        // 3. Determine subclasses
+        // 2. Determine subclasses
         ClassHierarchyParser parser = new ClassHierarchyParser();
         parser.parse("class LA; { LA;|()V, LA;|(II)V}\n" +
-                "class LB; extends LA;{ LB;|()V}");
+                "class LB; extends LA;{ LB;|()V}\n" +
+                "Ljava/lang/Integer; {}\n" +
+                "Ljava/lang/String; {}") ; //todo: Read this from file
 
-        Set<String> subclasses = parser.getAllSubclasses(klassName);
+        Set<String> subclasses = parser.getAllSubclasses(parseResult.className);
 
-        // 4. Add the class itself and null to the array (because every class can be casted to itself and null can be
+        // 3. Add the class itself and null to the array (because every class can be casted to itself and null can be
         // casted to every class)
-        subclasses.add(klassName);
+        subclasses.add(parseResult.className);
         subclasses.add("null");
 
-        // 5. Creates a variable __object_{i} as String
-        Variable<String> obj0Var = Variable.create(BuiltinTypes.STRING, objectName);
+        // 4. Creates a variable __object_{i} as String
+        Variable<String> obj0Var = Variable.create(BuiltinTypes.STRING, parseResult.objectName);
 
-        // 6. Construct the logic formular for the DecisionNode
+        // 5. Construct the logic formular for the DecisionNode
         List<Expression<Boolean>> expressionList = new ArrayList<>();
         for (String className: subclasses) {
-            // 6.1. Creates a constant for the klassName as String
+            // 5.1. Creates a constant for the klassName as String
             Constant<String> const1 = Constant.create(BuiltinTypes.STRING, className);
 
-            // 6.2. Creates the application of the uninterpreted function extends(__object_{i}, {klassName})
+            // 5.2. Creates the application of the uninterpreted function extends(__object_{i}, {klassName})
             Expression<Boolean> extApp1 =
                     new FunctionExpression<>(ClazzModel.extendsFct, obj0Var, const1);
 
             expressionList.add(extApp1);
         }
 
-
+        // 6. Connect subexpressions with a big OR
         Expression<Boolean> completExpression = ExpressionUtil.or(expressionList);
 
+        // 7. negate the instance_of function if necessary (e.g. (not (instance_of __object_0, "LA")))
+        completExpression = parseResult.negated ? new Negation(completExpression) : completExpression;
         return completExpression;
     }
 
     private static Expression<Boolean> parseInstanceOf(String constraint) {
 
         // 1. Extract parameter of the extends-assert statement
-        String[] extractedParameters = extractValuesFromExtendAssertStatement(constraint);
-        assert extractedParameters != null;
-        String objectName = extractedParameters[0];
-        String klassName = extractedParameters[1];
+        ParseResult parseResult = extractValuesFromInstanceOfAssertStatement(constraint);
 
-        // 1) Erzeuge Variable __object_0 als String
-        Variable<String> obj0Var = Variable.create(BuiltinTypes.STRING, objectName);
+        // 1)create variable (e.g. __object_0) as String
+        Variable<String> obj0Var = Variable.create(BuiltinTypes.STRING, parseResult.objectName);
 
-        // 2) Erzeuge konstante Klasse "LA"
-        Constant<String> laConst = Constant.create(BuiltinTypes.STRING, klassName);
+        // 2) create constant for class (e.g. "LA;")
+        Constant<String> laConst = Constant.create(BuiltinTypes.STRING, parseResult.className);
 
-        // 3) Erzeuge die uninterpreted Funktion „extends(String,String) → Bool“
-//        Function<Boolean> extendsFct =
-//                new Function<>("instance_of",
-//                        BuiltinTypes.BOOL,
-//                        BuiltinTypes.STRING,
-//                        BuiltinTypes.STRING);
-
-        // 4) Erzeuge Anwendung extends(__object_0, "LA")
+        // 3) create function extends (e.g. (extends __object_0, "LA"))
         Expression<Boolean> extApp =
                 new FunctionExpression<>(ClazzModel.instanceofFct, obj0Var, laConst);
+
+        // 4) negate the extends function if necessary (e.g. (not (extends __object_0, "LA")))
+        extApp = parseResult.negated ? new Negation(extApp) : extApp;
 
         return extApp;
     }
 
     /**
-     * Extracts "__object_..." and "L..." from a given string.
+     * Extracts objectName "__object_{i}" and ClassName"L{...};" and whether the expression is negated from an extends
+     * expression
      *
-     * @param text The input string.
-     * @return A String array with two elements if a match is found,
-     * otherwise null. The first element is the __object_ value, the second
-     * is the L value without the semicolon.
+     * @param text          The input string.
+     * @return ParseResult  Contains the extracted values
      */
-    public static String[] extractValuesFromExtendAssertStatement(String text) {
+    private static ParseResult extractValuesFromExtendAssertStatement(String text) {
+        // count how often "(not" is a prefix of "extends"
+        int notCount = 0;
+        Pattern notPattern = Pattern.compile("\\(not");
+        Matcher notMatcher = notPattern.matcher(text);
+
+        while (notMatcher.find() && notMatcher.start() < text.indexOf("extends")) {
+            notCount++;
+        }
+
         // The regular expression that defines the two values as capturing groups.
         // Group 1: (__object_[^ ]+)
         // Group 2: (L[^;]+)
@@ -293,16 +221,57 @@ public class TraceParser {
 
         if (matcher.find()) {
             // Reconstruct the full __object_ string for the first group
-            String var1 = "__object_" + matcher.group(1);
+            String objectName = "__object_" + matcher.group(1);
 
             // The second group already captures the full L string
-            String var2 = matcher.group(2);
+            String clazzName = matcher.group(2);
 
-            return new String[]{var1, var2};
+            boolean negated = notCount % 2 != 0;
+
+            return new ParseResult(objectName, clazzName, negated);
         } else {
-            return null;
+            throw new IllegalStateException("no \"extends\" found !!!");
         }
     }
+    /**
+     * Extracts objectName "__object_{i}" and ClassName"L{...};" and whether the expression is negated from an
+     * instanceof expression
+     *
+     * @param text          The input string.
+     * @return ParseResult  Contains the extracted values
+     */
+    private static ParseResult extractValuesFromInstanceOfAssertStatement(String text) {
+        // count how often "(not" is a prefix of "instance_of"
+        int notCount = 0;
+        Pattern notPattern = Pattern.compile("\\(not");
+        Matcher notMatcher = notPattern.matcher(text);
+
+        while (notMatcher.find() && notMatcher.start() < text.indexOf("instance_of")) {
+            notCount++;
+        }
+
+        // The regular expression that defines the two values as capturing groups.
+        // Group 1: (__object_[^ ]+)
+        // Group 2: (L[^;]+)
+        String regex = "__object_([0-9]+).*?(L[^;]+;)";;
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(text);
+
+        if (matcher.find()) {
+            // Reconstruct the full __object_ string for the first group
+            String objectName = "__object_" + matcher.group(1);
+
+            // The second group already captures the full L string
+            String clazzName = matcher.group(2);
+
+            boolean negated = notCount % 2 != 0;
+
+            return new ParseResult(objectName, clazzName, negated);
+        } else {
+            throw new IllegalStateException("no \"instance_of\" found !!!");
+        }
+    }
+
 
 
     public static Decision parseAssumption(String assumption, String decl) throws IOException, SMTLIBParserException {
@@ -321,6 +290,20 @@ public class TraceParser {
     private static WitnessAssumption parseWitnessAssumption(String data) {
         String[] parts = data.split("\\:", 4);
         return new WitnessAssumption(parts[3].trim(), parts[0].trim(), parts[1].trim(), Integer.parseInt(parts[2].trim()));
+    }
+
+    public static class ParseResult {
+        public final String objectName;
+        public final String className;
+        public final boolean negated;
+
+        public ParseResult(String objectName,
+                           String className,
+                           boolean negated) {
+            this.objectName = objectName;
+            this.className = className;
+            this.negated = negated;
+        }
     }
 
 }
