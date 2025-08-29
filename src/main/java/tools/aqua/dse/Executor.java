@@ -17,6 +17,7 @@ package tools.aqua.dse;
 
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.ValuationEntry;
+import tools.aqua.dse.objects.ClazzModel;
 import tools.aqua.dse.trace.Trace;
 import tools.aqua.dse.trace.TraceParser;
 
@@ -35,10 +36,13 @@ public class Executor {
 
     private boolean b64encode;
 
+    private ClazzModel clazzModel;
+
     public Executor(Config config) {
         this.executurCmd = config.getExecutorCmd();
         this.executorArgs = config.getExecutorArgs();
         this.b64encode = config.isB64encodeExecutorValue();
+        this.clazzModel = config.getClazzModel();
     }
 
     public Trace execute(Valuation val) {
@@ -72,7 +76,7 @@ public class Executor {
             lines.forEach(System.out::println);
             System.out.println("%%%%%%%%%%% Executor Output End\033[0m");
             Files.delete(output);
-            return TraceParser.parseTrace(lines, val);
+            return TraceParser.parseTrace(lines, val, clazzModel);
         } catch (Throwable t) {
             t.printStackTrace();
             return null;

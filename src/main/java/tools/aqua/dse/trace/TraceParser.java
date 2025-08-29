@@ -27,6 +27,7 @@ import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParser;
 import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParserException;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
+import tools.aqua.dse.Config;
 import tools.aqua.dse.objects.ClassHierarchyParser;
 import tools.aqua.dse.objects.ClazzModel;
 import tools.aqua.dse.paths.PathResult;
@@ -40,8 +41,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TraceParser {
-
-    public static Trace parseTrace(List<String> lines, Valuation vals) throws IOException, SMTLIBParserException {
+    public static Trace parseTrace(List<String> lines,
+                                   Valuation vals,
+                                   ClazzModel clazzModel) throws IOException, SMTLIBParserException {
         List<Decision> decisions = new LinkedList<>();
         List<WitnessAssumption> witness = new LinkedList<>();
         List<String> taintViolations = new LinkedList<>();
@@ -53,7 +55,7 @@ public class TraceParser {
 
         for (String line : lines) {
             if (line.startsWith("[DECISION]")) {
-                decisions.add(parseDecision( line.substring("[DECISION]".length()), decl));
+                decisions.add(parseDecision( line.substring("[DECISION]".length()), decl, clazzModel));
             }
             else if (line.startsWith("[DECLARE]")) {
                 decl += line.substring("[DECLARE]".length());
@@ -99,14 +101,16 @@ public class TraceParser {
         return new Trace(decisions, witness, flows, result, objectCount);
     }
 
-    public static Decision parseDecision(String decision, String decl) throws IOException, SMTLIBParserException {
+    public static Decision parseDecision(String decision,
+                                         String decl,
+                                         ClazzModel clazzModel) throws IOException, SMTLIBParserException {
         String[] parts = decision.split("\\/\\/ branchCount=|, branchId=");
         SMTProblem smt = null;
         String constraint = parts[0];
         Expression<Boolean> expr = null;
 
         if (constraint.contains("extends")) {
-            expr = parseExtends(constraint);
+            expr = parseExtends(constraint, clazzModel);
             int branches = Integer.parseInt(parts[1]);
             int branchId = Integer.parseInt(parts[2]);
             return new Decision( expr, branches, branchId);
@@ -132,18 +136,21 @@ public class TraceParser {
         }
     }
 
-    private static Expression<Boolean> parseExtends(String constraint) {
+    private static Expression<Boolean> parseExtends(String constraint,
+                                                    ClazzModel clazzModel) {
         // 1. Extract parameter of the extends-assert statement
         ParseResult parseResult = extractValuesFromExtendAssertStatement(constraint);
 
         // 2. Determine subclasses
-        ClassHierarchyParser parser = new ClassHierarchyParser();
-        parser.parse("class LA; { LA;|()V, LA;|(II)V}\n" +
-                "class LB; extends LA;{ LB;|()V}\n" +
-                "Ljava/lang/Integer; {}\n" +
-                "Ljava/lang/String; {}") ; //todo: Read this from file
+//        ClassHierarchyParser parser = new ClassHierarchyParser();
+//        parser.parse("class LA; { LA;|()V, LA;|(II)V}\n" +
+//                "class LB; extends LA;{ LB;|()V}\n" +
+//                "Ljava/lang/Integer; {}\n" +
+//                "Ljava/lang/String; {}") ; //todo: Read this from file
+//
+//        Set<String> subclasses = parser.getAllSubclasses(parseResult.className);
+        List<String> subclasses = clazzModel.getClazzes().get(parseResult.className).getAllSubClazzes();
 
-        Set<String> subclasses = parser.getAllSubclasses(parseResult.className);
 
         // 3. Add the class itself and null to the array (because every class can be casted to itself and null can be
         // casted to every class)

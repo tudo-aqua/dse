@@ -38,8 +38,7 @@ public class ClassHierarchyParser {
                 String superClass = matcher.group(2);    // e.g., "LA;" (may be null)
                 if (superClass != null) {
                     // Add className as a subclass of superClass
-                    subclassMap
-                            .computeIfAbsent(superClass, k -> new ArrayList<>())
+                    subclassMap.computeIfAbsent(superClass, k -> new ArrayList<>())
                             .add(className);
                 }
             }
@@ -76,7 +75,7 @@ public class ClassHierarchyParser {
      */
     public static void main(String[] args) {
         String input = "class LA; { LA;|()V, LA;|(II)V}\n" +
-                "class LB; extends LA;{ LB;|()V}";
+                "class LB; extends LA; { LB;|()V}";
 
         ClassHierarchyParser parser = new ClassHierarchyParser();
         parser.parse(input);

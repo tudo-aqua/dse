@@ -41,7 +41,7 @@ public class TraceParserTest {
         log.add("[META_INFOS] object_count: 4");
         log.add("[ENDOFTRACE]");
 
-        Trace t = TraceParser.parseTrace(log, new Valuation());
+        Trace t = TraceParser.parseTrace(log, new Valuation(), null);
         assert t.getObjectCount() == 4;
         assert t != null;
         System.out.println(t);
@@ -51,7 +51,7 @@ public class TraceParserTest {
     public void testDecisionParser() throws IOException, SMTLIBParserException {
         String decl = "(declare-fun __int_0 () Int)";
         String decision = "(assert (= __int_0 50)) // branchCount=2, branchId=0";
-        Decision d = TraceParser.parseDecision(decision, decl);
+        Decision d = TraceParser.parseDecision(decision, decl, null);
         assert d != null;
         System.out.println(d);
     }

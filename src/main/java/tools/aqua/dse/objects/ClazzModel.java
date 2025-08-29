@@ -10,10 +10,9 @@ import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import tools.aqua.dse.trace.Trace;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static gov.nasa.jpf.constraints.expressions.StringBooleanOperator.EQUALS;
@@ -44,6 +43,7 @@ public class ClazzModel {
     /** Map of class names to their corresponding Clazz instances */
     private final HashMap<String, Clazz> clazzes = new HashMap<>();
 
+    private final Map<String, List<String>> subclassMap = new HashMap<>();
 
 
     /**
@@ -67,90 +67,133 @@ public class ClazzModel {
      * Creates a NULL clazz and adds it to {@link #clazzes}
      */
     private void createNullClazz() {
-        //Get the names of all extracted classes
-        String[] cNames = clazzes.keySet().toArray(new String[] {});
+        ArrayList<String> constructors = new ArrayList<String>();
+        constructors.add("NULL");
 
         //Add NULL class to clazzes
         Clazz NULL = new Clazz(
                 "null",
-                cNames,                         // Null is a superclass of every class
-                new String[] {"NULL"});      // for a SMT-LIB Problem null needs a dummy constructor
+                null,
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>(), //todo;
+                constructors);      // for a SMT-LIB Problem null needs a dummy constructor
 
         clazzes.put("null", NULL);
     }
-
-    /**
-     * Processes a text of MULTIPLE class definition and extracts for each class definition its name, superclasses and
-     * constructors.
-     * Each clazz is added to {@link #clazzes}.
-     *
-     * @param classDefinitions String containing a set of class definitions
-     *                         example:
-     *                         "class A { A() }
- *                              class C {}
- *                              class B extends A, C { B(), B(II) }"
-     */
-    private void clazzesFromString(String classDefinitions) {
-        classDefinitions = classDefinitions.trim();
-
-        //Process each class definition one by one
-        while (classDefinitions.startsWith("class")) {
-            //Extract next single class definition
-            int splitIndex =  classDefinitions.indexOf("}");
-            String singleClassDefinition = classDefinitions.substring(5, classDefinitions.indexOf("}")).trim();
-            //process extracted class definition
-            singleClassFromString(singleClassDefinition);
-            //Remove processed class definition
-            classDefinitions = classDefinitions.substring(splitIndex+1).trim();
-        }
-        if (!classDefinitions.isEmpty()) {
-            throw new RuntimeException("cannot parse: " + classDefinitions);
-        }
-    }
+//
+//    /**
+//     * Processes a text of MULTIPLE class definition and extracts for each class definition its name, superclasses and
+//     * constructors.
+//     * Each clazz is added to {@link #clazzes}.
+//     *
+//     * @param classDefinitions String containing a set of class definitions
+//     *                         example:
+//     *                         "class A { A() }
+// *                              class C {}
+// *                              class B extends A { B(), B(II) }"
+//     */
+//    private void clazzesFromString(String classDefinitions) {
+//        classDefinitions = classDefinitions.trim();
+//
+//        //Process each class definition one by one
+//        while (classDefinitions.startsWith("class")) {
+//            //Extract next single class definition
+//            int splitIndex =  classDefinitions.indexOf("}");
+//            String singleClassDefinition = classDefinitions.substring(5, classDefinitions.indexOf("}")).trim();
+//            //process extracted class definition
+//            singleClassFromString(singleClassDefinition);
+//            //Remove processed class definition
+//            classDefinitions = classDefinitions.substring(splitIndex+1).trim();
+//        }
+//        if (!classDefinitions.isEmpty()) {
+//            throw new RuntimeException("cannot parse: " + classDefinitions);
+//        }
+//    }
 
     /**
      * Processes a text of a SINGLE class definition and extracts its name, superclasses and constructors.
      * The clazz is then added to {@link #clazzes}.
-     * @param singleClassDefinition String representing a single class definition.
+     * @param clazzString String representing a single class definition.
      *                              example:
-     *                              "class B extends A, C { B(), B(II) }"
+     *                              "class B extends A { B(), B(II) }"
      */
-    private void singleClassFromString(String singleClassDefinition) {
-        singleClassDefinition = singleClassDefinition.trim();
-        int splitIndex1 =  singleClassDefinition.indexOf("extends");
-        int splitIndex2 =  singleClassDefinition.indexOf("{");
-        if (splitIndex1 < 0) {
-            splitIndex1 = splitIndex2;
-        }
+    public void clazzesFromString(String clazzString) {
+//        //Each line corresponds to a definition of a single class. Therefore, splitt String at each new line
+//        String[] clazzDefinitions = clazzString.split("\\R");
+        Pattern classPattern = Pattern.compile("class\\s+L[^}]+}", Pattern.DOTALL);
+        Matcher clazzMatcher = classPattern.matcher(clazzString);
 
-        //Extract class name
-        String clazz = singleClassDefinition.substring(0, splitIndex1).trim();
+//        for (String singleClazzDefinition : clazzDefinitions) {
+        while (clazzMatcher.find()) {
+            String singleClazzDefinition = clazzMatcher.group();
+            // regex: class name required, extends and implements optional, then { ... }
+            Pattern main = Pattern.compile(
+                    "class+(L[^;]+;)*" +                          // group(1) = NECESSARY: class name (L...;)
+                            "(?:extends+(L[^;]+;)*)?" +                 // group(2) = OPTIONAL: superClass (L...;)
+                            "(?:implements*(.*?)*)?" +                  // group(3) = OPTIONAL: interfaces block (lazy)
+                            "\\{(.*?)\\}",                                    // group(4) = NECESSARY: constructors block (lazy)
+                    Pattern.DOTALL
+            );
 
-        //Extract superclasses
-        String[] superClasses = new String[] {};
-        if (splitIndex1 < splitIndex2) {
-            for (int i=0; i<superClasses.length; i++) {
-                superClasses[i] = superClasses[i].trim();
+            //Replace ALL whitespaces
+            Matcher clazzComponentMatcher = main.matcher(singleClazzDefinition.replaceAll("\\s+", ""));
+
+            //Check if the string complies with the format
+            if (!clazzComponentMatcher.find()) {
+                throw new IllegalArgumentException("Input does not match expected pattern (missing class name or braces): " + singleClazzDefinition);
             }
+
+            //Extract the components from the singleClazzDefinition
+            String name = clazzComponentMatcher.group(1);
+            String superClass = clazzComponentMatcher.group(2);
+            List<String> interfaces = clazzComponentMatcher.group(3) != null ? Arrays.asList(clazzComponentMatcher.group(3).split(",")) : new ArrayList<>();
+            List<String> constructors = Arrays.asList(clazzComponentMatcher.group(4).split(","));
+
+            //Save subclass relation
+            if (superClass != null) {
+                subclassMap.computeIfAbsent(superClass, k -> new ArrayList<>()).add(name);
+            }
+
+            //Create a Clazz object and put it overall Map
+            Clazz clazz = new Clazz(name,
+                    superClass,
+                    interfaces,
+                    constructors);
+
+            this.clazzes.put(name, clazz);
         }
 
-        //todo: Add one variable "methods" to Clazz and insert methods at this point
-        //Extract constructors
-        String[] constructors = singleClassDefinition.substring(splitIndex2+1).trim().split(",");
+        for (Clazz clazz : clazzes.values()) {
+            //Set DIRECT subclasses
+            clazz.setDirectSubClazzes(getDirectSubclasses(clazz.getName()));
 
-        for (int i=0; i<constructors.length; i++) {
-            constructors[i] = constructors[i].trim();
+            //Compute and set ALL subclasses
+            clazz.setAllSubClazzes(new ArrayList<>(getAllSubclasses(clazz.getName())));
         }
-
-        // If the constructors array is empty, it gets replaced with an empty array
-        if (constructors.length == 1 && constructors[0].isEmpty()) {
-            constructors = new String[] {};
-        }
-
-        // Add the class to the internal map of classes
-        this.clazzes.put(clazz, new Clazz(clazz, superClasses, constructors));
     }
 
+    /**
+     * Get all direct subclasses of a class.
+     */
+    private List<String> getDirectSubclasses(String className) {
+        return this.subclassMap.getOrDefault(className, Collections.emptyList());
+    }
+
+    /**
+     * Get all subclasses (transitive).
+     */
+    private Set<String> getAllSubclasses(String className) {
+        Set<String> result = new HashSet<>();
+        Deque<String> queue = new ArrayDeque<>(getDirectSubclasses(className));
+        while (!queue.isEmpty()) {
+            String sub = queue.poll();
+            if (result.add(sub)) {
+                queue.addAll(getDirectSubclasses(sub));
+            }
+        }
+        return result;
+    }
 
     /**
      * Converts the class model stored in {@link #clazzes} into a SMT-LIB problem.
@@ -163,23 +206,23 @@ public class ClazzModel {
 
         System.out.println("Add general extends constraints");
         //Add an "extends" constraint for each combination of classes
-        for (Clazz clazz : clazzes.values()) {
-            allConstructorNames.addAll(Arrays.asList(clazz.getConstructors()));
+        for (Clazz leftClazz : clazzes.values()) {
+            allConstructorNames.addAll(leftClazz.getConstructors());
 
             //Iterator over all other classes
-            for (String clazzName : clazzes.keySet()) {
-                addConstraint(ctx,  extendsFct, clazz.getName(), clazzName, clazz.isSuperClazz(clazzName));
+            for (Clazz rightClazz : clazzes.values()) {
+                addConstraint(ctx, extendsFct, leftClazz.getName(), rightClazz.getName(), leftClazz.isCastable(rightClazz));
+                //clazzes.get(rightClazz).getAllSubClazzes().contains(leftClazz.getName())leftClazz.isSuperClazz(rightClazz)
             }
         }
 
         System.out.println("Add general instance_of constraints");
         //Add an "instance_of" constraint for each combination of classes
-        for (Clazz clazz : clazzes.values()) {
-            allConstructorNames.addAll(Arrays.asList(clazz.getConstructors()));
+        for (Clazz leftClazz : clazzes.values()) {
 
             //Iterator over all other classes
-            for (String clazzName : clazzes.keySet()) {
-                addConstraint(ctx, instanceofFct, clazz.getName(), clazzName, clazz.isInstanceOf(clazzName));
+            for (Clazz rightClazz : clazzes.values()) {
+                addConstraint(ctx, instanceofFct, leftClazz.getName(), rightClazz.getName(), leftClazz.isInstanceOf(rightClazz));
             }
         }
 
@@ -198,7 +241,7 @@ public class ClazzModel {
 
         List<String> constructorNames = this.clazzes.values().stream()
                 .map(Clazz::getConstructors)
-                .flatMap(Arrays::stream)
+                .flatMap(List::stream)
                 .collect(Collectors.toList());
 
         List<StringBooleanExpression> classExpressions = new ArrayList<>();
