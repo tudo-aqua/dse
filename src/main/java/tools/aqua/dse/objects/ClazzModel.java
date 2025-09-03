@@ -45,6 +45,11 @@ public class ClazzModel {
 
     private final Map<String, List<String>> subclassMap = new HashMap<>();
 
+    /**
+     * Saves the signature of the constructors of all classes represented in the class hierarchy
+     */
+    private List<String> constructorsOfAllClasses = new ArrayList<>();
+
 
     /**
      * Takes the content of the file which is referenced in DSE-Argument "static.info"
@@ -53,6 +58,7 @@ public class ClazzModel {
      */
     public ClazzModel(String config) {
         clazzesFromString(config);
+        collectConstructorsFromAllClazzes();
         createNullClazz();
     }
 
@@ -148,7 +154,11 @@ public class ClazzModel {
             String name = clazzComponentMatcher.group(1);
             String superClass = clazzComponentMatcher.group(2);
             List<String> interfaces = clazzComponentMatcher.group(3) != null ? Arrays.asList(clazzComponentMatcher.group(3).split(",")) : new ArrayList<>();
-            List<String> constructors = Arrays.asList(clazzComponentMatcher.group(4).split(","));
+//            List<String> constructors = Arrays.asList(clazzComponentMatcher.group(4).split(","));
+            List<String> constructors = Pattern.compile(",")
+                    .splitAsStream(clazzComponentMatcher.group(4))
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
 
             //Save subclass relation
             if (superClass != null) {
@@ -335,7 +345,116 @@ public class ClazzModel {
                 condition ? ExpressionUtil.TRUE : ExpressionUtil.FALSE));
     }
 
+    /**
+     * Returns the index of given constructor in the List of the constructors of the ClazzObject.
+     * The index of the constructor is used as a branchId.
+     * @param constructorSignature constructor signature. E.g. LB;|()V
+     *
+     * @throws RuntimeException Thrown if the constructor of the valuation could not be found in the class hierarchy
+     *                          Should not happen because valuation uses the class hierarchy
+     * @return                  index of the constructor in the list of all available constructors of the clazz
+     */
+    public int findConstructorIdInConstructorsPerClazz(String constructorSignature) {
+        //special handling of "NULL" constructor
+        if (constructorSignature.equals("NULL")) {
+            return 0;
+        }
 
+        // Validate input
+        if (constructorSignature == null || constructorSignature.isEmpty()) {
+            throw new IllegalArgumentException("Constructor signature must not be null or empty");
+        }
+
+        String[] split = constructorSignature.split("\\|", 2);
+        if (split.length != 2) {
+            throw new IllegalArgumentException(
+                    "Invalid constructor signature format: '" + constructorSignature +
+                            "'. Expected exactly one '|', found " + (split.length - 1)
+            );
+        }
+
+        String className = split[0];
+
+        // Lookup class
+        Clazz clazz = this.clazzes.get(className);
+        if (clazz == null) {
+            throw new IllegalArgumentException("Class not found: " + className);
+        }
+
+        // Find constructor index
+        int index = clazz.getConstructors().indexOf(constructorSignature);
+        if (index == -1) {
+            throw new IllegalArgumentException(
+                    "Constructor '" + constructorSignature + "' not found in class '" + className + "'");
+        }
+
+        return index;
+    }
+
+    /**
+     * Returns the number of constructors defined for the specified class.
+     * <p>
+     * The input string must be in the format {@code <className>|<constructorSignature>}.
+     * Only the class name is used to determine the constructor count; the constructor part
+     * of the signature is ignored.
+     * </p>
+     *
+     * @param constructorSignature the combined class name and constructor signature
+     * @return the number of constructors in the specified class
+     * @throws IllegalArgumentException if the input format is invalid or the class cannot be found
+     */
+    public int findConstructorCount(String constructorSignature) {
+        //special handling of "NULL" constructor
+        if (constructorSignature.equals("NULL")) {
+            return 1;
+        }
+
+        if (constructorSignature == null || constructorSignature.isEmpty()) {
+            throw new IllegalArgumentException("Constructor signature must not be null or empty");
+        }
+
+        // Strict split: exactly one '|' expected
+        String[] split = constructorSignature.split("\\|");
+        if (split.length != 2) {
+            throw new IllegalArgumentException(
+                    "Invalid constructor signature format: '" + constructorSignature +
+                            "'. Expected exactly one '|', found " + (split.length - 1)
+            );
+        }
+
+        String className = split[0];
+
+        // Lookup class
+        Clazz clazz = this.clazzes.get(className);
+        if (clazz == null) {
+            throw new IllegalArgumentException("Class not found: " + className);
+        }
+
+        return clazz.getConstructors().size();
+    }
+
+    private void collectConstructorsFromAllClazzes() {
+        List<String> constructorsWithoutNullConstructor = this.clazzes.values().stream()
+                .flatMap(clazz -> clazz.getConstructors().stream())
+                .collect(Collectors.toList());
+
+        this.constructorsOfAllClasses.add("NULL");
+        this.constructorsOfAllClasses.addAll(constructorsWithoutNullConstructor);
+    }
+    
+    public int findConstructorIdInAllConstructors(String constructorSignature) {
+        int index = this.constructorsOfAllClasses.indexOf(constructorSignature);
+        if (index == -1) {
+            throw new IllegalArgumentException(
+                    "Constructor '" + constructorSignature + "' not found in the list of ALL classes ");
+        }
+        return index;
+    }
+
+
+    public List<String> getConstructorsOfAllClasses() {
+        return constructorsOfAllClasses;
+    }
 
     public HashMap<String, Clazz> getClazzes() {
         return clazzes;

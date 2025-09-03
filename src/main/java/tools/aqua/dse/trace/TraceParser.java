@@ -29,6 +29,7 @@ import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import tools.aqua.dse.Config;
 import tools.aqua.dse.objects.ClassHierarchyParser;
+import tools.aqua.dse.objects.Clazz;
 import tools.aqua.dse.objects.ClazzModel;
 import tools.aqua.dse.paths.PathResult;
 
@@ -149,7 +150,12 @@ public class TraceParser {
 //                "Ljava/lang/String; {}") ; //todo: Read this from file
 //
 //        Set<String> subclasses = parser.getAllSubclasses(parseResult.className);
-        List<String> subclasses = clazzModel.getClazzes().get(parseResult.className).getAllSubClazzes();
+        Clazz clazz = clazzModel.getClazzes().get(parseResult.className);
+
+        if (clazz == null) {
+            throw new IllegalArgumentException("No such clazz in static clazz hierarchy: " + constraint);
+        }
+        List<String> subclasses = new ArrayList<>(clazz.getAllSubClazzes());
 
 
         // 3. Add the class itself and null to the array (because every class can be casted to itself and null can be

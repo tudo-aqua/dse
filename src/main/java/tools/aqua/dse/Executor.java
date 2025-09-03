@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Executor {
 
@@ -47,6 +48,7 @@ public class Executor {
 
     public Trace execute(Valuation val) {
 //        System.out.println("model: " + val);
+        List<String> chosenConstructors = extractChosenConstructors(val);
         String[] cmd = new String[] {
             this.executurCmd,
             generateParam("concolic.bools", "__bool_", val),
@@ -59,6 +61,8 @@ public class Executor {
             generateParam("concolic.doubles", "__double_", val),
             generateParam("concolic.strings", "__string_", val),
             generateParam("concolic.constructors", "__object_constructor_", val),
+            generateConstructorCount(chosenConstructors),
+            generateConstructorIds(chosenConstructors),
             this.executorArgs
         };
         System.out.println(String.join(" ", cmd));
@@ -97,6 +101,67 @@ public class Executor {
                 String.join(",", param);
     }
 
+    /**
+     * Generates a system property string that defines constructor IDs for concolic execution.
+     * <p>
+     * The method takes a list of constructor signatures, looks up their
+     * corresponding internal constructor IDs via {@code clazzModel.findConstructorId}, and
+     * concatenates them into a comma-separated string. The resulting value is prefixed with
+     * {@code -Dconcolic.constructorIds=} so it can be passed as a JVM system property.
+     * </p>
+     *
+     * @param chosenConstructors a list of constructor signatures or names to resolve into IDs;
+     *                           may be {@code null} or empty
+     * @return a system property string in the form {@code -Dconcolic.constructorIds=<id1,id2,...>};
+     *         if the list is {@code null} or empty, the result will end with an empty assignment
+     *         (e.g., {@code -Dconcolic.constructorIds=})
+     */
+    private String generateConstructorIds(List<String> chosenConstructors) {
+        if (chosenConstructors.isEmpty()) {
+            return "-Dconcolic.constructorIds=0";
+        }
+        // Map each chosen constructor to its ID and join them into a comma-separated string
+        String ids = chosenConstructors.stream()
+                .map(clazzModel::findConstructorIdInAllConstructors)                 // find id of the constructor
+                .map(String::valueOf)                               // convert number to String
+                .collect(Collectors.joining(","));         // join with commas
+
+        return "-Dconcolic.constructorIds=" + ids;
+    }
+
+    /**
+     * Generates a system property string that defines constructor count for concolic execution.
+     * <p>
+     * The method takes a list of constructor signatures, looks up how many constructors belong to the clazz of the
+     * constructor via {@code clazzModel.findConstructorCount}, and
+     * concatenates them into a comma-separated string. The resulting value is prefixed with
+     * {@code -Dconcolic.constructorIds=} so it can be passed as a JVM system property.
+     * </p>
+     *
+     * @param chosenConstructors a list of constructor signatures or names to resolve into IDs;
+     *                           may be {@code null} or empty
+     * @return a system property string in the form {@code -Dconcolic.constructorIds=<id1,id2,...>};
+     *         if the list is {@code null} or empty, the result will end with an empty assignment
+     *         (e.g., {@code -Dconcolic.constructorCounts=})
+     */
+    private String generateConstructorCount(List<String> chosenConstructors) {
+//        if (chosenConstructors.isEmpty()) {
+//            return "";
+//        }
+//
+//        String counts = chosenConstructors.stream()
+//                .map(clazzModel::findConstructorCount)          // find number of the constructors in the clazz to which this constructor belongs
+//                .map(String::valueOf)                           // convert number to string
+//                .collect(Collectors.joining(","));     // join with commas
+
+        return "-Dconcolic.constructorCounts=" + getConstructorCount();
+    }
+
+    private int getConstructorCount() {
+        return this.clazzModel.getConstructorsOfAllClasses().size();
+    }
+
+
     private String b64Encode(String p) {
         byte[] in = p.getBytes(StandardCharsets.UTF_8);
         byte[] out = Base64.getEncoder().encode(in);
@@ -110,11 +175,13 @@ public class Executor {
             case "__char_":
             case "__short_":
             case "__int_":
-            case "__long_":  return "0";
+            case "__long_":
+            case "__object_constructor_id_": return "0";
             case "__float_":
             case "__double_": return "0.0";
             case "__string_": return ""; //FIXME: not sure if this works on the other end (zero length string disregarded?)
             case "__constructor_": return "null";
+            case "__object_constructor_count_": return "1";
             default:
                 throw new IllegalArgumentException("unsupported prefix for default values: " + prefix);
         }
@@ -131,5 +198,19 @@ public class Executor {
         }
         return max;
     }
+
+    private List<String> extractChosenConstructors(Valuation val) {
+        List<String> chosen = new ArrayList<>();
+        int max = getMaxVarId(val, "__object_constructor_");
+        for (int i = 0; i <= max; i++) {
+            String varName = "__object_constructor_" + i;
+            Object value = val.getValue(varName);
+            if (value != null) {
+                chosen.add(value.toString());
+            }
+        }
+        return chosen;
+    }
+
 
 }
