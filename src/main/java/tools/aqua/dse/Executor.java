@@ -60,7 +60,8 @@ public class Executor {
             generateParam("concolic.floats", "__float_", val),
             generateParam("concolic.doubles", "__double_", val),
             generateParam("concolic.strings", "__string_", val),
-            generateParam("concolic.constructors", "__object_constructor_", val),
+//            generateParam("concolic.constructors", "__object_constructor_", val),
+            generateConstructors(val),
             generateConstructorCount(chosenConstructors),
             generateConstructorIds(chosenConstructors),
             this.executorArgs
@@ -88,6 +89,13 @@ public class Executor {
     }
 
     private String generateParam(String optionName, String prefix, Valuation val) {
+        ArrayList<String> param = generateParameterList(prefix, val);
+        return (param.isEmpty()) ? "" : "-D" + optionName + "=" +
+                (b64encode ? "[b64]" : "") +
+                String.join(",", param);
+    }
+
+    private ArrayList<String> generateParameterList(String prefix, Valuation val) {
         ArrayList<String> param = new ArrayList<>();
         int max = getMaxVarId(val, prefix);
         for (int i=0; i<=max; i++) {
@@ -96,10 +104,23 @@ public class Executor {
             String p = (value != null) ? value.toString() : defaultValue(prefix);
             param.add( b64encode ? b64Encode(p) : p);
         }
-        return (param.isEmpty()) ? "" : "-D" + optionName + "=" +
-                (b64encode ? "[b64]" : "") +
-                String.join(",", param);
+        return param;
     }
+
+    public String generateConstructors(Valuation val) {
+        String constructorList = generateParameterList("__object_constructor_", val).stream()
+                .map(clazzNameAndConstructorSignature -> clazzNameAndConstructorSignature +
+                        "|" + this.clazzModel.findConstructorIdInAllConstructors(clazzNameAndConstructorSignature) +
+                        "|" + getConstructorCount())
+                .collect(Collectors.joining(","));
+
+        if (constructorList.isEmpty()) {
+            return "";
+        }
+
+        return "-Dconcolic.constructors="+constructorList;
+    }
+
 
     /**
      * Generates a system property string that defines constructor IDs for concolic execution.
@@ -158,7 +179,7 @@ public class Executor {
     }
 
     private int getConstructorCount() {
-        return this.clazzModel.getConstructorsOfAllClasses().size();
+        return this.clazzModel.getConstructorsOfAllClasses().size()+1;
     }
 
 

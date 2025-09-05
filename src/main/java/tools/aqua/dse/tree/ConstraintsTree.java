@@ -353,8 +353,15 @@ public class ConstraintsTree {
       solverCtx.pop();
       solverCtx.push();
       List<Expression<Boolean>> path = pathConstraint(to, root);
-      System.out.println("current decision path: " + Arrays.toString( path.toArray() )); //todo:
+      System.out.println("current decision path: " + Arrays.toString( path.toArray() ));
+      //todo: domain constraints aktualsieren
+      //Add object-specific constraints
       solverCtx.add(path);
+
+      if (this.config.getClazzModel() != null) {
+        solverCtx.push();
+        this.config.getClazzModel().addObjectConstraintsForTrace(path, solverCtx);
+      }
     }
   }
 
@@ -464,11 +471,7 @@ public class ConstraintsTree {
           nextOpen);
       currentTarget = nextOpen;
 
-      //Add object-specific constraints
-      if (this.config.getClazzModel() != null) {
-        solverCtx.push();
-        this.config.getClazzModel().addObjectConstraintsForTrace(trace, solverCtx);
-      }
+
 
       // find model
       Valuation val = new Valuation();
@@ -488,7 +491,9 @@ public class ConstraintsTree {
       logger.finer("Found: " + res + " : " + val);
 
       //Remove object-specific constraints
-      solverCtx.pop();
+      if (this.config.getClazzModel() != null) {
+        solverCtx.pop();
+      }
 
       // if node is unsat or dont/know -> next
       // if node is satisfiable -> simulate and execute!

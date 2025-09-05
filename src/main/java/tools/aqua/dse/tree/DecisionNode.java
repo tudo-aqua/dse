@@ -137,8 +137,9 @@ class DecisionNode extends Node {
 
     void print(StringBuilder out, int indent) {
         for (int i=0; i< children.length; i++) {
-            indent(out, indent);
+
             if (!exhausted || constraints[i] != null) {
+                indent(out, indent);
                 out.append(i).append(" : ").append(constraints[i]).append("\n");
                 children[i].print(out, indent + 1);
             }

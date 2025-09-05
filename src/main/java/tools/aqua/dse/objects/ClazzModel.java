@@ -62,11 +62,17 @@ public class ClazzModel {
         createNullClazz();
     }
 
-    public void addObjectConstraintsForTrace(Trace trace, SolverContext solverContext) {
+    public void addObjectConstraintsForTrace(List<Expression<Boolean>> trace, SolverContext solverContext) {
+        int count = trace.stream()
+                .map(ExpressionUtil::freeVariables)
+                .flatMap(Collection::stream)
+                .filter(x -> x.getName().startsWith("__object"))
+                .collect(Collectors.toSet()).size();
+
         initObjectsStructure(solverContext);
-        addConstructorInitializationConstraints(solverContext, trace.getObjectCount());
-        addFiniteDomainConstraints(solverContext, trace.getObjectCount());
-        addObjectNotIdentityConstraints(solverContext, trace.getObjectCount());
+        addConstructorInitializationConstraints(solverContext, count);
+        addFiniteDomainConstraints(solverContext, count);
+        addObjectNotIdentityConstraints(solverContext, count);
     }
 
     /**
@@ -74,7 +80,7 @@ public class ClazzModel {
      */
     private void createNullClazz() {
         ArrayList<String> constructors = new ArrayList<String>();
-        constructors.add("NULL");
+        constructors.add("null|NULL");
 
         //Add NULL class to clazzes
         Clazz NULL = new Clazz(
@@ -356,7 +362,7 @@ public class ClazzModel {
      */
     public int findConstructorIdInConstructorsPerClazz(String constructorSignature) {
         //special handling of "NULL" constructor
-        if (constructorSignature.equals("NULL")) {
+        if (constructorSignature.equals("null|NULL")) {
             return 0;
         }
 
@@ -405,7 +411,7 @@ public class ClazzModel {
      */
     public int findConstructorCount(String constructorSignature) {
         //special handling of "NULL" constructor
-        if (constructorSignature.equals("NULL")) {
+        if (constructorSignature.equals("null|NULL")) {
             return 1;
         }
 
@@ -438,7 +444,7 @@ public class ClazzModel {
                 .flatMap(clazz -> clazz.getConstructors().stream())
                 .collect(Collectors.toList());
 
-        this.constructorsOfAllClasses.add("NULL");
+        this.constructorsOfAllClasses.add("null|NULL");
         this.constructorsOfAllClasses.addAll(constructorsWithoutNullConstructor);
     }
     
