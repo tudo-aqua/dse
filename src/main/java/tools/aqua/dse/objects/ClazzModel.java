@@ -296,9 +296,9 @@ public class ClazzModel {
         for (int i = 0; i < objectCount; i++) {
             for (int j = i+1; j < objectCount; j++) {
                     StringBooleanExpression stringBooleanExpression = new StringBooleanExpression(
-                            new Variable<>(BuiltinTypes.STRING, "__object_" + i),
+                            new Variable<>(BuiltinTypes.STRING, "__object_id_" + i),
                             EQUALS,
-                            new Variable<>(BuiltinTypes.STRING, "__object_" + j)
+                            new Variable<>(BuiltinTypes.STRING, "__object_id_" + j)
                     );
 
                     //negate the stringBoolea Expression
