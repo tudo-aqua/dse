@@ -1,0 +1,8 @@
+name,description,run,duration[ms],#PATHS,#EDGES,#EDGES_OBJECT_CONSTRUCTOR_VARIATION,SKIPPED,ERROR,OK,#EDGES_NORMAL_VARIATION,#EXECUTED_PATHS,UNSAT
+ScalingNonDetObjects1,Creates 1 Objects via nonDetObject(),0,1734,5,5,5,0,0,4,0,4,1
+ScalingNonDetObjects2,Creates 2 Objects via nonDetObject(),0,5673,21,25,25,0,0,16,0,16,5
+ScalingNonDetObjects3,Creates 3 Objects via nonDetObject(),0,22808,85,105,105,0,0,64,0,64,21
+ScalingNonDetObjects4,Creates 4 Objects via nonDetObject(),0,89388,341,425,425,0,0,256,0,256,85
+ScalingNonDetObjects5,Creates 5 Objects via nonDetObject(),0,346994,1365,1705,1705,0,0,1024,0,1024,341
+ScalingNonDetObjects6,Creates 6 Objects via nonDetObject(),0,1416378,5461,6825,6825,0,0,4096,0,4096,1365
+ScalingNonDetObjects7,Creates 7 Objects via nonDetObject(),0,8325083,21842,27304,27304,0,0,16382,0,16382,5460

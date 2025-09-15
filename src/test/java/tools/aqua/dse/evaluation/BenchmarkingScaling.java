@@ -112,14 +112,22 @@ public class BenchmarkingScaling {
         Files.writeString(CSV_FILE, csvLine, StandardOpenOption.APPEND);
     }
 
-    private static final int CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS = 3;
-    private static final int CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS = 2;
-    private static final int EXTENDS_WIDTH_SCALING_MAX_WIDTH = 3;
-    private static final int EXTENDS_WIDTH_SCALING_NUMBER_OF_REPETITIONS = 2;
-    private static final int EXTENDS_DEPTH_SCALING_MAX_DEPTH = 5;
-    private static final int EXTENDS_DEPTH_SCALING_NUMBER_OF_REPETITIONS = 2;
-    private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS = 5;
+    private static final int BASIC_EXAMPLE_NUMBER_OF_REPETITIONS = 2;
+
+    private static final int CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS = 100;
+    private static final int CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS = 5;
+
+    private static final int EXTENDS_WIDTH_SCALING_MAX_WIDTH = 100;
+    private static final int EXTENDS_WIDTH_SCALING_NUMBER_OF_REPETITIONS = 5;
+
+    private static final int EXTENDS_DEPTH_SCALING_MAX_DEPTH = 100;
+    private static final int EXTENDS_DEPTH_SCALING_NUMBER_OF_REPETITIONS = 5;
+
+    private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS = 6;
     private static final int NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS = 2;
+
+    private static final int OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH = 100;
+    private static final int OBJECT_ATTRIBUTE_SCALING_NUMBER_OF_REPETITIONS = 5;
 
 
     @BeforeAll
@@ -128,6 +136,8 @@ public class BenchmarkingScaling {
         FilePreparator.setUpExtendsWidthTest(EXTENDS_WIDTH_SCALING_MAX_WIDTH);
         FilePreparator.setUpExtendsDepthTest(EXTENDS_DEPTH_SCALING_MAX_DEPTH);
         FilePreparator.setUpNonDetObjectTest(NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS);
+        FilePreparator.setUpAttributeScalingTest(OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH);
+        FilePreparator.compileClasses(BenchmarkingScaling.BASIC_EXAMPLES);
     }
 
     private void performMetricCalculation(String testName,
@@ -199,9 +209,85 @@ public class BenchmarkingScaling {
     //                                           Execution of Tests
     //------------------------------------------------------------------------------------------------------------
 
+    public final static List<String> BASIC_EXAMPLES = Arrays.asList(
+            "Example1",
+            "Example2",
+            "Example3",
+            "Example4",
+            "Example5",
+            "Example6",
+            "Example7",
+            "Example8",
+            "Example9",
+            "Example10",
+            "Example11",
+            "Example12",
+            "Example13",
+            "Example14",
+            "Example15",
+            "Example16",
+            "Example17",
+            "Example18",
+            "Example19",
+            "Example20",
+            "Example21",
+            "Example22",
+            "Example23",
+            "Example24",
+            "Example25",
+            "Example26",
+            "Example27",
+            "Example28",
+            "Example29",
+            "Example30",
+            "Example31",
+            "Example32",
+            "Example33",
+            "Example35",
+            "Example36",
+            "Example37",
+            "Example40",
+            "Example42",
+            "A",
+            "B",
+            "C",
+            "Greeter",
+            "RecursiveIntList",
+            "Sub",
+            "Sub1",
+            "Sub2"
+            );
+
+    static Stream<Arguments> testResourceProvider0() {
 
 
-    static Stream<Arguments> testResourceProvider() {
+        String klassHierarchyName = "standard_class_hierarchy";
+
+        return IntStream.range(0, BASIC_EXAMPLES.size())
+                .boxed()
+                .flatMap(i ->
+                        IntStream.range(1, BASIC_EXAMPLE_NUMBER_OF_REPETITIONS + 1)
+                                .mapToObj(j -> Arguments.of(
+                                        BASIC_EXAMPLES.get(i),
+                                        klassHierarchyName,
+                                        String.format("RunGroup%d", i + 1)
+                                ))
+                );
+    }
+//    @ParameterizedTest
+//    @MethodSource("testResourceProvider0")
+//    public void executionOfTheBasicExamplesTest(String currentExampleName,
+//                                       String currentPKlassHierarchyName,
+//                                       String currentRunGroup
+//    ) throws IOException {
+//        String testName = "executionOfTheBasicExamplesTest";
+//        performMetricCalculation(testName, currentExampleName, currentPKlassHierarchyName, currentRunGroup);
+//    }
+
+
+
+
+    static Stream<Arguments> testResourceProvider1() {
 
         return IntStream.range(0, CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS)
                 .boxed()
@@ -216,27 +302,13 @@ public class BenchmarkingScaling {
 
     }
     @ParameterizedTest
-    @MethodSource("testResourceProvider")
+    @MethodSource("testResourceProvider1")
     public void constructorScalingTest(String currentExampleName,
                                        String currentPKlassHierarchyName,
                                        String currentRunGroup
     ) throws IOException {
-//        String testName = "constructorScalingTest";
-//        performMetricCalculation(testName, currentExampleName, currentPKlassHierarchyName, currentRunGroup);
-        //stop redirection of console log
-        System.setOut(originalOut);
-
         String testName = "constructorScalingTest";
-
-        System.out.printf("""
-                testName: %s,
-                exampleName: %s,
-                hierarchyName: %s,
-                RunGroup: %s
-                """,
-                testName, currentExampleName, currentPKlassHierarchyName, currentRunGroup);
-
-
+        performMetricCalculation(testName, currentExampleName, currentPKlassHierarchyName, currentRunGroup);
     }
 
     static Stream<Arguments> testResourceProvider2() {
@@ -286,7 +358,6 @@ public class BenchmarkingScaling {
     ) throws IOException {
         String testName = "extendsDepthScalingTest";
         performMetricCalculation(testName, currentExampleName, currentPKlassHierarchyName, currentRunGroup);
-
     }
 
 
@@ -295,7 +366,7 @@ public class BenchmarkingScaling {
         return IntStream.range(1, NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS+1)
                 .boxed()
                 .flatMap(i ->
-                        IntStream.range(1, NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS)
+                        IntStream.range(1, NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS+1)
                                 .mapToObj(j -> Arguments.of(
                                         String.format("ExampleScalingNonDetObject%d",i),
                                         "ScalingNonDetObject",
@@ -314,10 +385,29 @@ public class BenchmarkingScaling {
         performMetricCalculation(testName, currentExampleName, currentPKlassHierarchyName, currentRunGroup);
     }
 
+    static Stream<Arguments> testResourceProvider5() {
 
+        return IntStream.range(1, OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH+1)
+                .boxed()
+                .flatMap(i ->
+                        IntStream.range(1, OBJECT_ATTRIBUTE_SCALING_NUMBER_OF_REPETITIONS+1)
+                                .mapToObj(j -> Arguments.of(
+                                        "ExampleScalingInnerClasses",
+                                        String.format("AttributeDepthHierarchy%d", i),
+                                        String.format("RunGroup%d", i)
+                                ))
+                );
 
-
-
+    }
+    @ParameterizedTest
+    @MethodSource("testResourceProvider5")
+    public void objectAttributeScalingTest(String currentExampleName,
+                                        String currentPKlassHierarchyName,
+                                        String currentRunGroup
+    ) throws IOException {
+        String testName = "objectAttributeScalingTest";
+        performMetricCalculation(testName, currentExampleName, currentPKlassHierarchyName, currentRunGroup);
+    }
 
 
 }

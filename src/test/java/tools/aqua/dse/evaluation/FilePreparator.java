@@ -39,68 +39,45 @@ public class FilePreparator {
         }
     }
 
-    /**
-     * Generates the content of a Java file with a given class name
-     * and the specified number of nondeterministic objects.
-     *
-     * @param className       Name of the generated class.
-     * @param numberOfObjects Number of nondeterministic objects to declare.
-     * @return The generated file content as a String.
-     */
-    private static String generateNonDetObjectsJavaFileContent(String className, int numberOfObjects) {
-        StringBuilder fileContent = new StringBuilder();
-        fileContent.append("import tools.aqua.concolic.Verifier;\n\n");
-        fileContent.append("public class ").append(className).append(" {\n");
-        fileContent.append("    public static void main(String[] args) {\n");
-
-        for (int j = 1; j <= numberOfObjects; j++) {
-            fileContent.append("        Object o").append(j)
-                    .append(" = Verifier.nondetObject();\n");
-        }
-
-        fileContent.append("    }\n");
-        fileContent.append("}\n");
-
-        return fileContent.toString();
-    }
 
     // ***************************************************************************************************************
-    //                                         Inner Classes Scaling Test
+    //                                         Object Attribute Scaling Test
     // ***************************************************************************************************************
 
-    private static String generateSingleKlassInDepthKlassHierarchy(int klassId,
+    private static String generateSingleKlassInAttributeDepthHierarchy(int klassId,
                                                                    boolean isLastKlass) {
-        String classToConstruct = String.format("LDepthKlass%d;", klassId);
-        String nextClass = String.format("LDepthKlass%d;", klassId + 1);
-        String constructorString = String.format("%s|(%s)", classToConstruct, nextClass);
-        String constructorStringLastKlass = String.format("%s|()", classToConstruct);
+        String classToConstruct = String.format("LAttributeDepth%d;", klassId);
+        String nextClass = String.format("LAttributeDepth%d;", klassId + 1);
+        String constructorString = String.format("%s|(%s)V", classToConstruct, nextClass);
+        String constructorStringLastKlass = String.format("%s|()V", classToConstruct);
 
-        return String.format("class %s extends %s {%s}",
+        return String.format("class %s {%s}%n",
                 classToConstruct,
-                isLastKlass ? "extends "+nextClass: "",
                 isLastKlass ? constructorStringLastKlass: constructorString);
     }
 
-    private static String generateContentDepthKlassHierarchy(int depth) {
+    private static String generateContentAttributeDepthHierarchy(int depth) {
         StringBuilder result = new StringBuilder();
         for  (int i = 1; i <= depth; i++) {
-            result.append(generateSingleKlassInDepthKlassHierarchy(i, i == depth));
+            result.append(generateSingleKlassInAttributeDepthHierarchy(i, i == depth && depth != 1));
         }
 
         return result.toString();
     }
 
     private static void scalingObjectAttribute_createHierarchyFile(int depth) {
-        createSingleFile("depthKlassHierarchy",
-                "txt",
-                generateContentDepthKlassHierarchy(depth),
-                KLASS_HIERARCHY_DIRECTORY);
+        for (int i = 1; i <= depth; i++) {
+            createSingleFile(String.format("AttributeDepthHierarchy%d", i),
+                    "txt",
+                    generateContentAttributeDepthHierarchy(i),
+                    KLASS_HIERARCHY_DIRECTORY);
+        }
     }
 
-    private static String generateContentJavaDepthKlass(int klassId,
+    private static String generateContentJavaAttributeDepth(int klassId,
                                                         boolean isLastKlass) {
-        String classToConstruct = String.format("DepthKlass%d", klassId);
-        String nextClass = String.format("DepthKlass%d", klassId + 1);
+        String classToConstruct = String.format("AttributeDepth%d", klassId);
+        String nextClass = String.format("AttributeDepth%d", klassId + 1);
 
         String noArgConstructorString = String.format("%n\tpublic %s() {}", classToConstruct);
         String constructorString = String.format("%n\tpublic %s(%s var){}%n", classToConstruct, nextClass);
@@ -114,11 +91,11 @@ public class FilePreparator {
     private static List<String> scalingObjectAtributes_createJavaClasses(int depth) {
         List<String> namesOfCreatedJavaClasses = new ArrayList<>();
         for  (int i = 1; i <= depth; i++) {
-            String className = String.format("DepthKlass%d", i);
+            String className = String.format("AttributeDepth%d", i);
             namesOfCreatedJavaClasses.add(className);
             createSingleFile(className,
                     "java",
-                    generateContentJavaDepthKlass(i, i == depth),
+                    generateContentJavaAttributeDepth(i, i == depth),
                     EXAMPLE_DIRECTORY);
         }
         return namesOfCreatedJavaClasses;
@@ -141,7 +118,7 @@ public class FilePreparator {
         return className;
     }
 
-    public static void setUpDepthTest(int depth) throws IOException, InterruptedException {
+    public static void setUpAttributeScalingTest(int depth) throws IOException, InterruptedException {
         scalingObjectAttribute_createHierarchyFile(depth);
         List<String> javaKlassNames = scalingObjectAtributes_createJavaClasses(depth);
         javaKlassNames.add(scalingObjectAtributes_createExamples());
@@ -160,7 +137,7 @@ public class FilePreparator {
 
         for (int i = 0; i < klassId; i++) {
             constructorStringBuilder.append(
-                    String.format("%s|(%s),",
+                    String.format("%s|(%s)V,",
                             classToConstruct,
                             "I".repeat(i))
             );
@@ -619,9 +596,11 @@ public class FilePreparator {
 
 
     public static void main(String[] args) throws IOException, InterruptedException {
-//        setUpConstructorScalingTest(3);
+        setUpConstructorScalingTest(3);
 //        setUpExtendsWidthTest(3);
 //        setUpExtendsDepthTest(3);
-        setUpNonDetObjectTest(3);
+//        setUpNonDetObjectTest(3);
+        setUpAttributeScalingTest(3);
+        setUpAttributeScalingTest(3);
     }
 }
