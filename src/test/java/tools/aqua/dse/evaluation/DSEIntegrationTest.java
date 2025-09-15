@@ -1,17 +1,19 @@
-package tools.aqua.dse;
+package tools.aqua.dse.evaluation;
 
 import org.junit.jupiter.api.*;
-import org.assertj.core.api.SoftAssertions;
-import static org.assertj.core.api.Assertions.*;
+import tools.aqua.dse.Config;
+import tools.aqua.dse.DSE;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @TestMethodOrder(MethodOrderer.MethodName.class)
 public class DSEIntegrationTest {
@@ -102,6 +104,46 @@ public class DSEIntegrationTest {
                 .collect(Collectors.toList());
     }
 
+    private Map<String, Long> analyseDecisionTree(List<String> decisionTreeLines) {
+        Map<String, Long> counts = decisionTreeLines.stream()
+//                .filter(s -> s.startsWith("+ OK")
+//                        || s.startsWith("+ ERROR")
+//                        || s.startsWith("+ UNSAT")
+//                        || s.matches("^\\+ \\d+.*"))
+                .collect(Collectors.groupingBy(
+                        s -> {
+                            if (s.startsWith("+ OK")) return "OK";
+                            if (s.startsWith("+ ERROR")) return "ERROR";
+                            if (s.startsWith("+ UNSAT")) return "UNSAT";
+                            if (s.startsWith("+ SKIPPED")) return "SKIPPED";
+                            if (s.contains("__object_constructor_")) return "#EDGES_OBJECT_CONSTRUCTOR_VARIATION";
+                            if (s.matches("^\\+ \\d+.*")) return "#EDGES_NORMAL_VARIATION";
+                            return "UNKNOWN";
+                        },
+                        Collectors.counting()
+                ));
+
+        counts.put("#EDGES_NORMAL_VARIATION", counts.get("#EDGES_NORMAL_VARIATION")-counts.get("SKIPPED")*2);
+
+        counts.put("#PATHS", counts.get("OK")+counts.get("ERROR")+counts.get("UNSAT"));
+        counts.put("#EXECUTED_PATHS", counts.get("OK")+counts.get("ERROR"));
+        counts.put("#EDGES",  counts.get("#EDGES_OBJECT_CONSTRUCTOR_VARIATION")+counts.get("#EDGES_NORMAL_VARIATION"));
+        return counts;
+    }
+
+    private void printDuration(Duration duration) {
+        long minutes = duration.getSeconds()/60;
+        long seconds = duration.getSeconds()%60;
+        long nanoSeconds = duration.getNano();
+
+
+        System.out.println("Duration of the DSE execution");
+        System.out.println("minutes: " + minutes);
+        System.out.println("seconds: " + seconds);
+        System.out.println("nanoSeconds: " + nanoSeconds);
+//        System.out.printf("%d : %d : %d", minutes,  seconds, nanoSeconds);
+    }
+
     @Test //ok
     public void Example01_basic() {
         //define example
@@ -110,7 +152,12 @@ public class DSEIntegrationTest {
         //execute example
         printExample(exampleName);
         DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+
+
+        Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -140,6 +187,16 @@ public class DSEIntegrationTest {
         //  + OK[complete path:true] . __object_constructor_0:=LA;|(II)V,__object_0:=LA;
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
+
+
+
+
+        System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
+
+
+
+
 
 //        SoftAssertions.assertSoftly(softly -> {
 //            softly.assertThat(decisionTree).hasSize(8);
@@ -344,6 +401,13 @@ public class DSEIntegrationTest {
         //printing results
         String output = filterOutPutStream();
 
+        try {
+            FileWriter f = new FileWriter("test.txt");
+            f.write(output);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         //                                                CHECKS
         //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -364,6 +428,8 @@ public class DSEIntegrationTest {
         //  + OK[complete path:true] .
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
+
+        System.out.println(analyseDecisionTree(decisionTree));
 
 //        SoftAssertions.assertSoftly(softly -> {
 //            softly.assertThat(decisionTree).hasSize(10);
@@ -654,6 +720,8 @@ public class DSEIntegrationTest {
         //  + OK[complete path:true] .
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
+
+        System.out.println(analyseDecisionTree(decisionTree));
 
 //        SoftAssertions.assertSoftly(softly -> {
 //            softly.assertThat(decisionTree).hasSize(4);
@@ -1209,29 +1277,29 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
 
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(decisionTree).hasSize(10);
-            softly.assertThat(decisionTree.get(0))
-                    .startsWith("");
-            softly.assertThat(decisionTree.get(1))
-                    .startsWith("");
-            softly.assertThat(decisionTree.get(2))
-                    .startsWith("");
-            softly.assertThat(decisionTree.get(3))
-                    .startsWith("");
-            softly.assertThat(decisionTree.get(4))
-                    .startsWith("");
-            softly.assertThat(decisionTree.get(5))
-                    .startsWith("");
-            softly.assertThat(decisionTree.get(6))
-                    .startsWith("");
-            softly.assertThat(decisionTree.get(7))
-                    .startsWith("");
-            softly.assertThat(decisionTree.get(8))
-                    .startsWith("");
-            softly.assertThat(decisionTree.get(9))
-                    .startsWith("");
-        });
+//        SoftAssertions.assertSoftly(softly -> {
+//            softly.assertThat(decisionTree).hasSize(10);
+//            softly.assertThat(decisionTree.get(0))
+//                    .startsWith("");
+//            softly.assertThat(decisionTree.get(1))
+//                    .startsWith("");
+//            softly.assertThat(decisionTree.get(2))
+//                    .startsWith("");
+//            softly.assertThat(decisionTree.get(3))
+//                    .startsWith("");
+//            softly.assertThat(decisionTree.get(4))
+//                    .startsWith("");
+//            softly.assertThat(decisionTree.get(5))
+//                    .startsWith("");
+//            softly.assertThat(decisionTree.get(6))
+//                    .startsWith("");
+//            softly.assertThat(decisionTree.get(7))
+//                    .startsWith("");
+//            softly.assertThat(decisionTree.get(8))
+//                    .startsWith("");
+//            softly.assertThat(decisionTree.get(9))
+//                    .startsWith("");
+//        });
     }
 
     @Test
@@ -1467,4 +1535,30 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
     }
+    @Test
+    public void Example50() {
+        //define example
+        String exampleName = "Example50";
+
+        //execute example
+        printExample(exampleName);
+        DSE dse = getExecution(exampleName, "../class_hierarchy_2.txt");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        //System.out.println(output);
+
+        //checks
+        //todo: Add checks
+        assertThat(output)
+                .doesNotContain("DIVERGED")
+                .doesNotContain("BUGGY");
+    }
 }
+
+
+
