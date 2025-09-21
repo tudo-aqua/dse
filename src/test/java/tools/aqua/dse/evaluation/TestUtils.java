@@ -67,10 +67,11 @@ public class TestUtils {
         }
     }
 
-    public static void printExample(String exampleName
+    public static void printExample(String exampleName,
+                                    String directorOfExample
     ) {
         String filePath = exampleName + ".java";
-        ProcessBuilder pb = new ProcessBuilder("bat", "--color=always", String.format("src/test/resources/examples/%s", filePath));
+        ProcessBuilder pb = new ProcessBuilder("bat", "--color=always", String.format("%s%s", directorOfExample, filePath));
         pb.inheritIO(); //direct passing of the output
         Process p = null;
         try {

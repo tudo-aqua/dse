@@ -144,7 +144,7 @@ public class BenchmarkingScaling {
                                           String currentExampleName,
                                           String currentHierarchyName,
                                           String currentRunGroup) throws IOException {
-        TestUtils.printExample(currentExampleName);
+        TestUtils.printExample(currentExampleName, "src/test/resources/examples/generated/");
 
         System.out.println("testName: " + testName);
         System.out.println("currentExampleName: "+ currentExampleName);
