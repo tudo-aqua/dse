@@ -70,11 +70,13 @@ public class DSEIntegrationTest {
 
     }
 
-    private static DSE getExecution(String exampleName, String pathToClassHierachy) {
+    private static DSE getExecution(String exampleName,
+                                    String pathToClassHierachy, 
+                                    String pathToExamples) {
         Properties props = new Properties();
         props.setProperty("dse.dp", "z3");
         props.setProperty("dse.executor", "../executor.sh");
-        props.setProperty("dse.executor.args", "-cp ../examples_concolic/:../verifier-stub/target/verifier-stub-1.0.jar -Dconcolic.execution=true " + exampleName);
+        props.setProperty("dse.executor.args", String.format("-cp %s/:../verifier-stub/target/verifier-stub-1.0.jar -Dconcolic.execution=true %s", pathToExamples, exampleName));
         props.setProperty("dse.dp.incremental", "false");
         props.setProperty("dse.terminate.on", "completion");
         props.setProperty("dse.explore", "BFS");
@@ -123,6 +125,13 @@ public class DSEIntegrationTest {
                         Collectors.counting()
                 ));
 
+        // Sicherstellen, dass alle benötigten Keys mindestens 0 enthalten
+        for (String key : List.of(
+                "OK","ERROR","UNSAT","SKIPPED",
+                "#EDGES_OBJECT_CONSTRUCTOR_VARIATION","#EDGES_NORMAL_VARIATION")) {
+            counts.putIfAbsent(key, 0L);
+        }
+
         counts.put("#EDGES_NORMAL_VARIATION", counts.get("#EDGES_NORMAL_VARIATION")-counts.get("SKIPPED")*2);
 
         counts.put("#PATHS", counts.get("OK")+counts.get("ERROR")+counts.get("UNSAT"));
@@ -151,7 +160,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
 
 
         Instant start = Instant.now();
@@ -228,7 +237,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -301,7 +310,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -347,7 +356,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -392,7 +401,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -465,7 +474,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -511,7 +520,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -557,7 +566,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -605,7 +614,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -651,7 +660,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -696,7 +705,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -743,7 +752,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -789,7 +798,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -813,7 +822,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -837,7 +846,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -861,7 +870,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -885,7 +894,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -909,7 +918,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -933,7 +942,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -957,7 +966,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -981,7 +990,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1005,7 +1014,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1029,7 +1038,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1053,7 +1062,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1077,7 +1086,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1101,7 +1110,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1125,7 +1134,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1149,7 +1158,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1173,7 +1182,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1197,7 +1206,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1221,7 +1230,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1245,7 +1254,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1309,7 +1318,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1333,7 +1342,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1378,7 +1387,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1423,7 +1432,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1447,7 +1456,7 @@ public class DSEIntegrationTest {
 //
 //        //execute example
 //        printExample(exampleName);
-//        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+//        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
 //        dse.executeAnalysis();
 //
 //        //stop redirection of console log
@@ -1471,7 +1480,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1495,7 +1504,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1519,7 +1528,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log
@@ -1542,7 +1551,7 @@ public class DSEIntegrationTest {
 
         //execute example
         printExample(exampleName);
-        DSE dse = getExecution(exampleName, "../class_hierarchy_2.txt");
+        DSE dse = getExecution(exampleName, "../class_hierarchy_2.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log

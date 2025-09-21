@@ -11,8 +11,8 @@ import java.util.List;
 
 public class FilePreparator {
 
-    private static final Path KLASS_HIERARCHY_DIRECTORY = Path.of("src/test/resources/hierarchy");
-    private static final Path EXAMPLE_DIRECTORY = Path.of("src/test/resources/examples");
+    private static final Path KLASS_HIERARCHY_DIRECTORY = Path.of("src/test/resources/hierarchy/generated");
+    private static final Path EXAMPLE_DIRECTORY = Path.of("src/test/resources/examples/generated");
 
     /**
      * Creates a single file in the given target directory.
@@ -122,7 +122,7 @@ public class FilePreparator {
         scalingObjectAttribute_createHierarchyFile(depth);
         List<String> javaKlassNames = scalingObjectAtributes_createJavaClasses(depth);
         javaKlassNames.add(scalingObjectAtributes_createExamples());
-        compileClasses(javaKlassNames);
+        compileClasses(javaKlassNames, "dse/src/test/resources/examples/generated");
     }
 
     // ***************************************************************************************************************
@@ -211,7 +211,7 @@ public class FilePreparator {
         scalingConstructors_createAllClassHierarchies(numberOfConstructors);
         listOfClassNames.add(scalingConstructors_createJavaClass(numberOfConstructors));
         listOfClassNames.add(scalingConstructors_createExamples());
-        compileClasses(listOfClassNames);
+        compileClasses(listOfClassNames, "dse/src/test/resources/examples/generated");
 
     }
 
@@ -318,7 +318,7 @@ public class FilePreparator {
         scalingExtendsWidth_createAllClassHierarchyFiles(width);
         List<String> listOfClasses = scalingExtendsWidth_createAllJavaClasses(width);
         listOfClasses.add(scalingExtendsWidth_createExamples());
-        compileClasses(listOfClasses);
+        compileClasses(listOfClasses, "dse/src/test/resources/examples/generated");
     }
 
     // ***************************************************************************************************************
@@ -422,7 +422,7 @@ public class FilePreparator {
         scalingExtendsDepth_createAllClassHierarchyFiles(depth);
         List<String> classNames = scalingExtendsDepth_createAllJavaClasses(depth);
         classNames.add(scalingExtendsDepth_createExamples());
-        compileClasses(classNames);
+        compileClasses(classNames, "dse/src/test/resources/examples/generated");
     }
 
     // ***************************************************************************************************************
@@ -527,7 +527,7 @@ public class FilePreparator {
         scalingNonDetObject_classHierarchy();
         List<String> listOfKlassNames = scalingNonDetObject_createAllExampleFiles(numberNonDetObjectsCalls);
         listOfKlassNames.addAll(scalingNonDetObject_generateJavaFiles());
-        compileClasses(listOfKlassNames);
+        compileClasses(listOfKlassNames, "dse/src/test/resources/examples/generated");
     }
 
 
@@ -538,11 +538,12 @@ public class FilePreparator {
      * @throws IOException if an I/O error occurs.
      * @throws InterruptedException if the current thread is interrupted while waiting for the process to complete.
      */
-    public static void compileClass(String className) throws IOException, InterruptedException {
+    public static void compileClass(String className,
+                                    String directoryOfTheClassesToCompile) throws IOException, InterruptedException {
         // Paths relative to the project root directory
         String espressoPath = "SPouT/sdk/mxbuild/darwin-aarch64/GRAALVM_ESPRESSO_NATIVE_CE_JAVA17/graalvm-espresso-native-ce-java17-22.2.0.1-dev/bin/javac";
         String verifierStub = "verifier-stub/target/verifier-stub-1.0.jar";
-        String examplesPath = "dse/src/test/resources/examples/";
+        String examplesPath = directoryOfTheClassesToCompile;
 
         // Assemble the classpath. The separator is ':' for macOS/Linux.
         String classPath = verifierStub + File.pathSeparator + examplesPath;
@@ -567,6 +568,7 @@ public class FilePreparator {
         // Merge the error and standard output streams
         processBuilder.redirectErrorStream(true);
 
+
         Process process = processBuilder.start();
 
         // Read and print the process output (important for debugging)
@@ -587,9 +589,10 @@ public class FilePreparator {
         }
     }
 
-    public static void compileClasses(List<String> classNames) throws IOException, InterruptedException {
+    public static void compileClasses(List<String> classNames,
+                                      String directoryOfTheClassesToCompile) throws IOException, InterruptedException {
         for (String className : classNames) {
-            compileClass(className);
+            compileClass(className, directoryOfTheClassesToCompile);
         }
     }
 

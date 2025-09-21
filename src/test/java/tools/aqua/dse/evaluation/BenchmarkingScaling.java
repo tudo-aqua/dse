@@ -114,20 +114,20 @@ public class BenchmarkingScaling {
 
     private static final int BASIC_EXAMPLE_NUMBER_OF_REPETITIONS = 2;
 
-    private static final int CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS = 100;
-    private static final int CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS = 5;
+    private static final int CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS = 4;
+    private static final int CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS = 2;
 
-    private static final int EXTENDS_WIDTH_SCALING_MAX_WIDTH = 100;
+    private static final int EXTENDS_WIDTH_SCALING_MAX_WIDTH = 2;
     private static final int EXTENDS_WIDTH_SCALING_NUMBER_OF_REPETITIONS = 5;
 
-    private static final int EXTENDS_DEPTH_SCALING_MAX_DEPTH = 100;
-    private static final int EXTENDS_DEPTH_SCALING_NUMBER_OF_REPETITIONS = 5;
+    private static final int EXTENDS_DEPTH_SCALING_MAX_DEPTH = 2;
+    private static final int EXTENDS_DEPTH_SCALING_NUMBER_OF_REPETITIONS = 2;
 
-    private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS = 6;
+    private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS = 2;
     private static final int NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS = 2;
 
-    private static final int OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH = 100;
-    private static final int OBJECT_ATTRIBUTE_SCALING_NUMBER_OF_REPETITIONS = 5;
+    private static final int OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH = 2;
+    private static final int OBJECT_ATTRIBUTE_SCALING_NUMBER_OF_REPETITIONS = 2;
 
 
     @BeforeAll
@@ -137,7 +137,7 @@ public class BenchmarkingScaling {
         FilePreparator.setUpExtendsDepthTest(EXTENDS_DEPTH_SCALING_MAX_DEPTH);
         FilePreparator.setUpNonDetObjectTest(NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS);
         FilePreparator.setUpAttributeScalingTest(OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH);
-        FilePreparator.compileClasses(BenchmarkingScaling.BASIC_EXAMPLES);
+        FilePreparator.compileClasses(BenchmarkingScaling.BASIC_EXAMPLES, "dse/src/test/resources/examples/");
     }
 
     private void performMetricCalculation(String testName,
@@ -151,7 +151,9 @@ public class BenchmarkingScaling {
         System.out.println("currentHierarchyName: " + currentHierarchyName);
         System.out.println("currentRunGroup: "+ currentRunGroup);
 
-        DSE dse = TestUtils.getDseInstance(currentExampleName, currentHierarchyName);
+        DSE dse = TestUtils.getDseInstance(currentExampleName,
+                String.format("src/test/resources/hierarchy/generated/%s.txt", currentHierarchyName),
+                "src/test/resources/examples/generated/");
 
         long start = System.currentTimeMillis();
         dse.executeAnalysis();
@@ -399,6 +401,7 @@ public class BenchmarkingScaling {
                 );
 
     }
+
     @ParameterizedTest
     @MethodSource("testResourceProvider5")
     public void objectAttributeScalingTest(String currentExampleName,

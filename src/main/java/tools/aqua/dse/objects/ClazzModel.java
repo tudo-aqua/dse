@@ -69,6 +69,9 @@ public class ClazzModel {
                 .filter(x -> x.getName().startsWith("__object"))
                 .collect(Collectors.toSet()).size();
 
+
+        System.out.println("ASSUMEND COUNT: " + count);
+
         initObjectsStructure(solverContext);
         addConstructorInitializationConstraints(solverContext, count);
         addFiniteDomainConstraints(solverContext, count);
