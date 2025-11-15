@@ -1,15 +1,25 @@
+//import tools.aqua.concolic.Verifier;
+//
+//public class Example3 {
+//    public static void main(String[] args) {
+//        Object o = Verifier.nondetObject();
+//
+//        if (o == null) {
+//            assert false;
+//        }
+//    }
+//}
+
+
 import tools.aqua.concolic.Verifier;
 
 public class Example3 {
     public static void main(String[] args) {
         Object o = Verifier.nondetObject();
-//        Object o2 = Verifier.nondetObject(); 
+        A a = (A) o;
 
-        if (o == null) {
+        if (a != null && a.getX() > 5) {
             assert false;
         }
-//        if (o2 == null) {
-//        	assert false; 
-//        }
     }
 }

@@ -21,7 +21,7 @@ public class DSEIntegrationTest {
     private final ByteArrayOutputStream capturedErr = new ByteArrayOutputStream();
     private PrintStream originalOut;
     private boolean debug = true;
-    private boolean compile = false;
+    private boolean compile = true;
 
     @BeforeEach
     void setUpStreams() {
@@ -54,22 +54,48 @@ public class DSEIntegrationTest {
         System.setOut(originalOut);
     }
 
-    public void printExample(String exampleName
-    ) {
-        String filePath = exampleName + ".java";
-        ProcessBuilder pb = new ProcessBuilder("bat", "--color=always", String.format("../examples_concolic/%s", filePath));
-        pb.inheritIO(); // direktes Durchreichen der Ausgabe
-        Process p = null;
-        try {
-            p = pb.start();
-            p.waitFor();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+    public void printExample(String exampleName, String directoryOfTheClassesToCompile) {
+        // Beispiel-Dateiname
+        String filePath = directoryOfTheClassesToCompile + File.separator + exampleName + ".java";
 
+        System.out.println("Printing example file: " + filePath);
+
+        // Verwende `bat`, um den Dateiinhalt mit Syntax-Highlighting anzuzeigen
+        ProcessBuilder processBuilder = new ProcessBuilder(
+                "bat",
+                "--color=always",
+                filePath
+        );
+
+        // Setze das Arbeitsverzeichnis auf das Projekt-Root (wie in compileClass)
+        processBuilder.directory(new File("/Users/marvin.lazar/IdeaProjects/master-thesis-gdart/"));
+
+        // Fehlerausgabe mit Standardausgabe zusammenführen
+        processBuilder.redirectErrorStream(true);
+
+        try {
+            Process process = processBuilder.start();
+
+            // Lies und gib die Ausgabe aus
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    System.out.println(line);
+                }
+            }
+
+            // Warte auf Beendigung
+            int exitCode = process.waitFor();
+            System.out.println("Print finished with exit code: " + exitCode);
+
+            if (exitCode != 0) {
+                throw new RuntimeException("Printing failed with exit code " + exitCode);
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("Error while printing example", e);
+        }
     }
+
 
     private static DSE getExecution(String exampleName,
                                     String pathToClassHierachy, 
@@ -156,15 +182,66 @@ public class DSEIntegrationTest {
 
     private void compileBasicClasses(String exampleName) throws IOException, InterruptedException {
         if (this.compile) {
-            TestUtils.compileClass(exampleName);
-            TestUtils.compileClass("A");
-            TestUtils.compileClass("B");
-            TestUtils.compileClass("Sub");
-            TestUtils.compileClass("Sub1");
-            TestUtils.compileClass("Sub2");
-            TestUtils.compileClass("Greeter");
+            List<String> filesToCompile = List.of(exampleName, "AT", "A", "B", "BT", "Sub", "Sub1", "Sub2", "Greeter");
+            FilePreparator.compileClasses(filesToCompile, "dse/src/test/resources/examples/");
         }
     }
+    @Test
+    public void thesis_example()  throws IOException, InterruptedException {
+        //define example
+        String exampleName = "Thesis";
+
+        //compile example
+        compileBasicClasses(exampleName);
+
+        //execute example
+        printExample(exampleName, "dse/src/test/resources/examples/");
+        DSE dse = TestUtils.getDseInstance(exampleName,
+                "src/test/resources/hierarchy/thesis_class_hierarchy.txt",
+                "src/test/resources/examples/");
+
+
+        Instant start = Instant.now();
+        dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        //System.out.println(output);
+
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //                                                CHECKS
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        assertThat(output)
+                .doesNotContain("DIVERGED")
+                .doesNotContain("BUGGY");
+
+        //EXPECTED OUTPUT WITHOUT CONSTRUCTOR VARIATION
+        //+ OK[complete path:true] .
+
+        //EXPECTED OUTPUT
+        //+ 0 : (='__object_constructor_0'NULL)
+        //  + OK[complete path:true] .
+        //+ 1 : (='__object_constructor_0'LB;|()V)
+        //  + OK[complete path:true] . __object_constructor_0:=LB;|()V,__object_0:=LB;
+        //+ 2 : (='__object_constructor_0'LA;|()V)
+        //  + OK[complete path:true] . __object_constructor_0:=LA;|()V,__object_0:=LA;
+        //+ 3 : (='__object_constructor_0'LA;|(II)V)
+        //  + OK[complete path:true] . __object_constructor_0:=LA;|(II)V,__object_0:=LA;
+
+        List<String> decisionTree = getDecisionTreeLineByLine(output);
+
+
+
+
+        System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
+    }
+
 
     @Test //ok
     public void Example01_basic() throws IOException, InterruptedException {
@@ -174,11 +251,9 @@ public class DSEIntegrationTest {
         //compile example
         compileBasicClasses(exampleName);
 
-                //compile example
-        compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -260,7 +335,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
         DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -338,7 +413,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -389,7 +464,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -439,7 +514,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -517,7 +592,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -568,7 +643,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -619,7 +694,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -672,7 +747,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -723,7 +798,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -773,7 +848,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -825,7 +900,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -876,7 +951,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -905,7 +980,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -934,7 +1009,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -963,7 +1038,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -992,7 +1067,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1021,7 +1096,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1050,7 +1125,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1079,7 +1154,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1108,7 +1183,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1137,7 +1212,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1166,7 +1241,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1195,7 +1270,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1224,7 +1299,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1253,7 +1328,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1282,7 +1357,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1311,7 +1386,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1340,7 +1415,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1369,7 +1444,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1398,7 +1473,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1427,7 +1502,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1496,7 +1571,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1525,7 +1600,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1575,7 +1650,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1625,7 +1700,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1654,7 +1729,7 @@ public class DSEIntegrationTest {
 //        compileBasicClasses(exampleName);
 //
 //        //execute example
-//        printExample(exampleName);
+//        printExample(exampleName, "dse/src/test/resources/examples/"); 
 //                DSE dse = TestUtils.getDseInstance(exampleName,
 //                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
 //                "src/test/resources/examples/");
@@ -1683,7 +1758,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1712,7 +1787,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1741,7 +1816,7 @@ public class DSEIntegrationTest {
         compileBasicClasses(exampleName);
 
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
@@ -1767,9 +1842,8 @@ public class DSEIntegrationTest {
 
                 //compile example
         compileBasicClasses(exampleName);
-
         //execute example
-        printExample(exampleName);
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
         DSE dse = getExecution(exampleName, "../class_hierarchy_2.txt", "../examples_concolic");
         dse.executeAnalysis();
 
