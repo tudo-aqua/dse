@@ -6,8 +6,8 @@ public class Thesis {
 
         if (o instanceof BT) {
             BT b = (BT) o;
-            b.y = 42;
-            assert b.x + 3 <= b.y;
+            b.setY(42);
+            assert b.getX() + 3 <= b.getY();
         }
     }
 }
