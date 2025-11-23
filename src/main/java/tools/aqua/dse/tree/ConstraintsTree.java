@@ -262,6 +262,10 @@ public class ConstraintsTree {
           System.out.println("--- terminating DSE after assertion violation");
           terminate = true;
         }
+        if ((termination & Config.TERMINATE_ON_ERROR) > 0 && ((PathResult.ErrorResult)result).getExceptionClass().contains("Exception")){
+            System.out.println("--- terminating DSE after RuntimeException");
+            terminate = true;
+        }
 
         break;
       case ABORT:
