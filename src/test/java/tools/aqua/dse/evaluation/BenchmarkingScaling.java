@@ -114,20 +114,20 @@ public class BenchmarkingScaling {
 
     private static final int BASIC_EXAMPLE_NUMBER_OF_REPETITIONS = 1;
 
-    private static final int CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS = 4;
+    private static final int CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS = 100;
     private static final int CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS = 2;
 
     private static final int EXTENDS_WIDTH_SCALING_MAX_WIDTH = 100;
-    private static final int EXTENDS_WIDTH_SCALING_NUMBER_OF_REPETITIONS = 1;
+    private static final int EXTENDS_WIDTH_SCALING_NUMBER_OF_REPETITIONS = 2;
 
     private static final int EXTENDS_DEPTH_SCALING_MAX_DEPTH = 100;
-    private static final int EXTENDS_DEPTH_SCALING_NUMBER_OF_REPETITIONS = 1;
+    private static final int EXTENDS_DEPTH_SCALING_NUMBER_OF_REPETITIONS = 2;
 
-    private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS = 2;
+    private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS = 100;
     private static final int NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS = 2;
 
     private static final int OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH = 100;
-    private static final int OBJECT_ATTRIBUTE_SCALING_NUMBER_OF_REPETITIONS = 1;
+    private static final int OBJECT_ATTRIBUTE_SCALING_NUMBER_OF_REPETITIONS = 2;
 
 
     @BeforeAll
@@ -278,23 +278,6 @@ public class BenchmarkingScaling {
                                 ))
                 );
     }
-//    @ParameterizedTest
-//    @MethodSource("testResourceProvider0")
-//    public void executionOfTheBasicExamplesTest(String currentExampleName,
-//                                       String currentPKlassHierarchyName,
-//                                       String currentRunGroup
-//    ) throws IOException {
-//        String testName = "executionOfTheBasicExamplesTest";
-//        performMetricCalculation(
-//                testName,
-//                currentExampleName,
-//                currentPKlassHierarchyName,
-//                currentRunGroup,
-//                "src/test/resources/examples/",
-//                "src/test/resources/hierarchy/");
-//    }
-
-
 
 
     static Stream<Arguments> testResourceProvider1() {
@@ -311,21 +294,21 @@ public class BenchmarkingScaling {
                 );
 
     }
-//    @ParameterizedTest
-//    @MethodSource("testResourceProvider1")
-//    public void constructorScalingTest(String currentExampleName,
-//                                       String currentPKlassHierarchyName,
-//                                       String currentRunGroup
-//    ) throws IOException {
-//        String testName = "constructorScalingTest";
-//        performMetricCalculation(
-//                testName,
-//                currentExampleName,
-//                currentPKlassHierarchyName,
-//                currentRunGroup,
-//                "src/test/resources/examples/generated/",
-//                "src/test/resources/hierarchy/generated/");
-//    }
+    @ParameterizedTest
+    @MethodSource("testResourceProvider1")
+    public void constructorScalingTest(String currentExampleName,
+                                       String currentPKlassHierarchyName,
+                                       String currentRunGroup
+    ) throws IOException {
+        String testName = "constructorScalingTest";
+        performMetricCalculation(
+                testName,
+                currentExampleName,
+                currentPKlassHierarchyName,
+                currentRunGroup,
+                "src/test/resources/examples/generated/",
+                "src/test/resources/hierarchy/generated/");
+    }
 
     static Stream<Arguments> testResourceProvider2() {
 
@@ -341,52 +324,21 @@ public class BenchmarkingScaling {
                 );
 
     }
-//    @ParameterizedTest
-//    @MethodSource("testResourceProvider2")
-//    public void extendsWidthScalingTest(String currentExampleName,
-//                                       String currentPKlassHierarchyName,
-//                                       String currentRunGroup
-//    ) throws IOException {
-//        String testName = "extendsWidthScalingTest";
-//        performMetricCalculation(
-//                testName,
-//                currentExampleName,
-//                currentPKlassHierarchyName,
-//                currentRunGroup,
-//                "src/test/resources/examples/generated/",
-//                "src/test/resources/hierarchy/generated/");
-//    }
-
-
-    static Stream<Arguments> testResourceProvider3() {
-
-        return IntStream.range(0, EXTENDS_DEPTH_SCALING_MAX_DEPTH)
-                .boxed()
-                .flatMap(i ->
-                        IntStream.range(1, EXTENDS_DEPTH_SCALING_NUMBER_OF_REPETITIONS+1)
-                                .mapToObj(j -> Arguments.of(
-                                        "ExampleExtendsDepth",
-                                        String.format("ExtendsDepth%d", i),
-                                        String.format("RunGroup%d", i)
-                                ))
-                );
-
+    @ParameterizedTest
+    @MethodSource("testResourceProvider2")
+    public void extendsWidthScalingTest(String currentExampleName,
+                                       String currentPKlassHierarchyName,
+                                       String currentRunGroup
+    ) throws IOException {
+        String testName = "extendsWidthScalingTest";
+        performMetricCalculation(
+                testName,
+                currentExampleName,
+                currentPKlassHierarchyName,
+                currentRunGroup,
+                "src/test/resources/examples/generated/",
+                "src/test/resources/hierarchy/generated/");
     }
-//    @ParameterizedTest
-//    @MethodSource("testResourceProvider3")
-//    public void extendsDepthScalingTest(String currentExampleName,
-//                                        String currentPKlassHierarchyName,
-//                                        String currentRunGroup
-//    ) throws IOException {
-//        String testName = "extendsDepthScalingTest";
-//        performMetricCalculation(
-//                testName,
-//                currentExampleName,
-//                currentPKlassHierarchyName,
-//                currentRunGroup,
-//                "src/test/resources/examples/generated/",
-//                "src/test/resources/hierarchy/generated/");
-//    }
 
 
     static Stream<Arguments> testResourceProvider4() {
@@ -403,21 +355,21 @@ public class BenchmarkingScaling {
                 );
 
     }
-//    @ParameterizedTest
-//    @MethodSource("testResourceProvider4")
-//    public void nondetObjectScalingTest(String currentExampleName,
-//                                        String currentPKlassHierarchyName,
-//                                        String currentRunGroup
-//    ) throws IOException {
-//        String testName = "nondetObjectScalingTest";
-//        performMetricCalculation(
-//                testName,
-//                currentExampleName,
-//                currentPKlassHierarchyName,
-//                currentRunGroup,
-//                "src/test/resources/examples/generated/",
-//                "src/test/resources/hierarchy/generated/");
-//    }
+    @ParameterizedTest
+    @MethodSource("testResourceProvider4")
+    public void nondetObjectScalingTest(String currentExampleName,
+                                        String currentPKlassHierarchyName,
+                                        String currentRunGroup
+    ) throws IOException {
+        String testName = "nondetObjectScalingTest";
+        performMetricCalculation(
+                testName,
+                currentExampleName,
+                currentPKlassHierarchyName,
+                currentRunGroup,
+                "src/test/resources/examples/generated/",
+                "src/test/resources/hierarchy/generated/");
+    }
 
     static Stream<Arguments> testResourceProvider5() {
 

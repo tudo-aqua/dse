@@ -1,11 +1,10 @@
 import tools.aqua.concolic.Verifier;
 
-public class Example3 {
+public class Example34 {
     public static void main(String[] args) {
-        Object o = Verifier.nondetObject();
-        A a = (A) o;
+        Object o = Verifier.nondetObject(); 
 
-        if (a == null) {
+        if (!(o instanceof Greeter)) {
             assert false;
         }
     }

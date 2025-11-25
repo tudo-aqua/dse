@@ -220,22 +220,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        //EXPECTED OUTPUT WITHOUT CONSTRUCTOR VARIATION
-        //+ OK[complete path:true] .
-
-        //EXPECTED OUTPUT
-        //+ 0 : (='__object_constructor_0'NULL)
-        //  + OK[complete path:true] .
-        //+ 1 : (='__object_constructor_0'LB;|()V)
-        //  + OK[complete path:true] . __object_constructor_0:=LB;|()V,__object_0:=LB;
-        //+ 2 : (='__object_constructor_0'LA;|()V)
-        //  + OK[complete path:true] . __object_constructor_0:=LA;|()V,__object_0:=LA;
-        //+ 3 : (='__object_constructor_0'LA;|(II)V)
-        //  + OK[complete path:true] . __object_constructor_0:=LA;|(II)V,__object_0:=LA;
-
         List<String> decisionTree = getDecisionTreeLineByLine(output);
-
-
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -278,51 +263,10 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        //EXPECTED OUTPUT WITHOUT CONSTRUCTOR VARIATION
-        //+ OK[complete path:true] .
-
-        //EXPECTED OUTPUT
-        //+ 0 : (='__object_constructor_0'NULL)
-        //  + OK[complete path:true] .
-        //+ 1 : (='__object_constructor_0'LB;|()V)
-        //  + OK[complete path:true] . __object_constructor_0:=LB;|()V,__object_0:=LB;
-        //+ 2 : (='__object_constructor_0'LA;|()V)
-        //  + OK[complete path:true] . __object_constructor_0:=LA;|()V,__object_0:=LA;
-        //+ 3 : (='__object_constructor_0'LA;|(II)V)
-        //  + OK[complete path:true] . __object_constructor_0:=LA;|(II)V,__object_0:=LA;
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
-
-
-
-
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
-
-
-
-
-
-//        SoftAssertions.assertSoftly(softly -> {
-//            softly.assertThat(decisionTree).hasSize(8);
-//            softly.assertThat(decisionTree.get(0))
-//                    .startsWith("+ 0 : (='__object_constructor_0'NULL)");
-//            softly.assertThat(decisionTree.get(1))
-//                    .startsWith("+ OK[complete path:true] .");
-//            softly.assertThat(decisionTree.get(2))
-//                    .startsWith("+ 1 : (='__object_constructor_0'LB;|()V)");
-//            softly.assertThat(decisionTree.get(3))
-//                    .startsWith("+ OK[complete path:true] .");
-//            softly.assertThat(decisionTree.get(4))
-//                    .startsWith("+ 2 : (='__object_constructor_0'LA;|()V)");
-//            softly.assertThat(decisionTree.get(5))
-//                    .startsWith("+ OK[complete path:true] .");
-//            softly.assertThat(decisionTree.get(6))
-//                    .startsWith("+ 3 : (='__object_constructor_0'LA;|(II)V)");
-//            softly.assertThat(decisionTree.get(7))
-//                    .startsWith("+ OK[complete path:true] .");
-//        });
-
 
     }
 
@@ -356,50 +300,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        //EXPECTED OUTPUT WITHOUT CONSTRUCTOR VARIATION
-        //+ 0 : ('extends'('__object_0',LB;) || 'extends'('__object_0',null))
-        //  + OK[complete path:true] .
-        //+ 1 : !('extends'('__object_0',LB;) || 'extends'('__object_0',null))
-        //  + ERROR[complete path:true] . __object_0:=LA;,__object_constructor_0:=LA;|(II)V .
-        //  java/lang/ClassCastException
-
-        //EXPECTED OUTPUT
-        //+ 0 : (='__object_constructor_0'NULL)
-        //  + 0 : ('extends'('__object_0',LB;) || 'extends'('__object_0',null))
-        //    + OK[complete path:true] .
-        //  + 1 : !('extends'('__object_0',LB;) || 'extends'('__object_0',null))
-        //    + UNSAT
-        //+ 1 : (='__object_constructor_0'LB;|()V)
-        //  + 0 : ((('extends'('__object_0',LB;) || 'extends'('__object_0',null)) || 'extends'('__object_0',LB;)) || 'extends'('__object_0',null))
-        //    + OK[complete path:true] . __object_constructor_0:=LB;|()V,__object_0:=LB;
-        //  + 1 : !((('extends'('__object_0',LB;) || 'extends'('__object_0',null)) || 'extends'('__object_0',LB;)) || 'extends'('__object_0',null))
-        //    + UNSAT
-        //+ 2 : (='__object_constructor_0'LA;|()V)
-        //  + 0 : !!((((((('extends'('__object_0',LB;) || 'extends'('__object_0',null)) || 'extends'('__object_0',LB;)) || 'extends'('__object_0',null)) || 'extends'('__object_0',LB;)) || 'extends'('__object_0',null)) || 'extends'('__object_0',LB;)) || 'extends'('__object_0',null))
-        //    + UNSAT
-        //  + 1 : !((((((('extends'('__object_0',LB;) || 'extends'('__object_0',null)) || 'extends'('__object_0',LB;)) || 'extends'('__object_0',null)) || 'extends'('__object_0',LB;)) || 'extends'('__object_0',null)) || 'extends'('__object_0',LB;)) || 'extends'('__object_0',null))
-        //    + ERROR[complete path:true] . __object_constructor_0:=LA;|()V,__object_0:=LA; . java/lang/ClassCastException
-        //+ 3 : (='__object_constructor_0'LA;|(II)V)
-        //  + 0 : !!((((('extends'('__object_0',LB;) || 'extends'('__object_0',null)) || 'extends'('__object_0',LB;)) || 'extends'('__object_0',null)) || 'extends'('__object_0',LB;)) || 'extends'('__object_0',null))
-        //    + UNSAT
-        //  + 1 : !((((('extends'('__object_0',LB;) || 'extends'('__object_0',null)) || 'extends'('__object_0',LB;)) || 'extends'('__object_0',null)) || 'extends'('__object_0',LB;)) || 'extends'('__object_0',null))
-        //    + ERROR[complete path:true] . __object_constructor_0:=LA;|(II)V,__object_0:=LA; . java/lang/ClassCastException
-
-
-
         List<String> decisionTree = getDecisionTreeLineByLine(output);
-
-//        SoftAssertions.assertSoftly(softly -> {
-//            softly.assertThat(decisionTree).hasSize(4);
-//            softly.assertThat(decisionTree.get(0))
-//                    .startsWith("+ 0 : ('extends'('__object_0',LB;) || 'extends'('__object_0',null))");
-//            softly.assertThat(decisionTree.get(1))
-//                    .startsWith("+ OK[complete path:true] .");
-//            softly.assertThat(decisionTree.get(2))
-//                    .startsWith("+ 1 : !('extends'('__object_0',LB;) || 'extends'('__object_0',null))");
-//            softly.assertThat(decisionTree.get(3))
-//                    .startsWith("+ ERROR[complete path:true]");
-//        });
     }
 
 
@@ -434,25 +335,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        //EXPECTED OUTPUT
-        //+ 0 : (='__object_0'null)
-        //  + ERROR[complete path:true] .  . java/lang/AssertionError
-        //+ 1 : !(='__object_0'null)
-        //  + OK[complete path:true] . __object_constructor_0:=LA;|()V,__object_constructor_1:=LB;|()V,__object_1:=LB;,__object_0:=LA;
-
         List<String> decisionTree = getDecisionTreeLineByLine(output);
-
-//        SoftAssertions.assertSoftly(softly -> {
-//            softly.assertThat(decisionTree).hasSize(4);
-//            softly.assertThat(decisionTree.get(0))
-//                    .startsWith("+ 0 : (='__object_0'null)");
-//            softly.assertThat(decisionTree.get(1))
-//                    .startsWith("+ ERROR[complete path:true] .  . java/lang/AssertionError");
-//            softly.assertThat(decisionTree.get(2))
-//                    .startsWith("+ 1 : !(='__object_0'null)");
-//            softly.assertThat(decisionTree.get(3))
-//                    .startsWith("+ OK[complete path:true] . ");
-//        });
     }
 
     @Test //ok
@@ -483,26 +366,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        //EXPECTED OUTPUT
-        //+ 0 : !(='__object_0'null)
-        //  + ERROR[complete path:true] . __object_constructor_0:=LB;|()V,__object_0:=LB; . java/lang/AssertionError
-        //+ 1 : (='__object_0'null)
-        //  + OK[complete path:true] .
-
         List<String> decisionTree = getDecisionTreeLineByLine(output);
-
-//        SoftAssertions.assertSoftly(softly -> {
-//            softly.assertThat(decisionTree).hasSize(4);
-//            softly.assertThat(decisionTree.get(0))
-//                    .startsWith("+ 0 : !(='__object_0'null)");
-//            softly.assertThat(decisionTree.get(1))
-//                    .startsWith("+ ERROR[complete path:true] .");
-//            softly.assertThat(decisionTree.get(2))
-//                    .startsWith("+ 1 : (='__object_0'null)");
-//            softly.assertThat(decisionTree.get(3))
-//                    .startsWith("+ OK[complete path:true] .");
-//        });
-
     }
 
     @Test //todo: adapted example diverged -> object1 und object 2 sind verschieden, da das gleiche Object angelegt wird
@@ -540,47 +404,9 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        //EXPECTED OUTPUT
-        //+ 0 : !(='__object_0'null)
-        //  + 0 : !(='__object_1'null)
-        //    + 0 : !!(='__object_1''__object_0')
-        //      + UNSAT
-        //    + 1 : !(='__object_1''__object_0')
-        //      + OK[complete path:true] . __object_1:=LB;,__object_constructor_1:=LB;|()V,__object_constructor_0:=LA;|()V,__object_0:=LA;
-        //  + 1 : (='__object_1'null)
-        //    + OK[complete path:true] . __object_1:=null,__object_constructor_1:=NULL,__object_constructor_0:=LA;|(II)V,__object_0:=LA;
-        //+ 1 : (='__object_0'null)
-        //  + OK[complete path:true] .
-
         List<String> decisionTree = getDecisionTreeLineByLine(output);
 
         System.out.println(analyseDecisionTree(decisionTree));
-
-//        SoftAssertions.assertSoftly(softly -> {
-//            softly.assertThat(decisionTree).hasSize(10);
-//            softly.assertThat(decisionTree.get(0))
-//                    .startsWith("+ 0 : !(='__object_0'null)");
-//            softly.assertThat(decisionTree.get(1))
-//                    .startsWith("+ 0 : !(='__object_1'null)");
-//            softly.assertThat(decisionTree.get(2))
-//                    .startsWith("+ 0 : !!(='__object_1''__object_0')");
-//            softly.assertThat(decisionTree.get(3))
-//                    .startsWith("+ UNSAT");
-//            softly.assertThat(decisionTree.get(4))
-//                    .startsWith("+ 1 : !(='__object_1''__object_0')");
-//            softly.assertThat(decisionTree.get(5))
-//                    .startsWith("+ OK[complete path:true] .");
-//            softly.assertThat(decisionTree.get(6))
-//                    .startsWith("+ 1 : (='__object_1'null)");
-//            softly.assertThat(decisionTree.get(7))
-//                    .startsWith("+ OK[complete path:true] .");
-//            softly.assertThat(decisionTree.get(8))
-//                    .startsWith("+ 1 : (='__object_0'null)");
-//            softly.assertThat(decisionTree.get(9))
-//                    .startsWith("+ OK[complete path:true] .");
-//        });
-
-
     }
 
     @Test //todo: noch nicht gelöst
@@ -612,26 +438,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        //EXPECTED OUTPUT
-        //+ 0 : !(='__object_1''__object_0')
-        //  + ERROR[complete path:true] . __object_0:=null,__object_1:=LB;,__object_constructor_0:=NULL,__object_constructor_1:=LB;|()V . java/lang/AssertionError
-        //+ 1 : (='__object_1''__object_0')
-        //  + OK[complete path:true] .
-
         List<String> decisionTree = getDecisionTreeLineByLine(output);
-
-//        SoftAssertions.assertSoftly(softly -> {
-//            softly.assertThat(decisionTree).hasSize(4);
-//            softly.assertThat(decisionTree.get(0))
-//                    .startsWith("+ 0 : !(='__object_1''__object_0')");
-//            softly.assertThat(decisionTree.get(1))
-//                    .startsWith("+ ERROR[complete path:true]");
-//            softly.assertThat(decisionTree.get(2))
-//                    .startsWith("+ 1 : (='__object_1''__object_0')");
-//            softly.assertThat(decisionTree.get(3))
-//                    .startsWith("+ OK[complete path:true]");
-//
-//        });
     }
 
     @Test //ok
@@ -663,26 +470,8 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        //EXPECTED OUTPUT
-        //+ 0 : (='__object_0''__object_0')
-        //  + ERROR[complete path:true] .  . java/lang/AssertionError
-        //+ 1 : !(='__object_0''__object_0')
-        //  + UNSAT
-
-
         List<String> decisionTree = getDecisionTreeLineByLine(output);
 
-//        SoftAssertions.assertSoftly(softly -> {
-//            softly.assertThat(decisionTree).hasSize(4);
-//            softly.assertThat(decisionTree.get(0))
-//                    .startsWith("+ 0 : (='__object_0''__object_0')");
-//            softly.assertThat(decisionTree.get(1))
-//                    .startsWith("+ ERROR[complete path:true]");
-//            softly.assertThat(decisionTree.get(2))
-//                    .startsWith("+ 1 : !(='__object_0''__object_0')");
-//            softly.assertThat(decisionTree.get(3))
-//                    .startsWith("+ UNSAT");
-//        });
     }
 
     @Test
@@ -714,27 +503,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        //EXPECTED OUTPUT
-        //+ 0 : !(='__object_0''__object_0')
-        //  + UNSAT
-        //+ 1 : (='__object_0''__object_0')
-        //  + OK[complete path:true] .
-
-
         List<String> decisionTree = getDecisionTreeLineByLine(output);
-
-//        SoftAssertions.assertSoftly(softly -> {
-//            softly.assertThat(decisionTree).hasSize(4);
-//            softly.assertThat(decisionTree.get(0))
-//                    .startsWith("+ 0 : !(='__object_0''__object_0')");
-//            softly.assertThat(decisionTree.get(1))
-//                    .startsWith("+ UNSAT");
-//            softly.assertThat(decisionTree.get(2))
-//                    .startsWith("+ 1 : (='__object_0''__object_0')");
-//            softly.assertThat(decisionTree.get(3))
-//                    .startsWith("+ OK[complete path:true]");
-//
-//        });
     }
 
 
@@ -767,26 +536,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        //EXPECTED OUTPUT
-        //+ 0 : 'instance_of'('__object_0',LA;)
-        //  + ERROR[complete path:true] . __object_constructor_0:=LA;|(II)V,__object_0:=LA; . java/lang/AssertionError
-        //+ 1 : !'instance_of'('__object_0',LA;)
-        //  + OK[complete path:true] .
-
         List<String> decisionTree = getDecisionTreeLineByLine(output);
-
-//        SoftAssertions.assertSoftly(softly -> {
-//            softly.assertThat(decisionTree).hasSize(4);
-//            softly.assertThat(decisionTree.get(0))
-//                    .startsWith("+ 0 : 'instance_of'('__object_0',LA;)");
-//            softly.assertThat(decisionTree.get(1))
-//                    .startsWith("+ ERROR[complete path:true]");
-//            softly.assertThat(decisionTree.get(2))
-//                    .startsWith("+ 1 : !'instance_of'('__object_0',LA;)");
-//            softly.assertThat(decisionTree.get(3))
-//                    .startsWith("+ OK[complete path:true]");
-//
-//        });
     }
 
     @Test
@@ -818,25 +568,8 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        //EXPECTED OUTPUT
-        //+ 0 : !'instance_of'('__object_0',LA;)
-        //  + ERROR[complete path:true] .  . java/lang/AssertionError
-        //+ 1 : 'instance_of'('__object_0',LA;)
-        //  + OK[complete path:true] . __object_0:=LA;,__object_constructor_0:=LA;|(II)V
-
         List<String> decisionTree = getDecisionTreeLineByLine(output);
 
-//        SoftAssertions.assertSoftly(softly -> {
-//            softly.assertThat(decisionTree).hasSize(4);
-//            softly.assertThat(decisionTree.get(0))
-//                    .startsWith("+ 0 : !'instance_of'('__object_0',LA;)");
-//            softly.assertThat(decisionTree.get(1))
-//                    .startsWith("+ ERROR[complete path:true]");
-//            softly.assertThat(decisionTree.get(2))
-//                    .startsWith("+ 1 : 'instance_of'('__object_0',LA;)");
-//            softly.assertThat(decisionTree.get(3))
-//                    .startsWith("+ OK[complete path:true]");
-//        });
     }
 
     @Test
@@ -868,27 +601,11 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        //EXPECTED OUTPUT
-        //+ 0 : 'instance_of'('__object_0',LB;)
-        //  + ERROR[complete path:true] . __object_0:=LB;,__object_constructor_0:=LB;|()V . java/lang/AssertionError
-        //+ 1 : !'instance_of'('__object_0',LB;)
-        //  + OK[complete path:true] .
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
 
         System.out.println(analyseDecisionTree(decisionTree));
 
-//        SoftAssertions.assertSoftly(softly -> {
-//            softly.assertThat(decisionTree).hasSize(4);
-//            softly.assertThat(decisionTree.get(0))
-//                    .startsWith("+ 0 : 'instance_of'('__object_0',LB;)");
-//            softly.assertThat(decisionTree.get(1))
-//                    .startsWith("+ ERROR[complete path:true]");
-//            softly.assertThat(decisionTree.get(2))
-//                    .startsWith("+ 1 : !'instance_of'('__object_0',LB;)");
-//            softly.assertThat(decisionTree.get(3))
-//                    .startsWith("+ OK[complete path:true]");
-//        });
     }
 
     @Test
@@ -920,25 +637,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        //EXPECTED OUTPUT
-        //+ 0 : !'instance_of'('__object_0',LB;)
-        //  + ERROR[complete path:true] .  . java/lang/AssertionError
-        //+ 1 : 'instance_of'('__object_0',LB;)
-        //  + OK[complete path:true] . __object_constructor_0:=LB;|()V,__object_0:=LB;
-
         List<String> decisionTree = getDecisionTreeLineByLine(output);
-
-//        SoftAssertions.assertSoftly(softly -> {
-//            softly.assertThat(decisionTree).hasSize(4);
-//            softly.assertThat(decisionTree.get(0))
-//                    .startsWith("+ 0 : !'instance_of'('__object_0',LB;)");
-//            softly.assertThat(decisionTree.get(1))
-//                    .startsWith("+ ERROR[complete path:true]");
-//            softly.assertThat(decisionTree.get(2))
-//                    .startsWith("+ 1 : 'instance_of'('__object_0',LB;)");
-//            softly.assertThat(decisionTree.get(3))
-//                    .startsWith("+ OK[complete path:true]");
-//        });
     }
 
 
@@ -1523,47 +1222,12 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        //EXPECTED OUTPUT
-        //+ 0 : (('extends'('__object_0',LB;) || 'extends'('__object_0',null)) || 'extends'('__object_0',LA;))
-        //  + 0 : (('extends'('__object_1',LB;) || 'extends'('__object_1',null)) || 'extends'('__object_1',LA;))
-        //    + 0 : !(='__object_0'null)
-        //      + OK[complete path:true] . __object_constructor_1:=NULL,__object_constructor_0:=LB;|()V,__object_0:=LB;,__object_1:=null
-        //    + 1 : (='__object_0'null)
-        //      + ERROR[complete path:true] .  . java/lang/NullPointerException
-        //  + 1 : !(('extends'('__object_1',LB;) || 'extends'('__object_1',null)) || 'extends'('__object_1',LA;))
-        //    + UNSAT
-        //+ 1 : !(('extends'('__object_0',LB;) || 'extends'('__object_0',null)) || 'extends'('__object_0',LA;))
-        //  + UNSAT
-
         List<String> decisionTree = getDecisionTreeLineByLine(output);
-
-//        SoftAssertions.assertSoftly(softly -> {
-//            softly.assertThat(decisionTree).hasSize(10);
-//            softly.assertThat(decisionTree.get(0))
-//                    .startsWith("");
-//            softly.assertThat(decisionTree.get(1))
-//                    .startsWith("");
-//            softly.assertThat(decisionTree.get(2))
-//                    .startsWith("");
-//            softly.assertThat(decisionTree.get(3))
-//                    .startsWith("");
-//            softly.assertThat(decisionTree.get(4))
-//                    .startsWith("");
-//            softly.assertThat(decisionTree.get(5))
-//                    .startsWith("");
-//            softly.assertThat(decisionTree.get(6))
-//                    .startsWith("");
-//            softly.assertThat(decisionTree.get(7))
-//                    .startsWith("");
-//            softly.assertThat(decisionTree.get(8))
-//                    .startsWith("");
-//            softly.assertThat(decisionTree.get(9))
-//                    .startsWith("");
-//        });
     }
 
+
     @Test
-    public void Example33_createStringFromObject() throws IOException, InterruptedException {
+    public void Example33_instanceOfInterface() throws IOException, InterruptedException {
         //define example
         String exampleName = "Example33";
 
@@ -1584,15 +1248,51 @@ public class DSEIntegrationTest {
         String output = filterOutPutStream();
         //System.out.println(output);
 
-        //checks
-        //todo: Add checks
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //                                                CHECKS
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         assertThat(output)
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
+
+        List<String> decisionTree = getDecisionTreeLineByLine(output);
+
     }
 
     @Test
-    public void Example35_instanceOfInterface() throws IOException, InterruptedException {
+    public void Example34_notInstanceOfInterface() throws IOException, InterruptedException {
+        //define example
+        String exampleName = "Example34";
+
+                //compile example
+        compileBasicClasses(exampleName);
+
+        //execute example
+        printExample(exampleName, "dse/src/test/resources/examples/"); 
+                DSE dse = TestUtils.getDseInstance(exampleName,
+                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+                "src/test/resources/examples/");
+        dse.executeAnalysis();
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        //System.out.println(output);
+
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //                                                CHECKS
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        assertThat(output)
+                .doesNotContain("DIVERGED")
+                .doesNotContain("BUGGY");
+
+        List<String> decisionTree = getDecisionTreeLineByLine(output);
+    }
+
+    @Test
+    public void Example35_a1Y_equals_a2Y() throws IOException, InterruptedException {
         //define example
         String exampleName = "Example35";
 
@@ -1613,36 +1313,16 @@ public class DSEIntegrationTest {
         String output = filterOutPutStream();
         //System.out.println(output);
 
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //checks
+        //todo: Add checks
         assertThat(output)
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
-
-        //EXPECTED OUTPUT
-        //+ 0 : 'instance_of'('__object_0',LGreeter;)
-        //  + ERROR[complete path:true] . __object_constructor_0:=LB;|()V,__object_0:=LB; . java/lang/AssertionError
-        //+ 1 : !'instance_of'('__object_0',LGreeter;)
-        //  + OK[complete path:true] .
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-
-//        SoftAssertions.assertSoftly(softly -> {
-//            softly.assertThat(decisionTree).hasSize(4);
-//            softly.assertThat(decisionTree.get(0))
-//                    .startsWith("+ 0 : 'instance_of'('__object_0',LGreeter;)");
-//            softly.assertThat(decisionTree.get(1))
-//                    .startsWith("+ ERROR[complete path:true]");
-//            softly.assertThat(decisionTree.get(2))
-//                    .startsWith("+ 1 : !'instance_of'('__object_0',LGreeter;)");
-//            softly.assertThat(decisionTree.get(3))
-//                    .startsWith("+ OK[complete path:true] .");
-//        });
     }
 
+
     @Test
-    public void Example36_notInstanceOfInterface() throws IOException, InterruptedException {
+    public void Example36_foo_checkcast() throws IOException, InterruptedException {
         //define example
         String exampleName = "Example36";
 
@@ -1663,36 +1343,16 @@ public class DSEIntegrationTest {
         String output = filterOutPutStream();
         //System.out.println(output);
 
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //checks
+        //todo: Add checks
         assertThat(output)
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
-
-        //EXPECTED OUTPUT
-        //+ 0 : !'instance_of'('__object_0',LGreeter;)
-        //  + ERROR[complete path:true] .  . java/lang/AssertionError
-        //+ 1 : 'instance_of'('__object_0',LGreeter;)
-        //  + OK[complete path:true] . __object_constructor_0:=LB;|()V,__object_0:=LB;
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-
-//        SoftAssertions.assertSoftly(softly -> {
-//            softly.assertThat(decisionTree).hasSize(4);
-//            softly.assertThat(decisionTree.get(0))
-//                    .startsWith("+ 0 : !'instance_of'('__object_0',LGreeter;)");
-//            softly.assertThat(decisionTree.get(1))
-//                    .startsWith("+ ERROR[complete path:true]");
-//            softly.assertThat(decisionTree.get(2))
-//                    .startsWith("+ 1 : 'instance_of'('__object_0',LGreeter;)");
-//            softly.assertThat(decisionTree.get(3))
-//                    .startsWith("+ OK[complete path:true]");
-//        });
     }
 
+
     @Test
-    public void Example37_a1Y_equals_a2Y() throws IOException, InterruptedException {
+    public void Example37_bar() throws IOException, InterruptedException {
         //define example
         String exampleName = "Example37";
 
@@ -1704,147 +1364,6 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
-        dse.executeAnalysis();
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        //todo: Add checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-    }
-
-//    @Test
-//    public void Example39_foo() {
-//        //define example
-//        String exampleName = "Example39";
-//
-//                //compile example
-//        compileBasicClasses(exampleName);
-//
-//        //execute example
-//        printExample(exampleName, "dse/src/test/resources/examples/"); 
-//                DSE dse = TestUtils.getDseInstance(exampleName,
-//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-//                "src/test/resources/examples/");
-//        dse.executeAnalysis();
-//
-//        //stop redirection of console log
-//        System.setOut(originalOut);
-//
-//        //printing results
-//        String output = filterOutPutStream();
-//        //System.out.println(output);
-//
-//        //checks
-//        //todo: Add checks
-//        assertThat(output)
-//                .doesNotContain("DIVERGED")
-//                .doesNotContain("BUGGY");
-//    }
-
-    @Test
-    public void Example40_foo_checkcast() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example40";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "dse/src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-        dse.executeAnalysis();
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        //todo: Add checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-    }
-
-    @Test
-    public void Example41_foo_instance_of() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example41";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "dse/src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-        dse.executeAnalysis();
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        //todo: Add checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-    }
-
-    @Test
-    public void Example42_bar() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example42";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "dse/src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-        dse.executeAnalysis();
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        //todo: Add checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-    }
-    @Test
-    public void Example50() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example50";
-
-                //compile example
-        compileBasicClasses(exampleName);
-        //execute example
-        printExample(exampleName, "dse/src/test/resources/examples/"); 
-        DSE dse = getExecution(exampleName, "../class_hierarchy_2.txt", "../examples_concolic");
         dse.executeAnalysis();
 
         //stop redirection of console log

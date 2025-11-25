@@ -2,9 +2,10 @@ import tools.aqua.concolic.Verifier;
 
 public class Example35 {
     public static void main(String[] args) {
-        Object o = Verifier.nondetObject(); 
+        A a1 = (A) Verifier.nondetObject(); 
+        A a2 = (A) Verifier.nondetObject(); 
 
-        if (o instanceof Greeter) {
+        if (a1.getY() == a2.getY()) {
             assert false;
         }
     }
