@@ -244,6 +244,11 @@ public class DSEIntegrationTest {
                 "src/test/resources/examples/");
 
 
+        Instant start = Instant.now();
+        dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
+
         //stop redirection of console log
         System.setOut(originalOut);
 
@@ -261,6 +266,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test //todo: parsing problem of the trace -> out of memory
@@ -276,7 +282,10 @@ public class DSEIntegrationTest {
         DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -295,6 +304,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
 
@@ -312,7 +322,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -331,6 +344,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test //ok
@@ -346,7 +360,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -363,6 +380,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test //todo: adapted example diverged -> object1 und object 2 sind verschieden, da das gleiche Object angelegt wird
@@ -378,7 +396,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -403,6 +424,7 @@ public class DSEIntegrationTest {
         List<String> decisionTree = getDecisionTreeLineByLine(output);
 
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test //todo: noch nicht gelöst
@@ -418,7 +440,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -436,6 +461,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test //ok
@@ -451,7 +477,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -469,6 +498,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
 
     }
 
@@ -485,7 +515,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -503,6 +536,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
 
@@ -519,7 +553,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -537,6 +574,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -552,7 +590,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -570,6 +611,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -585,7 +627,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -605,6 +650,7 @@ public class DSEIntegrationTest {
         List<String> decisionTree = getDecisionTreeLineByLine(output);
 
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -620,7 +666,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -638,6 +687,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
 
@@ -654,7 +704,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -670,6 +723,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -685,7 +739,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -701,6 +758,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -716,7 +774,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -732,6 +793,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -747,7 +809,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -763,6 +828,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -778,7 +844,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -794,6 +863,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -809,7 +879,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -825,6 +898,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -840,7 +914,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -856,6 +933,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -871,7 +949,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -887,6 +968,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -902,7 +984,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -918,6 +1003,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -933,7 +1019,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -949,6 +1038,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -964,7 +1054,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -980,6 +1073,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -995,7 +1089,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -1011,6 +1108,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -1026,7 +1124,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -1042,6 +1143,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -1057,7 +1159,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -1073,6 +1178,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -1088,7 +1194,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -1104,6 +1213,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -1119,7 +1229,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -1135,6 +1248,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -1150,7 +1264,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -1166,6 +1283,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -1181,7 +1299,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -1197,6 +1318,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -1212,7 +1334,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -1228,6 +1353,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -1243,7 +1369,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -1262,6 +1391,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
 
@@ -1278,7 +1408,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -1296,6 +1429,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
 
     }
 
@@ -1312,7 +1446,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -1330,6 +1467,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
     @Test
@@ -1345,7 +1483,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -1361,6 +1502,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
 
@@ -1377,7 +1519,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -1393,6 +1538,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 
 
@@ -1409,7 +1555,10 @@ public class DSEIntegrationTest {
                 DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/standard_class_hierarchy.txt",
                 "src/test/resources/examples/");
+                Instant start = Instant.now();
         dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         //stop redirection of console log
         System.setOut(originalOut);
@@ -1425,6 +1574,7 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = getDecisionTreeLineByLine(output);
         System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
     }
 }
 

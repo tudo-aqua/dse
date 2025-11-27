@@ -1,0 +1,2 @@
+class LAT; { LAT;|(I)V}
+class LBT; extends LAT; {LBT;|(II)V}

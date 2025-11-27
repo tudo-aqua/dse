@@ -250,8 +250,6 @@ public class BenchmarkingScaling {
             "Example35",
             "Example36",
             "Example37",
-            "Example40",
-            "Example42",
             "A",
             "B",
             "C",
