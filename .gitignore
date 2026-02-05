@@ -6,3 +6,4 @@ bin/*
 /bin/
 target/*
 /src/test/resources/examples/generated/
+.idea

@@ -5,6 +5,8 @@ import tools.aqua.dse.Config;
 import tools.aqua.dse.DSE;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -55,36 +57,37 @@ public class DSEIntegrationTest {
     }
 
     public void printExample(String exampleName, String directoryOfTheClassesToCompile) {
-        // Beispiel-Dateiname
-        String filePath = directoryOfTheClassesToCompile + File.separator + exampleName + ".java";
+        // relative path to the example
+        Path filePath = Paths.get(directoryOfTheClassesToCompile, exampleName + ".java");
 
-        System.out.println("Printing example file: " + filePath);
+        System.out.println("Printing example file: " + filePath.toAbsolutePath());
 
-        // Verwende `bat`, um den Dateiinhalt mit Syntax-Highlighting anzuzeigen
+        // Use `bat` to print the file contents with syntax highlighting
         ProcessBuilder processBuilder = new ProcessBuilder(
                 "bat",
                 "--color=always",
-                filePath
+                filePath.toString()
         );
 
-        // Setze das Arbeitsverzeichnis auf das Projekt-Root (wie in compileClass)
-        processBuilder.directory(new File("/Users/mlazar/IdeaProjects/gdart-diff-apply/dse"));
+        // Set the working directory to the project root (same as in compileClass)
+        processBuilder.directory(Paths.get("").toAbsolutePath().toFile());
 
-        // Fehlerausgabe mit Standardausgabe zusammenführen
+        // Merge stderr into stdout
         processBuilder.redirectErrorStream(true);
 
         try {
             Process process = processBuilder.start();
 
-            // Lies und gib die Ausgabe aus
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            // Read and print the process output
+            try (BufferedReader reader =
+                         new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     System.out.println(line);
                 }
             }
 
-            // Warte auf Beendigung
+            // Wait for process termination
             int exitCode = process.waitFor();
             System.out.println("Print finished with exit code: " + exitCode);
 
@@ -407,13 +410,6 @@ public class DSEIntegrationTest {
 
         //printing results
         String output = filterOutPutStream();
-
-        try {
-            FileWriter f = new FileWriter("test.txt");
-            f.write(output);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
         //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         //                                                CHECKS

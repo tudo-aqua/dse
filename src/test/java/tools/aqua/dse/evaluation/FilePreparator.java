@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -541,7 +542,6 @@ public class FilePreparator {
     public static void compileClass(String className,
                                     String directoryOfTheClassesToCompile) throws IOException, InterruptedException {
         // Paths relative to the project root directory
-        String espressoPath = "../SPouT/espresso/mxbuild/darwin-aarch64/ESPRESSO_NATIVE_STANDALONE/bin/javac";
         String verifierStub = "../verifier-stub/target/verifier-stub-1.0.jar";
         String examplesPath = directoryOfTheClassesToCompile;
 
@@ -555,22 +555,18 @@ public class FilePreparator {
 
         // Create a ProcessBuilder for the external call
         ProcessBuilder processBuilder = new ProcessBuilder(
-                espressoPath,
+                "javac",
                 "-cp",
                 classPath,
                 sourceFile
         );
-        System.out.println("espressoPath: "+espressoPath);
-        System.out.println("classPath: "+classPath);
-        System.out.println("sourceFile: "+sourceFile);
 
         // Set the working directory to the project root (optional, but good practice).
         // Adjust the path if necessary, or remove this line if it works without it.
-        processBuilder.directory(new File("/Users/mlazar/IdeaProjects/gdart-diff-apply/dse"));
+        processBuilder.directory(Paths.get("").toAbsolutePath().toFile());
 
         // Merge the error and standard output streams
         processBuilder.redirectErrorStream(true);
-
 
         Process process = processBuilder.start();
 

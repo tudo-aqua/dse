@@ -11,61 +11,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class TestUtils {
-    /**
-     * Executes the compilation command for a given Java class.
-     * The paths are relative to the project root directory.
-     * @param className The name of the class to compile (without .java extension).
-     * @throws IOException if an I/O error occurs.
-     * @throws InterruptedException if the current thread is interrupted while waiting for the process to complete.
-     */
-    public static void compileClass(String className) throws IOException, InterruptedException {
-        // Paths relative to the project root directory
-        String espressoPath = "../SPouT/espresso/mxbuild/darwin-aarch64/ESPRESSO_NATIVE_STANDALONE/bin/javac";
-        String verifierStub = "../verifier-stub/target/verifier-stub-1.0.jar";
-        String examplesPath = "examples_concolic";
-
-        // Assemble the classpath. The separator is ':' for macOS/Linux.
-        String classPath = verifierStub + File.pathSeparator + examplesPath;
-
-        // The source file to be compiled
-        String sourceFile = examplesPath + File.separator + className + ".java";
-
-        System.out.println("Starting compilation of: " + sourceFile);
-
-        // Create a ProcessBuilder for the external call
-        ProcessBuilder processBuilder = new ProcessBuilder(
-                espressoPath,
-                "-cp",
-                classPath,
-                sourceFile
-        );
-
-        // Set the working directory to the project root (optional, but good practice).
-        // Adjust the path if necessary, or remove this line if it works without it.
-        processBuilder.directory(new File("/Users/marvin.lazar/IdeaProjects/master-thesis-gdart/"));
-
-        // Merge the error and standard output streams
-        processBuilder.redirectErrorStream(true);
-
-        Process process = processBuilder.start();
-
-        // Read and print the process output (important for debugging)
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println(line);
-            }
-        }
-
-        // Wait for the process to finish and check the exit code
-        int exitCode = process.waitFor();
-        System.out.println("Compilation finished with exit code: " + exitCode);
-
-        // Check if the compilation was successful (exit code 0)
-        if (exitCode != 0) {
-            org.junit.jupiter.api.Assertions.fail("Compilation failed with exit code " + exitCode);
-        }
-    }
 
     public static void printExample(String exampleName,
                                     String directorOfExample
