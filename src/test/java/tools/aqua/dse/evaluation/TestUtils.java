@@ -20,8 +20,8 @@ public class TestUtils {
      */
     public static void compileClass(String className) throws IOException, InterruptedException {
         // Paths relative to the project root directory
-        String espressoPath = "SPouT/sdk/mxbuild/darwin-aarch64/GRAALVM_ESPRESSO_NATIVE_CE_JAVA17/graalvm-espresso-native-ce-java17-22.2.0.1-dev/bin/javac";
-        String verifierStub = "verifier-stub/target/verifier-stub-1.0.jar";
+        String espressoPath = "../SPouT/espresso/mxbuild/darwin-aarch64/ESPRESSO_NATIVE_STANDALONE/bin/javac";
+        String verifierStub = "../verifier-stub/target/verifier-stub-1.0.jar";
         String examplesPath = "examples_concolic";
 
         // Assemble the classpath. The separator is ':' for macOS/Linux.
@@ -90,7 +90,7 @@ public class TestUtils {
 //        Properties props = new Properties();
 //        props.setProperty("dse.dp", "z3");
 //        props.setProperty("dse.executor", "../executor.sh");
-//        props.setProperty("dse.executor.args", "-cp dse/src/test/resources/examples/:../verifier-stub/target/verifier-stub-1.0.jar -Dconcolic.execution=true " + exampleName+".java");
+//        props.setProperty("dse.executor.args", "-cp src/test/resources/examples/:../verifier-stub/target/verifier-stub-1.0.jar -Dconcolic.execution=true " + exampleName+".java");
 //        props.setProperty("dse.dp.incremental", "false");
 //        props.setProperty("dse.terminate.on", "completion");
 //        props.setProperty("dse.explore", "BFS");

@@ -122,7 +122,7 @@ public class FilePreparator {
         scalingObjectAttribute_createHierarchyFile(depth);
         List<String> javaKlassNames = scalingObjectAtributes_createJavaClasses(depth);
         javaKlassNames.add(scalingObjectAtributes_createExamples());
-        compileClasses(javaKlassNames, "dse/src/test/resources/examples/generated");
+        compileClasses(javaKlassNames, "src/test/resources/examples/generated");
     }
 
     // ***************************************************************************************************************
@@ -211,7 +211,7 @@ public class FilePreparator {
         scalingConstructors_createAllClassHierarchies(numberOfConstructors);
         listOfClassNames.add(scalingConstructors_createJavaClass(numberOfConstructors));
         listOfClassNames.add(scalingConstructors_createExamples());
-        compileClasses(listOfClassNames, "dse/src/test/resources/examples/generated");
+        compileClasses(listOfClassNames, "src/test/resources/examples/generated");
 
     }
 
@@ -318,7 +318,7 @@ public class FilePreparator {
         scalingExtendsWidth_createAllClassHierarchyFiles(width);
         List<String> listOfClasses = scalingExtendsWidth_createAllJavaClasses(width);
         listOfClasses.add(scalingExtendsWidth_createExamples());
-        compileClasses(listOfClasses, "dse/src/test/resources/examples/generated");
+        compileClasses(listOfClasses, "src/test/resources/examples/generated");
     }
 
     // ***************************************************************************************************************
@@ -422,7 +422,7 @@ public class FilePreparator {
         scalingExtendsDepth_createAllClassHierarchyFiles(depth);
         List<String> classNames = scalingExtendsDepth_createAllJavaClasses(depth);
         classNames.add(scalingExtendsDepth_createExamples());
-        compileClasses(classNames, "dse/src/test/resources/examples/generated");
+        compileClasses(classNames, "src/test/resources/examples/generated");
     }
 
     // ***************************************************************************************************************
@@ -527,7 +527,7 @@ public class FilePreparator {
         scalingNonDetObject_classHierarchy();
         List<String> listOfKlassNames = scalingNonDetObject_createAllExampleFiles(numberNonDetObjectsCalls);
         listOfKlassNames.addAll(scalingNonDetObject_generateJavaFiles());
-        compileClasses(listOfKlassNames, "dse/src/test/resources/examples/generated");
+        compileClasses(listOfKlassNames, "src/test/resources/examples/generated");
     }
 
 
@@ -541,15 +541,15 @@ public class FilePreparator {
     public static void compileClass(String className,
                                     String directoryOfTheClassesToCompile) throws IOException, InterruptedException {
         // Paths relative to the project root directory
-        String espressoPath = "SPouT/sdk/mxbuild/darwin-aarch64/GRAALVM_ESPRESSO_NATIVE_CE_JAVA17/graalvm-espresso-native-ce-java17-22.2.0.1-dev/bin/javac";
-        String verifierStub = "verifier-stub/target/verifier-stub-1.0.jar";
+        String espressoPath = "../SPouT/espresso/mxbuild/darwin-aarch64/ESPRESSO_NATIVE_STANDALONE/bin/javac";
+        String verifierStub = "../verifier-stub/target/verifier-stub-1.0.jar";
         String examplesPath = directoryOfTheClassesToCompile;
 
         // Assemble the classpath. The separator is ':' for macOS/Linux.
         String classPath = verifierStub + File.pathSeparator + examplesPath;
 
         // The source file to be compiled
-        String sourceFile = examplesPath + File.separator + className + ".java";
+        String sourceFile = examplesPath + className + ".java";
 
         System.out.println("Starting compilation of: " + sourceFile);
 
@@ -560,10 +560,13 @@ public class FilePreparator {
                 classPath,
                 sourceFile
         );
+        System.out.println("espressoPath: "+espressoPath);
+        System.out.println("classPath: "+classPath);
+        System.out.println("sourceFile: "+sourceFile);
 
         // Set the working directory to the project root (optional, but good practice).
         // Adjust the path if necessary, or remove this line if it works without it.
-        processBuilder.directory(new File("/Users/marvin.lazar/IdeaProjects/master-thesis-gdart/"));
+        processBuilder.directory(new File("/Users/mlazar/IdeaProjects/gdart-diff-apply/dse"));
 
         // Merge the error and standard output streams
         processBuilder.redirectErrorStream(true);

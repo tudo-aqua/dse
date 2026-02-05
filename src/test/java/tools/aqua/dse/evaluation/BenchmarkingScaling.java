@@ -137,7 +137,7 @@ public class BenchmarkingScaling {
         FilePreparator.setUpExtendsDepthTest(EXTENDS_DEPTH_SCALING_MAX_DEPTH);
         FilePreparator.setUpNonDetObjectTest(NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS);
         FilePreparator.setUpAttributeScalingTest(OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH);
-        FilePreparator.compileClasses(BenchmarkingScaling.BASIC_EXAMPLES, "dse/src/test/resources/examples/");
+        FilePreparator.compileClasses(BenchmarkingScaling.BASIC_EXAMPLES, "src/test/resources/examples/");
     }
 
     private void performMetricCalculation(String testName,
