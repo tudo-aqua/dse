@@ -50,6 +50,10 @@
 	        	<enabled>true</enabled>
 	      	</snapshots>
 	    </repository>
+		<repository>
+		    <id>jitpack.io</id>
+		    <url>https://jitpack.io</url>
+		</repository>
 	</repositories>
 
 
@@ -119,6 +123,11 @@
 	================================= DEPENDENCIES ==============================	
 	-->
 	<dependencies>
+		<dependency>
+			<groupId>com.github.tudo-aqua</groupId>
+		    <artifactId>jSMTLIB</artifactId>
+		    <version>5c11ee5</version>
+		</dependency>
 		<dependency>
 			<groupId>tools.aqua</groupId>
 			<artifactId>jconstraints-core</artifactId>
