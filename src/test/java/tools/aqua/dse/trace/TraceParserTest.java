@@ -55,4 +55,46 @@ public class TraceParserTest {
         assert d != null;
         System.out.println(d);
     }
+
+    @Test
+    public void testTrace() throws IOException, SMTLIBParserException {
+        List<String> log = new LinkedList<>();
+        log.add("======================== END PATH [BEGIN].");
+        log.add("[DECLARE] (declare-fun __int_0 () Int)");
+        log.add("[DECISION] (assert (<= 50 (+ 11 __int_0))) // branchCount=2, branchId=1");
+        log.add("[ERROR] java.lang.ArrayIndexOutOfBoundsException");
+        log.add("======================== END PATH [END].");
+        log.add("[META_INFOS] object_count: 4");
+        log.add("[ENDOFTRACE]");
+
+
+        log.add("======================== START PATH [BEGIN].");
+        log.add("Concolic Analysis: true");
+        log.add("Constructor Summary: false");
+        log.add("Taint Analysis: OFF");
+        log.add("Seeded Bool Values: []");
+        log.add("Seeded Byte Values: []");
+        log.add("Seeded Char Values: []");
+        log.add("Seeded Short Values: []");
+        log.add("Seeded Int Values: []");
+        log.add("Seeded Long Values: []");
+        log.add("Seeded Float Values: []");
+        log.add("Seeded Double Values: []");
+        log.add("Seeded String Values: []");
+        log.add("Seeded Object Values: []");
+        log.add("======================== START PATH [END].");
+        log.add("======================== END PATH [BEGIN].");
+        log.add("[AUXILIARY] (declare-sort Object 0)");
+        log.add("[AUXILIARY] (declare-fun null () Object)");
+        log.add("[DECLARE] (declare-fun __object_0 () Object)");
+        log.add("[DECLARE] (declare-fun __object_0.cls () String)");
+        log.add("[DECISION] (assert (not (and (not (= __object_0 null)) (obj.extends __object_0.cls \"LB;\")))) // branchCount=2, branchId=1");
+        log.add("[ABORT] assumption violation");
+        log.add("======================== END PATH [END].");
+        log.add("[META_INFOS] object_count: 1");
+        log.add("[ENDOFTRACE]");
+
+        Trace t = TraceParser.parseTrace(log, new Valuation(), null);
+    }
+
 }

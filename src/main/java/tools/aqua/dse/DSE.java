@@ -17,6 +17,8 @@ package tools.aqua.dse;
 
 import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Valuation;
+import gov.nasa.jpf.constraints.api.Variable;
+import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.STRawGroupDir;
@@ -53,7 +55,6 @@ public class DSE {
 //            SolverContext solverContext = config.getSolverContext();
 
             Trace trace = executor.execute(val);
-            //todo: Add
             if (trace != null) {
                 trace.print();
                 flows.add(new LinkedList<>(trace.getFlows()));
@@ -95,11 +96,45 @@ public class DSE {
 //        System.exit(0);
     }
 
+    public List<Trace> executeConstructor(String constructor) {
+        Explorer explorer = new Explorer(config);
+        Executor executor = new Executor(config);
+        List<Trace> traces = new ArrayList<>();
+
+        List<List<String>> flows = new LinkedList<>();
+
+        while (explorer.hasNextValuation()) {
+            Valuation val = explorer.getNextValuation();
+
+            Variable<String> constrVar = Variable.create(BuiltinTypes.STRING, "__object_constructor_0");
+            val.setValue(constrVar, constructor);
+
+            Trace trace = executor.execute(val);
+            traces.add(trace);
+
+            if (trace != null) {
+                trace.print();
+                flows.add(new LinkedList<>(trace.getFlows()));
+            } else {
+                System.out.println("== no trace obtained.");
+            }
+            explorer.addTrace(trace);
+
+            // check if we should save a witness
+            checkAndSaveWitness(trace);
+        }
+
+        System.out.println("\u001b[32m"+explorer.getAnalysis()+"\u001b[0m");
+
+        System.out.println("[END OF OUTPUT]");
+
+        return traces;
+    }
+
     /*
      *
      *
      */
-
     private void checkAndSaveWitness(Trace trace) {
         if (!config.isWitness() || savedWitness || trace == null ||
                 !(trace.getTraceState() instanceof PathResult.ErrorResult) ||

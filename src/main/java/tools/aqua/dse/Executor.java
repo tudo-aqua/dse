@@ -60,10 +60,10 @@ public class Executor {
             generateParam("concolic.floats", "__float_", val),
             generateParam("concolic.doubles", "__double_", val),
             generateParam("concolic.strings", "__string_", val),
-//            generateParam("concolic.constructors", "__object_constructor_", val),
-            generateConstructors(val),
-            generateConstructorCount(chosenConstructors),
-            generateConstructorIds(chosenConstructors),
+            generateParam("concolic.constructors", "__object_constructor_", val),
+//            generateConstructors(val),
+//            generateConstructorCount(chosenConstructors),
+//            generateConstructorIds(chosenConstructors),
             this.executorArgs
         };
         System.out.println(String.join(" ", cmd));

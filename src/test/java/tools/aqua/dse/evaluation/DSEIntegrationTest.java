@@ -114,8 +114,7 @@ public class DSEIntegrationTest {
 
         Config config = Config.fromProperties(props);
 
-
-        return  new DSE(config);
+        return new DSE(config);
     }
 
 
@@ -190,6 +189,49 @@ public class DSEIntegrationTest {
             FilePreparator.compileClasses(filesToCompile, "src/test/resources/examples/");
         }
     }
+
+    @Test
+    public void paperExample() throws IOException, InterruptedException {
+        //define example
+        String exampleName = "Main";
+
+        // Compile Base Classes
+        FilePreparator.compileClasses(List.of("A", "B", "C"), "src/test/resources/example/"); //example directory
+        FilePreparator.compileClass("D", "src/test/resources/example/test/");
+
+        //execute example
+        printExample(exampleName, "src/test/resources/example/");
+//        DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/thesis_class_hierarchy.txt",
+//                "src/test/resources/example/");
+//
+//        Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        //                                                CHECKS
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//
+//
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+    }
+
+
     @Test
     public void thesis_example()  throws IOException, InterruptedException {
         //define example

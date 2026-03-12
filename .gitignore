@@ -7,3 +7,9 @@ bin/*
 target/*
 /src/test/resources/examples/generated/
 .idea
+/src/main/resources/example/
+/src/main/resources/Main.java
+/src/main/resources/spout.txt
+/src/main/resources/summaries.txt
+/GEMINI.md
+/src/main/resources/dse.smtlib

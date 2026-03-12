@@ -34,10 +34,7 @@ import tools.aqua.dse.objects.ClazzModel;
 import tools.aqua.dse.paths.PathResult;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,20 +43,39 @@ public class TraceParser {
                                    Valuation vals,
                                    ClazzModel clazzModel) throws IOException, SMTLIBParserException {
         List<Decision> decisions = new LinkedList<>();
+        List<String> declarations = new ArrayList<>();
         List<WitnessAssumption> witness = new LinkedList<>();
         List<String> taintViolations = new LinkedList<>();
         List<String> flows = new LinkedList<>();
+        List<String> summeries = new ArrayList<>();
         PathResult result = PathResult.ok(vals);
-        String decl = "";
+//        String decl = "";
+        String decl = "(declare-fun obj.extends (String String) Bool) \n (declare-fun obj.method.of (String String String String) Bool)";
         int objectCount = 0;
         boolean traceComplete = false;
+        Set<String> objectIdentifiers = new HashSet<>();
 
         for (String line : lines) {
             if (line.startsWith("[DECISION]")) {
                 decisions.add(parseDecision( line.substring("[DECISION]".length()), decl, clazzModel));
             }
+            else if (line.startsWith("[AUXILIARY]")) {
+                decl += line.substring("[AUXILIARY]".length());
+            }
+            else if (line.startsWith("[SUMMARY]")) {
+                summeries.add(line.substring("[SUMMARY]".length()));
+            }
             else if (line.startsWith("[DECLARE]")) {
-                decl += line.substring("[DECLARE]".length());
+                String declaration = line.substring("[DECLARE]".length());
+                decl += declaration;
+
+                declarations.add(declaration);
+
+                Pattern pattern = Pattern.compile("\\(declare-fun\\s+(__object_\\d+)\\s*\\(\\)\\s+Object\\)");
+                Matcher matcher = pattern.matcher(declaration);
+                if (matcher.find()) {
+                    objectIdentifiers.add(matcher.group());
+                }
             }
             else if (line.startsWith("[ERROR]")) {
                 result = PathResult.error(vals, line.substring("[ERROR]".length()).trim(), "");
@@ -99,7 +115,7 @@ public class TraceParser {
         }
 
         result.setTaintViolations(taintViolations);
-        return new Trace(decisions, witness, flows, result, objectCount);
+        return new Trace(decisions, summeries, declarations, witness, flows, result, objectCount, objectIdentifiers);
     }
 
     public static Decision parseDecision(String decision,
