@@ -106,6 +106,7 @@ public class DSE {
         while (explorer.hasNextValuation()) {
             Valuation val = explorer.getNextValuation();
 
+            //todo: Always working??? Are there situations where there are already __object_constructors????
             Variable<String> constrVar = Variable.create(BuiltinTypes.STRING, "__object_constructor_0");
             val.setValue(constrVar, constructor);
 

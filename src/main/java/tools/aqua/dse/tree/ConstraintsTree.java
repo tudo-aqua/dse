@@ -18,13 +18,12 @@
 
 package tools.aqua.dse.tree;
 
+import gov.nasa.jpf.constraints.api.*;
 import gov.nasa.jpf.constraints.api.ConstraintSolver.Result;
-import gov.nasa.jpf.constraints.api.Expression;
-import gov.nasa.jpf.constraints.api.SolverContext;
-import gov.nasa.jpf.constraints.api.Valuation;
-import gov.nasa.jpf.constraints.api.ValuationEntry;
+import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import tools.aqua.dse.Config;
 import tools.aqua.dse.paths.PathResult;
+import tools.aqua.dse.preprocessing.SmtProblemManager;
 import tools.aqua.dse.trace.Decision;
 import tools.aqua.dse.trace.Trace;
 
@@ -350,18 +349,16 @@ public class ConstraintsTree {
         assertExpression(clause);
       }
     } else {
-      solverCtx.pop();
-      solverCtx.push();
+//      solverCtx.pop();
+//      solverCtx.push();
       List<Expression<Boolean>> path = pathConstraint(to, root);
       System.out.println("current decision path: " + Arrays.toString( path.toArray() ));
-      //todo: domain constraints aktualsieren
-      //Add object-specific constraints
-      solverCtx.add(path);
 
-      if (this.config.getClazzModel() != null) {
-        solverCtx.push();
-        this.config.getClazzModel().addObjectConstraintsForTrace(path, solverCtx);
-      }
+      //Add object-specific constraints
+      solverCtx.push();
+      SmtProblemManager.addSmtProblemAsString(
+              config.getSmtProblemManager().getConstructorSummaryManager().generateSMTLibCode(path), solverCtx);
+      solverCtx.add(path);
     }
   }
 
@@ -424,7 +421,7 @@ public class ConstraintsTree {
    *
    * @return
    */
-  public Valuation findNext(Trace trace) {
+  public Valuation findNext() {
     if (terminate) {
       //TODO: close tree somehow?
       return null;
@@ -465,6 +462,8 @@ public class ConstraintsTree {
         }
       }
 
+
+      //todo:
       // update context and current target
       updateContext(
           (currentTarget == null || currentTarget.parent() == null) ? root : currentTarget,
@@ -478,6 +477,7 @@ public class ConstraintsTree {
       logger.finer("Finding new valuation");
       System.out.println("\033[35mSolve SMT-problem");
       Result res = solverCtx.solve(val);
+      solverCtx.pop();
 
 
 
@@ -490,10 +490,6 @@ public class ConstraintsTree {
       currentValues = val;
       logger.finer("Found: " + res + " : " + val);
 
-      //Remove object-specific constraints
-      if (this.config.getClazzModel() != null) {
-        solverCtx.pop();
-      }
 
       // if node is unsat or dont/know -> next
       // if node is satisfiable -> simulate and execute!

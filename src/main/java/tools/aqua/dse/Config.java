@@ -23,6 +23,7 @@ import org.apache.commons.cli.CommandLine;
 import tools.aqua.dse.bounds.BoundedSolverProvider;
 import tools.aqua.dse.objects.ClazzModel;
 import tools.aqua.dse.objects.LoggingSolverContext;
+import tools.aqua.dse.preprocessing.SmtProblemManager;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -86,9 +87,13 @@ public class Config {
 
     private ClazzModel clazzModel = null;
 
+    private final SmtProblemManager smtProblemManager;
+
     private Config(Properties properties) {
         this.properties = properties;
+        this.smtProblemManager = new SmtProblemManager("src/test/resources/example", 2); //todo: Load from properties
     }
+
 
     /**
      * should dse explore open nodes
@@ -125,14 +130,9 @@ public class Config {
     public SolverContext getSolverContext() {
         System.out.println("Create SolverContext");
         SolverContext ctx = new LoggingSolverContext(this.solver.createContext());
-        // init object constraints signature
-//        if (clazzModel != null) {
-//            System.out.println("Claaz Model found");
-//            clazzModel.initObjectsStructure(ctx);
-//            clazzModel.addConstructorInitializationConstraints(ctx, 1); //todo:
-//            clazzModel.addFiniteDomainConstraints(ctx, 1); //todo:
-//        }
-        return ctx;
+        ctx.push();
+
+        return this.smtProblemManager.getStaticManager().setStaticSmtLibCode(ctx);
     }
 
 
@@ -321,4 +321,7 @@ public class Config {
         return Config.fromProperties(props);
     }
 
+    public SmtProblemManager getSmtProblemManager() {
+        return smtProblemManager;
+    }
 }
