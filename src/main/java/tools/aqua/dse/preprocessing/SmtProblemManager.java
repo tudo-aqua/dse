@@ -27,6 +27,7 @@ public class SmtProblemManager {
     public static void addSmtProblemAsString(String smtLibCode, SolverContext solverContext) {
         SMTProblem smtProblem = null;
         try {
+            System.out.println(smtLibCode);
             smtProblem = SMTLIBParser.parseSMTProgram(smtLibCode);
         } catch (IOException e) {
             throw new RuntimeException(e);

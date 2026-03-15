@@ -129,21 +129,21 @@ public class TraceParser {
         String constraint = parts[0];
         Expression<Boolean> expr = null;
 
-        if (constraint.contains("extends")) {
-            expr = parseExtends(constraint, clazzModel);
-            int branches = Integer.parseInt(parts[1]);
-            int branchId = Integer.parseInt(parts[2]);
-            return new Decision( expr, branches, branchId);
-        }
-
-        else if (constraint.contains("instance_of")) {
-            expr = parseInstanceOf(constraint);
-            int branches = Integer.parseInt(parts[1]);
-            int branchId = Integer.parseInt(parts[2]);
-            return new Decision( expr, branches, branchId);
-        }
-
-        else {
+//        if (constraint.contains("extends")) {
+//            expr = parseExtends(constraint, clazzModel);
+//            int branches = Integer.parseInt(parts[1]);
+//            int branchId = Integer.parseInt(parts[2]);
+//            return new Decision( expr, branches, branchId);
+//        }
+//
+//        else if (constraint.contains("instance_of")) {
+//            expr = parseInstanceOf(constraint);
+//            int branches = Integer.parseInt(parts[1]);
+//            int branchId = Integer.parseInt(parts[2]);
+//            return new Decision( expr, branches, branchId);
+//        }
+//
+//        else {
             try {
                 smt = SMTLIBParser.parseSMTProgram(decl + parts[0]);
             } catch (Throwable e) {
@@ -153,7 +153,7 @@ public class TraceParser {
             int branches = Integer.parseInt(parts[1]);
             int branchId = Integer.parseInt(parts[2]);
             return new Decision( ExpressionUtil.and(smt.assertions), branches, branchId);
-        }
+//        }
     }
 
     private static Expression<Boolean> parseExtends(String constraint,
@@ -171,9 +171,7 @@ public class TraceParser {
 //        Set<String> subclasses = parser.getAllSubclasses(parseResult.className);
         Clazz clazz = clazzModel.getClazzes().get(parseResult.className);
 
-        if (clazz == null) {
-            throw new IllegalArgumentException("No such clazz in static clazz hierarchy: " + constraint);
-        }
+
         List<String> subclasses = new ArrayList<>(clazz.getAllSubClazzes());
 
 

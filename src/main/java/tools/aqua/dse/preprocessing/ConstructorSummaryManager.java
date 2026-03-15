@@ -2,9 +2,12 @@ package tools.aqua.dse.preprocessing;
 
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Variable;
+import gov.nasa.jpf.constraints.types.BitLimitedBVIntegerType;
+import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import tools.aqua.dse.Config;
 import tools.aqua.dse.DSE;
+import tools.aqua.dse.paths.PathResult;
 import tools.aqua.dse.trace.Decision;
 import tools.aqua.dse.trace.Trace;
 
@@ -28,6 +31,7 @@ public class ConstructorSummaryManager {
         this.depth = depth;
         System.out.println("generateSmtCodeBluePrintForConstructorSelection-Call");
         this.bluePrintConstructorSummaries = this.generateSmtCodeBluePrintForConstructorSelection();
+        System.out.println("generateSmtCodeBluePrintForConstructorSelection-Done");
     }
 
 
@@ -64,10 +68,11 @@ public class ConstructorSummaryManager {
                 .flatMap(Collection::stream)
                 .toList();
 
+
         for (Variable<?> freeVariable : freeVariables) {
             erg.append(String.format("(declare-fun %s () %s)\n",
                     freeVariable.getName(),
-                    freeVariable.getType()));
+                    type(freeVariable)));
         }
 
         //constructor summaries
@@ -81,6 +86,33 @@ public class ConstructorSummaryManager {
         }
 
         return erg.toString();
+    }
+
+
+    private String type(Variable v) {
+        // TODO: add missing data types
+        if (BuiltinTypes.BOOL.equals(v.getType())) {
+            return "Bool";
+        } else if (BuiltinTypes.SINT32.equals(v.getType())) {
+            return "(_ BitVec 32)";
+        } else if (BuiltinTypes.SINT64.equals(v.getType())) {
+            return "(_ BitVec 64)";
+        } else if (BuiltinTypes.UINT16.equals(v.getType()) || BuiltinTypes.SINT16.equals(v.getType())) {
+            return "(_ BitVec 16)";
+        } else if (BuiltinTypes.SINT8.equals(v.getType())) {
+            return "(_ BitVec 8)";
+        } else if (BuiltinTypes.STRING.equals(v.getType())) {
+            return "String";
+        } else if (BuiltinTypes.INTEGER.equals(v.getType())) {
+            return "Int";
+        } else if (v.getType() instanceof BitLimitedBVIntegerType) {
+            return "(_ BitVec " + ((BitLimitedBVIntegerType) v.getType()).getNumBits() + ")";
+        } else if (BuiltinTypes.DOUBLE.equals(v.getType())) {
+            return "Float64";
+        } else if (BuiltinTypes.FLOAT.equals(v.getType())) {
+            return "Float32";
+        }
+        throw new IllegalArgumentException("Unsupported type: " + v.getType());
     }
 
 //    public String generateSMTLibCode(List<String> objectIdentifiers) {
@@ -149,13 +181,18 @@ public class ConstructorSummaryManager {
     }
 
     private String generateSmtCodeFromSingleConstructorSummaryTrace(Trace summaryTrace) {
-        return String.format(
+        String erg =  String.format(
                 "(and %s)",
                 Stream.concat(
                         summaryTrace.getSummaries().stream(),
                         summaryTrace.getDecisions().stream().map(Decision::toString)
                 ).collect(Collectors.joining(" "))
         );
+
+        PathResult traceState = summaryTrace.getTraceState();
+        return  traceState instanceof PathResult.ErrorResult ?
+                erg.replace("<>", String.format("<%s>", ((PathResult.ErrorResult) traceState).getExceptionClass())) :
+                erg;
     }
 
     public String getBluePrintConstructorSummaries() {
