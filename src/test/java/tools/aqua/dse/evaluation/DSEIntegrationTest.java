@@ -200,7 +200,7 @@ public class DSEIntegrationTest {
         FilePreparator.compileClass("D", "src/test/resources/example/test/");
 
         //execute example
-        printExample(exampleName, "src/test/resources/example/");
+        //printExample(exampleName, "src/test/resources/example/");
         DSE dse = TestUtils.getDseInstance(exampleName,
                 "src/test/resources/hierarchy/thesis_class_hierarchy.txt",
                 "src/test/resources/example/");
