@@ -16,7 +16,7 @@ public class StaticManager {
      */
     private final List<KlassIdentifier> klassIdentifiers;
 
-    private final String staticSMTLibCode;
+    private String staticSMTLibCode;
 
 
     public StaticManager(String classPath) {
@@ -45,7 +45,7 @@ public class StaticManager {
     }
 
     private String generateNullConstant() {
-        return "(declare-fun null () Object)";
+        return "(declare-fun null () Int)\n(assert (= null 0))";
     }
 
 

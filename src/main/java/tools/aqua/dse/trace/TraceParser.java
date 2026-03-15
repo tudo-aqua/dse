@@ -50,7 +50,7 @@ public class TraceParser {
         List<String> summeries = new ArrayList<>();
         PathResult result = PathResult.ok(vals);
 //        String decl = "";
-        String decl = "(declare-fun obj.extends (String String) Bool) \n (declare-fun obj.method.of (String String String String) Bool)";
+        String decl = "(declare-fun obj.extends (String String) Bool) \n (declare-fun obj.method.of (String String String String) Bool)"; //todo: needed?
         int objectCount = 0;
         boolean traceComplete = false;
         Set<String> objectIdentifiers = new HashSet<>();
@@ -65,17 +65,20 @@ public class TraceParser {
             else if (line.startsWith("[SUMMARY]")) {
                 summeries.add(line.substring("[SUMMARY]".length()));
             }
+            else if (line.startsWith("[OBJECT]")) {
+                objectIdentifiers.add(line.substring("[OBJECT]".length()));
+            }
             else if (line.startsWith("[DECLARE]")) {
                 String declaration = line.substring("[DECLARE]".length());
                 decl += declaration;
 
                 declarations.add(declaration);
 
-                Pattern pattern = Pattern.compile("\\(declare-fun\\s+(__object_\\d+)\\s*\\(\\)\\s+Object\\)");
-                Matcher matcher = pattern.matcher(declaration);
-                if (matcher.find()) {
-                    objectIdentifiers.add(matcher.group());
-                }
+//                Pattern pattern = Pattern.compile("\\(declare-fun\\s+(__object_\\d+)\\s*\\(\\)\\s+Object\\)");
+//                Matcher matcher = pattern.matcher(declaration);
+//                if (matcher.find()) {
+//                    objectIdentifiers.add(matcher.group());
+//                }
             }
             else if (line.startsWith("[ERROR]")) {
                 result = PathResult.error(vals, line.substring("[ERROR]".length()).trim(), "");

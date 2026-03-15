@@ -95,7 +95,9 @@ public class Opal {
 
         result.append(
                 """
-                (define-fun obj.extends ((x!0 String) (x!1 String)) Bool
+                (declare-fun obj.extends (String String) Bool)
+                (assert (forall ((x!0 String) (x!1 String))
+                (= (obj.extends x!0 x!1)
                 (ite (or"""
         );
 
@@ -127,7 +129,7 @@ public class Opal {
                 """
                 
                 ) true false)
-                )
+                )))
                 """
         );
 
@@ -161,8 +163,11 @@ public class Opal {
 
         result.append(
                 """
-                (define-fun obj.method.of ((x!0 String) (x!1 String) (x!2 String) (x!3 String)) Bool
-                (ite (or"""
+                (declare-fun obj.method.of (String String String String) Bool)
+                (assert (forall ((x!0 String) (x!1 String) (x!2 String) (x!3 String))
+                (= (obj.method.of x!0 x!1 x!2 x!3)
+                (ite (or
+                """
         );
 
         DeclaredMethods methods = ((DeclaredMethods) this.project.get(DeclaredMethodsKey$.MODULE$));
@@ -189,7 +194,7 @@ public class Opal {
                 """
                 
                 ) true false)
-                )
+                )))
                 """
         );
 

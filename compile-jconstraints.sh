@@ -4,7 +4,7 @@ mkdir jconstraints
 pushd jconstraints;
     git clone https://github.com/tudo-aqua/jconstraints.git
     cd jconstraints;
-    git checkout function-parsing-support;
+    git checkout bv-support;
     ./gradlew publishToMavenLocal;
 popd;
 rm -rf jconstraints

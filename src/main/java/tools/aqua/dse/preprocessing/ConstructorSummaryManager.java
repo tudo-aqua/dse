@@ -120,6 +120,7 @@ public class ConstructorSummaryManager {
     private List<Trace> performDseOnConstructor(String constructorSignature) {
         Properties props = new Properties();
         props.setProperty("dse.dp", "z3");
+        props.setProperty("dse.constructor.summary", "true");
         props.setProperty("dse.executor", "../executor.sh");
         props.setProperty("dse.executor.args",
                 String.format("-cp %s/:src/main/resources/constructor:../verifier-stub/target/verifier-stub-1.0.jar " +

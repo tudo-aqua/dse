@@ -87,11 +87,12 @@ public class Config {
 
     private ClazzModel clazzModel = null;
 
-    private final SmtProblemManager smtProblemManager;
+    private boolean constructorSummary = false;
+
+    private SmtProblemManager smtProblemManager;
 
     private Config(Properties properties) {
         this.properties = properties;
-        this.smtProblemManager = new SmtProblemManager("src/test/resources/example", 2); //todo: Load from properties
     }
 
 
@@ -130,9 +131,14 @@ public class Config {
     public SolverContext getSolverContext() {
         System.out.println("Create SolverContext");
         SolverContext ctx = new LoggingSolverContext(this.solver.createContext());
-        ctx.push();
 
-        return this.smtProblemManager.getStaticManager().setStaticSmtLibCode(ctx);
+        if (!this.constructorSummary) {
+            ctx.push();
+            this.initializeSmtProblemManager();
+            this.smtProblemManager.getStaticManager().setStaticSmtLibCode(ctx);
+        }
+
+        return ctx;
     }
 
 
@@ -237,6 +243,11 @@ public class Config {
 
             sourceLoader = new URLClassLoader(urls);
         }
+
+        if (props.containsKey("dse.constructor.summary")) {
+            this.constructorSummary = Boolean.parseBoolean(props.getProperty("dse.constructor.summary"));
+        }
+
         if (props.containsKey("iflow.fraction")) {
             this.fraction = Double.parseDouble(props.getProperty("iflow.fraction"));
         }
@@ -297,6 +308,7 @@ public class Config {
     public static Config fromProperties(Properties props) {
         Config config = new Config(props);
         config.parseProperties(props);
+
         return config;
     }
 
@@ -321,7 +333,24 @@ public class Config {
         return Config.fromProperties(props);
     }
 
+    public void initializeSmtProblemManager() {
+        if (this.constructorSummary) {
+            throw new IllegalStateException("In ConstructorSummaryMode the SmtProblemManger cannot be created " +
+                    "because of recursion.");
+        }
+        if (this.smtProblemManager == null ) {
+            String path = "src/test/resources/example"; //todo: Load from properties
+            int depth = 2;
+            this.smtProblemManager = new SmtProblemManager(path, depth);
+        }
+    }
+
+
     public SmtProblemManager getSmtProblemManager() {
-        return smtProblemManager;
+        return this.smtProblemManager;
+    }
+
+    public boolean isConstructorSummary() {
+        return constructorSummary;
     }
 }

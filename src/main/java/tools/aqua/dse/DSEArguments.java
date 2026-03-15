@@ -84,6 +84,7 @@ public class DSEArguments {
         printDSEOptionHelp("iflow.fraction", "fraction of paths to use in information flow analysis (double)");
         printDSEOptionHelp("static.info", "static information on inheritance and constructors for objects (filename)");
         printDSEOptionHelp("random.seed", "random seed (long value)");
+        printDSEOptionHelp("dse.timeout", "timeout in seconds (long value)");
         System.out.println();
     }
 

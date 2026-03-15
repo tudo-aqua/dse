@@ -355,10 +355,12 @@ public class ConstraintsTree {
       System.out.println("current decision path: " + Arrays.toString( path.toArray() ));
 
       //Add object-specific constraints
-      solverCtx.push();
-      SmtProblemManager.addSmtProblemAsString(
-              config.getSmtProblemManager().getConstructorSummaryManager().generateSMTLibCode(path), solverCtx);
-      solverCtx.add(path);
+        if (!config.isConstructorSummary()) {
+          solverCtx.push();
+          SmtProblemManager.addSmtProblemAsString(
+                  config.getSmtProblemManager().getConstructorSummaryManager().generateSMTLibCode(path), solverCtx);
+          solverCtx.add(path);
+        }
     }
   }
 
