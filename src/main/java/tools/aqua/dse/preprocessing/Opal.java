@@ -178,7 +178,7 @@ public class Opal {
         for (PolymorphyInformation info : rawInfos) {
             PolymorphicMethodDefinition key = new PolymorphicMethodDefinition(info.methodName(), info.methodDescriptor(), info.declaringClass());
 
-            int totalCount = countsMap.get(key).intValue();
+            int totalCount = countsMap.get(key).intValue()+1;
             int currentId = idTracker.getOrDefault(key, 0);
 
             // Insert entry into the result map
