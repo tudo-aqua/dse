@@ -146,73 +146,49 @@ public class Opal {
                         type.toJVMTypeName(),
                         method.name(),
                         method.descriptor().toJVMDescriptor(),
-                        method.asDefinedMethod().definedMethod().declaringClassFile().thisType().toJVMTypeName(),
-                        -1,     //default, will be replaced in the next step
-                        -1              //default, will be replaced in the next step
+                        method.asDefinedMethod().definedMethod().declaringClassFile().thisType().toJVMTypeName()
                 ));
                 return null;
             });
         }
-        return adjustingBranchIdBranchCount(polymorphicInfos);
-    }
-
-    public List<PolymorphyInformation> adjustingBranchIdBranchCount(List<PolymorphyInformation> rawInfos) {
-        // 1. Count how often the identifier of the method appears (branchCount)
-        Map<String, Long> countsMap = rawInfos.stream()
-                .collect(Collectors.groupingBy(PolymorphyInformation::methodName, Collectors.counting()));
-
-        // 2. Tracker for the current branchId (per methodIdentifier)
-        Map<String, Integer> idTracker = new HashMap<>();
-
-        // 3. Neue Liste mit berechneten Werten erstellen
-        return rawInfos.stream().map(info -> {
-            String name = info.methodName();
-
-            int totalCount = countsMap.get(name).intValue();
-            int currentId = idTracker.getOrDefault(name, 0);
-
-            // ID für das nächste Vorkommen dieses Namens inkrementieren
-            idTracker.put(name, currentId + 1);
-
-            return new PolymorphyInformation(
-                    info.accessingClass(),
-                    info.methodName(),
-                    info.methodDescriptor(),
-                    info.declaringClass(),
-                    currentId,
-                    totalCount
-            );
-        }).toList();
+        return polymorphicInfos;
     }
 
 
-    public List<PolymorphyInformation> adjustingBranchIdBranchCount2(List<PolymorphyInformation> rawInfos) {
-        // 1. Count how often the identifier of the method appears (branchCount)
-        Map<String, Long> countsMap = rawInfos.stream()
-                .collect(Collectors.groupingBy(PolymorphyInformation::methodName, Collectors.counting()));
+    public record BranchData(int branchId,
+                             int branchCount) {}
 
-        // 2. Tracker for the current branchId (per methodIdentifier)
-        Map<String, Integer> idTracker = new HashMap<>();
+    public record PolymorphicMethodDefinition(String methodName,
+                                       String methodDescriptor,
+                                       String declaringClass) {}
 
-        // 3. Neue Liste mit berechneten Werten erstellen
-        return rawInfos.stream().map(info -> {
-            String name = info.methodName();
+    public Map<PolymorphicMethodDefinition, BranchData> createBranchInformationMap(List<PolymorphyInformation> rawInfos) {
+        // Step 1: Count occurrences per logical group
+        Map<PolymorphicMethodDefinition, Long> countsMap = rawInfos.stream()
+                .collect(Collectors.groupingBy(
+                        info -> new PolymorphicMethodDefinition(info.methodName(), info.methodDescriptor(), info.declaringClass()),
+                        Collectors.counting()
+                ));
 
-            int totalCount = countsMap.get(name).intValue();
-            int currentId = idTracker.getOrDefault(name, 0);
+        // Step 2: Tracker for assigning incremental IDs within each group
+        Map<PolymorphicMethodDefinition, Integer> idTracker = new HashMap<>();
+        Map<PolymorphicMethodDefinition, BranchData> resultMap = new HashMap<>();
 
-            // ID für das nächste Vorkommen dieses Namens inkrementieren
-            idTracker.put(name, currentId + 1);
+        // Step 3: Populate the result map
+        for (PolymorphyInformation info : rawInfos) {
+            PolymorphicMethodDefinition key = new PolymorphicMethodDefinition(info.methodName(), info.methodDescriptor(), info.declaringClass());
 
-            return new PolymorphyInformation(
-                    info.accessingClass(),
-                    info.methodName(),
-                    info.methodDescriptor(),
-                    info.declaringClass(),
-                    currentId,
-                    totalCount
-            );
-        }).toList();
+            int totalCount = countsMap.get(key).intValue();
+            int currentId = idTracker.getOrDefault(key, 0);
+
+            // Insert entry into the result map
+            resultMap.put(key, new BranchData(currentId, totalCount));
+
+            // Increment ID for the next element in the same group
+            idTracker.put(key, currentId + 1);
+        }
+
+        return resultMap;
     }
 
     public List<PolymorphyInformation> collectPolymorphyInformation(List<KlassIdentifier> types) {
@@ -496,8 +472,6 @@ public class Opal {
             String accessingClass,
             String methodName,
             String methodDescriptor,
-            String declaringClass,
-            int branchId,
-            int branchCount
+            String declaringClass
     ) {}
 }

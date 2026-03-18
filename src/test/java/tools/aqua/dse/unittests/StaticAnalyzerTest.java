@@ -5,6 +5,9 @@ import tools.aqua.dse.preprocessing.ConstructorSummaryManager;
 import tools.aqua.dse.preprocessing.Opal;
 import tools.aqua.dse.preprocessing.StaticManager;
 
+import java.util.List;
+import java.util.Map;
+
 public class StaticAnalyzerTest {
 //    @Test
 //    public void tes() {
@@ -164,8 +167,17 @@ public class StaticAnalyzerTest {
     @Test
     public void testPolymorphy() {
         Opal opal = new Opal("src/test/resources/example");
-        opal.collectPolymorphyInformation(opal.extractKlassesFromClassPath()).forEach(System.out::println);
+        List<Opal.PolymorphyInformation> polymorphyInformations = opal.collectPolymorphyInformation(opal.extractKlassesFromClassPath());
 
-        System.out.println(opal.generatePolymorphismSummary(opal.extractKlassesFromClassPath()));
+
+        Map<Opal.PolymorphicMethodDefinition, Opal.BranchData> branchInformationMap = opal.createBranchInformationMap(polymorphyInformations);
+
+        for (Opal.PolymorphyInformation polymorphyInformation : polymorphyInformations) {
+            System.out.println(polymorphyInformation);
+            System.out.println(branchInformationMap.get(polymorphyInformation));
+        }
+
+
+//        System.out.println(opal.generatePolymorphismSummary(opal.extractKlassesFromClassPath()));
     }
 }

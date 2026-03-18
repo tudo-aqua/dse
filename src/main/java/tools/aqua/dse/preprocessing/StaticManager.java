@@ -9,6 +9,7 @@ import tools.aqua.dse.Config;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class StaticManager {
     private final Opal opal;
@@ -20,6 +21,7 @@ public class StaticManager {
     private String staticSMTLibCode;
 
     private final List<Opal.PolymorphyInformation> polymorphicInformation;
+    private final Map<Opal.PolymorphicMethodDefinition, Opal.BranchData> branchInformationMap;
 
 
     public StaticManager(String classPath) {
@@ -27,6 +29,7 @@ public class StaticManager {
         this.klassIdentifiers = this.opal.extractKlassesFromClassPath();
         this.staticSMTLibCode = generateStaticSmtLibCode();
         this.polymorphicInformation = this.opal.collectPolymorphyInformation(klassIdentifiers);
+        this.branchInformationMap = this.opal.createBranchInformationMap(polymorphicInformation);
     }
 
     public SolverContext setStaticSmtLibCode(SolverContext solverContext) {
@@ -53,7 +56,7 @@ public class StaticManager {
     }
 
 
-    public List<Opal.PolymorphyInformation> getPolymorphicInformation() {
-        return polymorphicInformation;
+    public Map<Opal.PolymorphicMethodDefinition, Opal.BranchData> getBranchInformationMap() {
+        return branchInformationMap;
     }
 }

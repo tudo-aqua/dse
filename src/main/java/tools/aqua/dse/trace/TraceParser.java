@@ -28,7 +28,6 @@ import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParserException;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import tools.aqua.dse.Config;
-import tools.aqua.dse.objects.ClassHierarchyParser;
 import tools.aqua.dse.objects.Clazz;
 import tools.aqua.dse.objects.ClazzModel;
 import tools.aqua.dse.paths.PathResult;
@@ -141,11 +140,27 @@ public class TraceParser {
 
         // Special Handling of branchCount & BranchId of obj.method.of (SPout sets Unknown because it has no information
         // how many polymorph methods exists and which id they own in DSE)
+        Pattern pattern = Pattern.compile("obj\\.method\\.of\\s+\\S+\\s+\"([^\"]*)\"\\s+\"([^\"]*)\"\\s+\"([^\"]*)\"");
+        Matcher matcher = pattern.matcher(constraint);
+
+        if (matcher.find()) {
+            Map<Opal.PolymorphicMethodDefinition, Opal.BranchData> branchInformationMap
+                    = config.getSmtProblemManager().getStaticManager().getBranchInformationMap();
+
+            String methodName = matcher.group(1);
+            String methodDescriptor = matcher.group(2);
+            String definingClass = matcher.group(3);
+
+            Opal.BranchData branchData =
+                    branchInformationMap.get(new Opal.PolymorphicMethodDefinition(methodName, methodDescriptor, definingClass));
+
+            return new Decision(ExpressionUtil.and(smt.assertions), branchData.branchCount(), branchData.branchId());
+        }
+
 //        if (constraint.contains("obj.method.of")) {
 //            List<Opal.PolymorphyInformation> polymorphyInformation =
 //                    config.getSmtProblemManager().getStaticManager().getPolymorphicInformation();
 //
-//            polymorphyInformation todo: Implement
 //        }
 
         return new Decision( ExpressionUtil.and(smt.assertions), branches, branchId);

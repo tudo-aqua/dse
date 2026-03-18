@@ -58,14 +58,8 @@ public class ConstructorSummaryManager {
                 .map(name -> name.split("\\.")[0])
                 .collect(Collectors.toSet());
 
-//        Pattern pattern = Pattern.compile("^__object_\\d+$");
-//
-//        ArrayList<String> objectIdentifiers = freeVariables.stream()
-//                .map(Variable::getName)
-//                .filter(name -> pattern.matcher(name).matches())
-//                .collect(Collectors.toCollection(ArrayList::new));
 
-        // add delcare of constructor parameter per object
+        // adjust delcare of constructor parameter per object
         for (String declaration : this.declarationsOfBluePrint) {
             String regex = "__(byte|char|short|int|long|float|double|string)_\\d+";
             if (declaration.matches(regex)) {
@@ -85,8 +79,9 @@ public class ConstructorSummaryManager {
 
         }
         String objectedNotIdentityConstraints = objectNotIdentityConstraints(objectIdentifiers.stream().toList());
-        System.out.println(objectedNotIdentityConstraints);
-        return String.format("%n%s (assert (or %s)) %n %s", addPrefixToTypes(declarationsString.toString(), "__object_0"), summaries, objectedNotIdentityConstraints);
+        String declaresAndSummaries = String.format("%n%s (assert (or %s)) %n %s", addPrefixToTypes(declarationsString.toString(), "__object_0"), summaries, objectedNotIdentityConstraints);
+
+        return objectedNotIdentityConstraints.isBlank() ? declaresAndSummaries : declaresAndSummaries +"\n"+objectedNotIdentityConstraints;
 
     }
 
