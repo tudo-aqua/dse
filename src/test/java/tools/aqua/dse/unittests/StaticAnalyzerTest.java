@@ -2,6 +2,7 @@ package tools.aqua.dse.unittests;
 
 import org.junit.jupiter.api.Test;
 import tools.aqua.dse.preprocessing.ConstructorSummaryManager;
+import tools.aqua.dse.preprocessing.Opal;
 import tools.aqua.dse.preprocessing.StaticManager;
 
 public class StaticAnalyzerTest {
@@ -158,5 +159,13 @@ public class StaticAnalyzerTest {
     public void test2() {
         StaticManager staticManager = new StaticManager("src/test/resources/example");
         System.out.println(staticManager.generateStaticSmtLibCode());
+    }
+
+    @Test
+    public void testPolymorphy() {
+        Opal opal = new Opal("src/test/resources/example");
+        opal.collectPolymorphyInformation(opal.extractKlassesFromClassPath()).forEach(System.out::println);
+
+        System.out.println(opal.generatePolymorphismSummary(opal.extractKlassesFromClassPath()));
     }
 }

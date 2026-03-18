@@ -42,9 +42,7 @@ public class Explorer {
             }
             ctree.finish(t.getTraceState());
         }
-        //todo: Add Constructor Summaries to SMT-Problem
         this.nextValuation = ctree.findNext();
-        //todo: Remove Constructor Summaries to SMT-Problem
     }
 
     public boolean hasNextValuation() {

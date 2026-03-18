@@ -357,8 +357,11 @@ public class ConstraintsTree {
       //Add object-specific constraints
         if (!config.isConstructorSummary()) {
           solverCtx.push();
+          String staticSmtLibCode = config.getSmtProblemManager().getStaticManager().generateStaticSmtLibCode();
+          String dynamicSmtLibCode = config.getSmtProblemManager().getConstructorSummaryManager().generateSMTLibCode(path);
+          System.out.printf("\u001B[38;5;208m %s %s\u001B[0m%n", staticSmtLibCode, dynamicSmtLibCode);
           SmtProblemManager.addSmtProblemAsString(
-                  config.getSmtProblemManager().getConstructorSummaryManager().generateSMTLibCode(path), solverCtx);
+                  dynamicSmtLibCode, solverCtx);
           solverCtx.add(path);
         }
     }
@@ -480,7 +483,6 @@ public class ConstraintsTree {
       System.out.println("\033[35mSolve SMT-problem");
       Result res = solverCtx.solve(val);
       solverCtx.pop();
-
 
 
       System.out.println("status: "+res);

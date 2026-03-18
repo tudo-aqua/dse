@@ -7,6 +7,7 @@ import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParserException;
 import tools.aqua.dse.Config;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class StaticManager {
@@ -18,11 +19,14 @@ public class StaticManager {
 
     private String staticSMTLibCode;
 
+    private final List<Opal.PolymorphyInformation> polymorphicInformation;
+
 
     public StaticManager(String classPath) {
         this.opal = new Opal(classPath);
         this.klassIdentifiers = this.opal.extractKlassesFromClassPath();
         this.staticSMTLibCode = generateStaticSmtLibCode();
+        this.polymorphicInformation = this.opal.collectPolymorphyInformation(klassIdentifiers);
     }
 
     public SolverContext setStaticSmtLibCode(SolverContext solverContext) {
@@ -49,5 +53,7 @@ public class StaticManager {
     }
 
 
-
+    public List<Opal.PolymorphyInformation> getPolymorphicInformation() {
+        return polymorphicInformation;
+    }
 }

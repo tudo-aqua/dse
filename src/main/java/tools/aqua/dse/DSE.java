@@ -54,7 +54,7 @@ public class DSE {
             Valuation val = explorer.getNextValuation();
 //            SolverContext solverContext = config.getSolverContext();
 
-            Trace trace = executor.execute(val);
+            Trace trace = executor.execute(val, config);
             if (trace != null) {
                 trace.print();
                 flows.add(new LinkedList<>(trace.getFlows()));
@@ -110,7 +110,7 @@ public class DSE {
             Variable<String> constrVar = Variable.create(BuiltinTypes.STRING, "__object_constructor_0");
             val.setValue(constrVar, constructor);
 
-            Trace trace = executor.execute(val);
+            Trace trace = executor.execute(val, config);
             traces.add(trace);
 
             if (trace != null) {

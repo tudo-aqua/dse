@@ -1,10 +1,9 @@
-import tools.aqua.concolic.Verifier;
-import test.D;
+import  tools.aqua.concolic.Verifier;
 
 class Main {
 
   public static void main(String args[]) {
-    Object o = Verifier.nondetObject(B.class, null);
+    Object o = Verifier.nondetObject(A.class, null);
     if (!(o instanceof A)) {
       return;
     }

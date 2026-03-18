@@ -24,13 +24,16 @@ import org.opalj.value.ValueInformation;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Opal {
     private final Project project;
     
-    Opal(String classPath) {
+    public Opal(String classPath) {
         this.project = Project.apply(new File(classPath));
     }
 
@@ -51,16 +54,6 @@ public class Opal {
         return classNames;
     }
 
-
-
-    public String generatePolymorphismSummary(List<KlassIdentifier> types) {
-        ClassType[] classType = types.stream()
-                .map(KlassIdentifier::shortIdentifier)
-                .map(ClassType::apply)
-                .toArray(ClassType[]::new);
-
-        return generatePolymorphismSummary(classType);
-    }
 
 
 
@@ -135,7 +128,101 @@ public class Opal {
 
         return result.toString();
     }
-    
+
+    public List<PolymorphyInformation> collectPolymorphyInformation(ClassType[] types) {
+        List<PolymorphyInformation> polymorphicInfos = new ArrayList<>();
+        DeclaredMethods methods = (DeclaredMethods) this.project.get(DeclaredMethodsKey$.MODULE$);
+
+        for (ClassType type : types) {
+            // Hinweis: classFile wird im Originalcode zwar abgerufen, aber nicht genutzt.
+            // Falls du es nicht brauchst, kann die Zeile entfallen.
+
+            methods.declaredMethods().filter(m ->
+                    m.declaringClassType().equals(type) &&
+                            m.hasSingleDefinedMethod() &&
+                            !m.asDefinedMethod().definedMethod().isInitializer()
+            ).foreach(method -> {
+                polymorphicInfos.add(new PolymorphyInformation(
+                        type.toJVMTypeName(),
+                        method.name(),
+                        method.descriptor().toJVMDescriptor(),
+                        method.asDefinedMethod().definedMethod().declaringClassFile().thisType().toJVMTypeName(),
+                        -1,     //default, will be replaced in the next step
+                        -1              //default, will be replaced in the next step
+                ));
+                return null;
+            });
+        }
+        return adjustingBranchIdBranchCount(polymorphicInfos);
+    }
+
+    public List<PolymorphyInformation> adjustingBranchIdBranchCount(List<PolymorphyInformation> rawInfos) {
+        // 1. Count how often the identifier of the method appears (branchCount)
+        Map<String, Long> countsMap = rawInfos.stream()
+                .collect(Collectors.groupingBy(PolymorphyInformation::methodName, Collectors.counting()));
+
+        // 2. Tracker for the current branchId (per methodIdentifier)
+        Map<String, Integer> idTracker = new HashMap<>();
+
+        // 3. Neue Liste mit berechneten Werten erstellen
+        return rawInfos.stream().map(info -> {
+            String name = info.methodName();
+
+            int totalCount = countsMap.get(name).intValue();
+            int currentId = idTracker.getOrDefault(name, 0);
+
+            // ID für das nächste Vorkommen dieses Namens inkrementieren
+            idTracker.put(name, currentId + 1);
+
+            return new PolymorphyInformation(
+                    info.accessingClass(),
+                    info.methodName(),
+                    info.methodDescriptor(),
+                    info.declaringClass(),
+                    currentId,
+                    totalCount
+            );
+        }).toList();
+    }
+
+
+    public List<PolymorphyInformation> adjustingBranchIdBranchCount2(List<PolymorphyInformation> rawInfos) {
+        // 1. Count how often the identifier of the method appears (branchCount)
+        Map<String, Long> countsMap = rawInfos.stream()
+                .collect(Collectors.groupingBy(PolymorphyInformation::methodName, Collectors.counting()));
+
+        // 2. Tracker for the current branchId (per methodIdentifier)
+        Map<String, Integer> idTracker = new HashMap<>();
+
+        // 3. Neue Liste mit berechneten Werten erstellen
+        return rawInfos.stream().map(info -> {
+            String name = info.methodName();
+
+            int totalCount = countsMap.get(name).intValue();
+            int currentId = idTracker.getOrDefault(name, 0);
+
+            // ID für das nächste Vorkommen dieses Namens inkrementieren
+            idTracker.put(name, currentId + 1);
+
+            return new PolymorphyInformation(
+                    info.accessingClass(),
+                    info.methodName(),
+                    info.methodDescriptor(),
+                    info.declaringClass(),
+                    currentId,
+                    totalCount
+            );
+        }).toList();
+    }
+
+    public List<PolymorphyInformation> collectPolymorphyInformation(List<KlassIdentifier> types) {
+        ClassType[] classType = types.stream()
+                .map(KlassIdentifier::shortIdentifier)
+                .map(ClassType::apply)
+                .toArray(ClassType[]::new);
+
+        return collectPolymorphyInformation(classType);
+    }
     
     /*
      * should generate polymorphism information (i.e., in which
@@ -153,53 +240,42 @@ public class Opal {
      * ) true false)
      * )
      *
-     * x!0 = owner klass
+     * x!0 = calling klass
      * x!1 = method name
      * x!2 = method signature
-     * x!3 = declaring klass
+     * x!3 = defining klass
      */
-    private String generatePolymorphismSummary(ClassType[] types) {
+    public String generatePolymorphismSummary(List<KlassIdentifier> types) {
         StringBuilder result = new StringBuilder();
 
-        result.append(
-                """
-                (declare-fun obj.method.of (String String String String) Bool)
-                (assert (forall ((x!0 String) (x!1 String) (x!2 String) (x!3 String))
-                (= (obj.method.of x!0 x!1 x!2 x!3)
-                (ite (or
-                """
-        );
+        result.append("""
+            (declare-fun obj.method.of (String String String String) Bool)
+            (assert (forall ((x!0 String) (x!1 String) (x!2 String) (x!3 String))
+            (= (obj.method.of x!0 x!1 x!2 x!3)
+            (ite (or
+            """);
 
-        DeclaredMethods methods = ((DeclaredMethods) this.project.get(DeclaredMethodsKey$.MODULE$));
+        List<PolymorphyInformation> infos = collectPolymorphyInformation(types);
 
-        for(ClassType type : types) {
-            ClassFile classFile = (ClassFile) this.project.classFile(type).get();
-            methods.declaredMethods().filter(
-                    m -> m.declaringClassType() == type && m.hasSingleDefinedMethod() && !m.asDefinedMethod().definedMethod().isInitializer()
-            ).foreach(method -> {
-                result.append(
-                        String.format(
-                                "\n  (and (= x!0 \"%s\") (= x!1 \"%s\") (= x!2 \"%s\") (= x!3 \"%s\"))",
-                                type.toJVMTypeName(),
-                                method.name(),
-                                method.descriptor().toJVMDescriptor(),
-                                method.asDefinedMethod().definedMethod().declaringClassFile().thisType().toJVMTypeName()
-                        )
-                );
-                return null;
-            });
+        for (PolymorphyInformation info : infos) {
+            result.append(String.format(
+                    "\n  (and (= x!0 \"%s\") (= x!1 \"%s\") (= x!2 \"%s\") (= x!3 \"%s\"))",
+                    info.accessingClass(),
+                    info.methodName(),
+                    info.methodDescriptor(),
+                    info.declaringClass()
+            ));
         }
 
-        result.append(
-                """
-                
-                ) true false)
-                )))
-                """
-        );
+        result.append("""
+            
+            ) true false)
+            )))
+            """);
 
         return result.toString();
     }
+
     
     
     
@@ -415,4 +491,13 @@ public class Opal {
 
         return result;
     }
+
+    public record PolymorphyInformation(
+            String accessingClass,
+            String methodName,
+            String methodDescriptor,
+            String declaringClass,
+            int branchId,
+            int branchCount
+    ) {}
 }

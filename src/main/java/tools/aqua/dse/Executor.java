@@ -24,9 +24,9 @@ import tools.aqua.dse.trace.TraceParser;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Executor {
@@ -46,9 +46,12 @@ public class Executor {
         this.clazzModel = config.getClazzModel();
     }
 
-    public Trace execute(Valuation val) {
+    public Trace execute(Valuation val, Config config) {
 //        System.out.println("model: " + val);
         List<String> chosenConstructors = extractChosenConstructors(val);
+
+        String constructors = generateConstructors(val);
+
         String[] cmd = new String[] {
             this.executurCmd,
             generateParam("concolic.bools", "__bool_", val),
@@ -61,7 +64,7 @@ public class Executor {
             generateParam("concolic.doubles", "__double_", val),
             generateParam("concolic.strings", "__string_", val),
             generateParam("concolic.constructors", "__object_constructor_", val),
-//            generateConstructors(val),
+            constructors,
 //            generateConstructorCount(chosenConstructors),
 //            generateConstructorIds(chosenConstructors),
             this.executorArgs
@@ -81,7 +84,7 @@ public class Executor {
             lines.forEach(System.out::println);
             System.out.println("%%%%%%%%%%% Executor Output End\033[0m");
             Files.delete(output);
-            return TraceParser.parseTrace(lines, val, clazzModel);
+            return TraceParser.parseTrace(lines, val, config);
         } catch (Throwable t) {
             t.printStackTrace();
             return null;
@@ -108,17 +111,48 @@ public class Executor {
     }
 
     public String generateConstructors(Valuation val) {
-        String constructorList = generateParameterList("__object_constructor_", val).stream()
-                .map(clazzNameAndConstructorSignature -> clazzNameAndConstructorSignature +
-                        "|" + this.clazzModel.findConstructorIdInAllConstructors(clazzNameAndConstructorSignature) +
-                        "|" + getConstructorCount())
-                .collect(Collectors.joining(","));
 
-        if (constructorList.isEmpty()) {
+        Pattern pattern = Pattern.compile("__object_(\\d+)\\.init");
+
+        List<String> constructorValues = val.entries().stream()
+                .filter(valuationEntry -> pattern.matcher(valuationEntry.getVariable().getName()).find())
+                .map(ValuationEntry::getValue)
+                .map(s -> (String) s)
+                .toList();
+
+        Pattern pattern2 = Pattern.compile("__object_\\d+__(bool|byte|char|short|int|long|float|double|string)_\\d+");
+
+
+        List<String> modifiedConstructorValues = new ArrayList<>();
+        for (String constructorValue : constructorValues) {
+            Matcher matcher = pattern2.matcher(constructorValue);
+            boolean replaced = false;
+            while (matcher.find()) {
+                String primitive = matcher.group();
+
+                Optional<?> valueOfPrimitive = val.entries().stream()
+                        .filter(valuationEntry -> valuationEntry.getVariable().getName().equals(primitive))
+                        .findFirst()
+                        .map(ValuationEntry::getValue);
+                
+                if (valueOfPrimitive.isEmpty()) {
+                    throw new RuntimeException("Could not find valueOfPrimitive for " + primitive);
+                }
+
+                modifiedConstructorValues.add(constructorValue.replace(primitive, valueOfPrimitive.get().toString()));
+                replaced = true;
+            }
+            if (!replaced) {
+                modifiedConstructorValues.add(constructorValue);
+            }
+        }
+
+        if (modifiedConstructorValues.isEmpty()) {
             return "";
         }
 
-        return "-Dconcolic.constructors="+constructorList;
+        return String.format("-Dconcolic.constructors=%s",
+                String.join(",", modifiedConstructorValues));
     }
 
 

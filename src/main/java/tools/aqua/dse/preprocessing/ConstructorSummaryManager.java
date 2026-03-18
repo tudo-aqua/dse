@@ -11,10 +11,8 @@ import tools.aqua.dse.paths.PathResult;
 import tools.aqua.dse.trace.Decision;
 import tools.aqua.dse.trace.Trace;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,7 +20,7 @@ public class ConstructorSummaryManager {
     private final String classPath;
     private final int depth;
     private final Opal opal;
-    private final List<String> declarationsOfBluePrint = new ArrayList<>();
+    private Set<String> declarationsOfBluePrint = new HashSet<>();
     private final String bluePrintConstructorSummaries;
 
     public ConstructorSummaryManager(String classPath, int depth) {
@@ -35,34 +33,10 @@ public class ConstructorSummaryManager {
     }
 
 
-//    public String generateSmtLibCodeForTrace(Trace trace) {
-//        StringBuilder smtCodeForTraces = new StringBuilder();
-//        for (String objectIdentifier : trace.getObjectIdentifiers()) {
-//            smtCodeForTraces.append(this.generateSmtCodeBluePrintForConstructorSelection().replace("__object_0", objectIdentifier));
-//        }
-//
-//        return String.format("(assert (or %s))", smtCodeForTraces);
-//    }
-//
-//    public String generateConstructorDeclarations(Trace trace) {
-//        StringBuilder sb = new StringBuilder();
-//
-//        for (String objectIdentifier : trace.getObjectIdentifiers()) {
-//            for (String declaration : this.declarationsOfBluePrint) {
-//                sb.append(declaration.replace("__object_0", objectIdentifier)).append("\n");
-//            }
-//        }
-//
-//        return sb.toString();
-//    }
-
-
-
-
     public String generateSMTLibCode(List<Expression<Boolean>> path) {
-        StringBuilder erg = new StringBuilder();
+        StringBuilder declarations = new StringBuilder();
 
-        //declarations of the variables within the constructor summaries
+        //declarations of the variables within the constructor summariesTheory
         List<Variable<?>> freeVariables = path.stream()
                 .map(ExpressionUtil::freeVariables)
                 .flatMap(Collection::stream)
@@ -70,22 +44,50 @@ public class ConstructorSummaryManager {
 
 
         for (Variable<?> freeVariable : freeVariables) {
-            erg.append(String.format("(declare-fun %s () %s)\n",
+            declarations.append(String.format("(declare-fun %s () %s)\n",
                     freeVariable.getName(),
                     type(freeVariable)));
         }
 
         //constructor summaries
-        ArrayList<String> objectIdentifiers = freeVariables.stream()
-                .map(Variable::getName)
-                .filter(name -> name.startsWith("__object_"))
-                .collect(Collectors.toCollection(ArrayList::new));
+        Pattern pattern = Pattern.compile("^__object_\\d+.*");
 
-        for (String objectIdentifier : objectIdentifiers) {
-            erg.append(this.bluePrintConstructorSummaries.replace("__object_0", objectIdentifier)).append("\n");
+        Set<String> objectIdentifiers = freeVariables.stream()
+                .map(Variable::getName)
+                .filter(name -> pattern.matcher(name).matches())
+                .map(name -> name.split("\\.")[0])
+                .collect(Collectors.toSet());
+
+//        Pattern pattern = Pattern.compile("^__object_\\d+$");
+//
+//        ArrayList<String> objectIdentifiers = freeVariables.stream()
+//                .map(Variable::getName)
+//                .filter(name -> pattern.matcher(name).matches())
+//                .collect(Collectors.toCollection(ArrayList::new));
+
+        // add delcare of constructor parameter per object
+        for (String declaration : this.declarationsOfBluePrint) {
+            String regex = "__(byte|char|short|int|long|float|double|string)_\\d+";
+            if (declaration.matches(regex)) {
+                this.declarationsOfBluePrint.remove(declaration);
+                for (String objectIdentifier : objectIdentifiers) {
+                    this.declarationsOfBluePrint.add(addPrefixToTypes(declaration, objectIdentifier));
+                }
+            }
         }
 
-        return erg.toString();
+        StringBuilder declarationsString = new StringBuilder(String.join("\n", this.declarationsOfBluePrint));
+        StringBuilder summaries = new StringBuilder();
+        for (String objectIdentifier : objectIdentifiers) {
+            summaries.append(this.bluePrintConstructorSummaries.replace("__object_0", objectIdentifier)).append("\n");
+            declarationsString.append(String.format("\n (declare-fun %s.init () String)", objectIdentifier));
+            declarationsString.append("\n(declare-fun null () Int) \n");
+
+        }
+        String objectedNotIdentityConstraints = objectNotIdentityConstraints(objectIdentifiers.stream().toList());
+        System.out.println(objectedNotIdentityConstraints);
+        return String.format("%n%s (assert (or %s)) %n %s", addPrefixToTypes(declarationsString.toString(), "__object_0"), summaries, objectedNotIdentityConstraints);
+
     }
 
 
@@ -115,21 +117,6 @@ public class ConstructorSummaryManager {
         throw new IllegalArgumentException("Unsupported type: " + v.getType());
     }
 
-//    public String generateSMTLibCode(List<String> objectIdentifiers) {
-//
-//
-//        String constructorSummaries = objectIdentifiers.stream()
-//                .map(objectIdentifier -> this.bluePrintConstructorSummaries.replace("__object_0", objectIdentifier))
-//                .collect(java.util.stream.Collectors.joining(" "));
-//
-//        return "(assert (or " + constructorSummaries + "))";
-//    }
-
-//    public String generateConstructorDeclarations(List<String> objectIdentifiers) {
-//
-//    }
-
-
     private String generateSmtCodeBluePrintForConstructorSelection() {
         List<String> signaturesConstructorCalls = this.opal.generateSignaturesOfPossibleConstructorCallsFromNondetObject(this.depth);
         signaturesConstructorCalls.remove("LC;|(LA;)V|{LC;|(I)V|{}}");  //todo: After remove smt-solver problem
@@ -144,9 +131,9 @@ public class ConstructorSummaryManager {
         this.declarationsOfBluePrint.addAll(traces.stream()
                 .map(Trace::getDeclarations)
                 .flatMap(List::stream)
-                .toList());
+                .collect(Collectors.toSet()));
 
-        return this.generateSmtCodeFromConstructorSummaryTraces(traces);
+        return addPrefixToTypes(this.generateSmtCodeFromConstructorSummaryTraces(traces), "__object_0");
     }
 
     private List<Trace> performDseOnConstructor(String constructorSignature) {
@@ -198,4 +185,36 @@ public class ConstructorSummaryManager {
     public String getBluePrintConstructorSummaries() {
         return bluePrintConstructorSummaries;
     }
+
+    public String objectNotIdentityConstraints(List<String> objectIdentifiers) {
+        if (objectIdentifiers == null) {
+            throw new IllegalArgumentException("objectIdentifiers must not be null");
+        }
+        if (objectIdentifiers.size() <= 1) {
+            return "";
+        }
+
+        return String.format("(assert (not (= %s)))", String.join(" ", objectIdentifiers));
+    }
+
+    /**
+     * In the given String all occurrences of primitive types (__int_{id}, __byte_{id}, ...)
+     * are expanded with the given prefix.
+     *
+     * @param input  String to be modified
+     * @param prefix prefix to be added
+     * @return modified String
+     */
+    public static String addPrefixToTypes(String input, String prefix) {
+        if (input == null || prefix == null) {
+            return input;
+        }
+        String regex = "__(byte|char|short|int|long|float|double|string)_\\d+";
+
+        // $0 is a back-reference to the whole matched substring
+        return input.replaceAll(regex, prefix + "$0");
+    }
+
+
+
 }

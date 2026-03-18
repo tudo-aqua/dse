@@ -32,6 +32,7 @@ import tools.aqua.dse.objects.ClassHierarchyParser;
 import tools.aqua.dse.objects.Clazz;
 import tools.aqua.dse.objects.ClazzModel;
 import tools.aqua.dse.paths.PathResult;
+import tools.aqua.dse.preprocessing.Opal;
 
 import java.io.IOException;
 import java.util.*;
@@ -39,9 +40,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TraceParser {
+
     public static Trace parseTrace(List<String> lines,
                                    Valuation vals,
-                                   ClazzModel clazzModel) throws IOException, SMTLIBParserException {
+                                   Config config) throws IOException, SMTLIBParserException {
         List<Decision> decisions = new LinkedList<>();
         List<String> declarations = new ArrayList<>();
         List<WitnessAssumption> witness = new LinkedList<>();
@@ -57,7 +59,7 @@ public class TraceParser {
 
         for (String line : lines) {
             if (line.startsWith("[DECISION]")) {
-                decisions.add(parseDecision( line.substring("[DECISION]".length()), decl, clazzModel));
+                decisions.add(parseDecision( line.substring("[DECISION]".length()), decl, config));
             }
             else if (line.startsWith("[AUXILIARY]")) {
                 decl += line.substring("[AUXILIARY]".length());
@@ -123,37 +125,31 @@ public class TraceParser {
 
     public static Decision parseDecision(String decision,
                                          String decl,
-                                         ClazzModel clazzModel) throws IOException, SMTLIBParserException {
+                                         Config config) throws IOException, SMTLIBParserException {
         String[] parts = decision.split("\\/\\/ branchCount=|, branchId=");
         SMTProblem smt = null;
         String constraint = parts[0];
-        Expression<Boolean> expr = null;
+        int branches = Integer.parseInt(parts[1]);
+        int branchId = Integer.parseInt(parts[2]);
 
-//        if (constraint.contains("extends")) {
-//            expr = parseExtends(constraint, clazzModel);
-//            int branches = Integer.parseInt(parts[1]);
-//            int branchId = Integer.parseInt(parts[2]);
-//            return new Decision( expr, branches, branchId);
-//        }
+        try {
+            smt = SMTLIBParser.parseSMTProgram(decl + constraint);
+        } catch (Throwable e) {
+            System.err.println("Could not parse: " + decl + constraint);
+            throw e;
+        }
+
+        // Special Handling of branchCount & BranchId of obj.method.of (SPout sets Unknown because it has no information
+        // how many polymorph methods exists and which id they own in DSE)
+//        if (constraint.contains("obj.method.of")) {
+//            List<Opal.PolymorphyInformation> polymorphyInformation =
+//                    config.getSmtProblemManager().getStaticManager().getPolymorphicInformation();
 //
-//        else if (constraint.contains("instance_of")) {
-//            expr = parseInstanceOf(constraint);
-//            int branches = Integer.parseInt(parts[1]);
-//            int branchId = Integer.parseInt(parts[2]);
-//            return new Decision( expr, branches, branchId);
+//            polymorphyInformation todo: Implement
 //        }
-//
-//        else {
-            try {
-                smt = SMTLIBParser.parseSMTProgram(decl + parts[0]);
-            } catch (Throwable e) {
-                System.err.println("Could not parse: " + decl + parts[0]);
-                throw e;
-            }
-            int branches = Integer.parseInt(parts[1]);
-            int branchId = Integer.parseInt(parts[2]);
-            return new Decision( ExpressionUtil.and(smt.assertions), branches, branchId);
-//        }
+
+        return new Decision( ExpressionUtil.and(smt.assertions), branches, branchId);
+
     }
 
     private static Expression<Boolean> parseExtends(String constraint,
