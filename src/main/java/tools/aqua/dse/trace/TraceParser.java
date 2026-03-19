@@ -142,7 +142,6 @@ public class TraceParser {
         // how many polymorph methods exists and which id they own in DSE)
         Pattern pattern = Pattern.compile("obj\\.method\\.of\\s+\\S+\\s+\"([^\"]*)\"\\s+\"([^\"]*)\"\\s+\"([^\"]*)\"");
         Matcher matcher = pattern.matcher(constraint);
-
         if (matcher.find()) {
             Map<Opal.PolymorphicMethodDefinition, Opal.BranchData> branchInformationMap
                     = config.getSmtProblemManager().getStaticManager().getBranchInformationMap();
@@ -157,11 +156,25 @@ public class TraceParser {
             return new Decision(ExpressionUtil.and(smt.assertions), branchData.branchCount(), branchData.branchId());
         }
 
-//        if (constraint.contains("obj.method.of")) {
-//            List<Opal.PolymorphyInformation> polymorphyInformation =
-//                    config.getSmtProblemManager().getStaticManager().getPolymorphicInformation();
-//
-//        }
+        //Special Handling of branchCount & BranchId of (assert (= __object_0.err "{ERROR_TYPE}")) because
+        // SPout has no information how many error per constructor can occur
+        Pattern errorPattern = Pattern.compile("\\(assert \\(= __object_\\d+\\.err \"(.*?)\"\\)\\)");
+        Matcher errorMatcher = errorPattern.matcher(constraint);
+        if (errorMatcher.find()) {
+            String errorMessage = errorMatcher.group(1);
+            List<String> possibleErrorsWithInConstructors =
+                    config.getSmtProblemManager().getConstructorSummaryManager().getPossibleErrorsWithInConstructors();
+
+            //todo: error index für leer
+            int currentBranchCount = possibleErrorsWithInConstructors.size()+1;
+            int currentBranchId = errorMessage.isEmpty() ?
+                    currentBranchCount-1 : possibleErrorsWithInConstructors.indexOf(errorMessage);
+
+            assert (currentBranchId != -1) : "Error message " + errorMessage + " not found in possible errors with in constructors";
+
+            return new Decision(ExpressionUtil.and(smt.assertions), currentBranchCount, currentBranchId);
+        }
+
 
         return new Decision( ExpressionUtil.and(smt.assertions), branches, branchId);
 

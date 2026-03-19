@@ -2,6 +2,8 @@ package tools.aqua.dse.preprocessing;
 
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Variable;
+import gov.nasa.jpf.constraints.smtlibUtility.smtconverter.SMTLibExportGenContext;
+import gov.nasa.jpf.constraints.smtlibUtility.smtconverter.SMTLibExportVisitor;
 import gov.nasa.jpf.constraints.types.BitLimitedBVIntegerType;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
@@ -11,7 +13,10 @@ import tools.aqua.dse.paths.PathResult;
 import tools.aqua.dse.trace.Decision;
 import tools.aqua.dse.trace.Trace;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -20,8 +25,9 @@ public class ConstructorSummaryManager {
     private final String classPath;
     private final int depth;
     private final Opal opal;
-    private Set<String> declarationsOfBluePrint = new HashSet<>();
+    private final Set<String> declarationsOfBluePrint = new HashSet<>();
     private final String bluePrintConstructorSummaries;
+    private final List<String> possibleErrorsWithInConstructors = new ArrayList<>();
 
     public ConstructorSummaryManager(String classPath, int depth) {
         this.classPath = classPath;
@@ -29,6 +35,7 @@ public class ConstructorSummaryManager {
         this.depth = depth;
         System.out.println("generateSmtCodeBluePrintForConstructorSelection-Call");
         this.bluePrintConstructorSummaries = this.generateSmtCodeBluePrintForConstructorSelection();
+        extractErrorWithinConstructors();
         System.out.println("generateSmtCodeBluePrintForConstructorSelection-Done");
     }
 
@@ -85,6 +92,17 @@ public class ConstructorSummaryManager {
 
     }
 
+    private void extractErrorWithinConstructors() {
+        Pattern pattern = Pattern.compile("<([^>]+)>");
+        Matcher matcher = pattern.matcher(this.bluePrintConstructorSummaries);
+
+        Set<String> errors = new HashSet<>();
+        while (matcher.find()) {
+            errors.add(matcher.group(1));
+        }
+        this.possibleErrorsWithInConstructors.addAll(errors);
+    }
+
 
     private String type(Variable v) {
         // TODO: add missing data types
@@ -114,8 +132,8 @@ public class ConstructorSummaryManager {
 
     private String generateSmtCodeBluePrintForConstructorSelection() {
         List<String> signaturesConstructorCalls = this.opal.generateSignaturesOfPossibleConstructorCallsFromNondetObject(this.depth);
-        signaturesConstructorCalls.remove("LC;|(LA;)V|{LC;|(I)V|{}}");  //todo: After remove smt-solver problem
-        signaturesConstructorCalls.remove("LC;|(I)V|{}");               //todo: After remove smt-solver problem
+//        signaturesConstructorCalls.remove("LC;|(LA;)V|{LC;|(I)V|{}}");  //todo: After remove smt-solver problem
+//        signaturesConstructorCalls.remove("LC;|(I)V|{}");               //todo: After remove smt-solver problem
 
 
         List<Trace> traces = new ArrayList<>();
@@ -163,18 +181,46 @@ public class ConstructorSummaryManager {
     }
 
     private String generateSmtCodeFromSingleConstructorSummaryTrace(Trace summaryTrace) {
+        List<Expression<Boolean>> decisions = summaryTrace.getDecisions().stream()
+                .map(Decision::getCondition)
+                .toList();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(baos);
+        SMTLibExportGenContext genCtx = new SMTLibExportGenContext(ps);
+        SMTLibExportVisitor visitor = new SMTLibExportVisitor(genCtx);
+
+        List<String> parsedExpressions = new ArrayList<>();
+        for (Expression<Boolean> decision : decisions) {
+            decision.accept(visitor, null);
+            genCtx.flush();
+            parsedExpressions.add(baos.toString().trim());
+        }
+
+        List<String> decisionStrings = parsedExpressions.stream()
+                .map(s -> s.split("\n"))
+                .flatMap(Arrays::stream)
+                .filter(line -> !line.startsWith("(declare-const"))
+                .toList();
+
         String erg =  String.format(
                 "(and %s)",
                 Stream.concat(
                         summaryTrace.getSummaries().stream(),
-                        summaryTrace.getDecisions().stream().map(Decision::toString)
+                        decisionStrings.stream()
                 ).collect(Collectors.joining(" "))
         );
 
         PathResult traceState = summaryTrace.getTraceState();
-        return  traceState instanceof PathResult.ErrorResult ?
-                erg.replace("<>", String.format("<%s>", ((PathResult.ErrorResult) traceState).getExceptionClass())) :
-                erg;
+
+        if (traceState instanceof PathResult.ErrorResult) {
+            String exceptionClass = ((PathResult.ErrorResult) traceState).getExceptionClass();
+            erg = erg.replace("<>", String.format("<%s>", exceptionClass));
+            erg = erg.replace("(= __object_0.err \"\")", String.format("(= __object_0.err \"%s\")", exceptionClass));
+        }
+
+        return erg;
+
     }
 
     public String getBluePrintConstructorSummaries() {
@@ -210,6 +256,7 @@ public class ConstructorSummaryManager {
         return input.replaceAll(regex, prefix + "$0");
     }
 
-
-
+    public List<String> getPossibleErrorsWithInConstructors() {
+        return possibleErrorsWithInConstructors;
+    }
 }

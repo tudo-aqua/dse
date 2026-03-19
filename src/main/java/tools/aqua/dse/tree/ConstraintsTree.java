@@ -362,8 +362,8 @@ public class ConstraintsTree {
           System.out.printf("\u001B[38;5;208m %s %s\u001B[0m%n", staticSmtLibCode, dynamicSmtLibCode);
           SmtProblemManager.addSmtProblemAsString(
                   dynamicSmtLibCode, solverCtx);
-          solverCtx.add(path);
         }
+      solverCtx.add(path);
     }
   }
 
