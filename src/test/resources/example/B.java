@@ -1,8 +1,13 @@
 public class B extends A {
+  int x = 0;
 
-  public B() { super(100); }
+  public B() {
+    assert false;
+  }
 
   public B(int x) {
-    super(x);
+    this.x = x;
   }
+
+  public void foo() {}
 }
