@@ -152,6 +152,9 @@ public class TraceParser {
 
             Opal.BranchData branchData =
                     branchInformationMap.get(new Opal.PolymorphicMethodDefinition(methodName, methodDescriptor, definingClass));
+            System.out.println("BranchCountLog: "+branchData.branchCount());
+            System.out.println("BranchIdLog: "+branchData.branchId());
+
 
             return new Decision(ExpressionUtil.and(smt.assertions), branchData.branchCount(), branchData.branchId());
         }

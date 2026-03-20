@@ -59,4 +59,9 @@ public class StaticManager {
     public Map<Opal.PolymorphicMethodDefinition, Opal.BranchData> getBranchInformationMap() {
         return branchInformationMap;
     }
+
+    public List<Opal.PolymorphyInformation> getPolymorphicInformation() {
+        return polymorphicInformation;
+    }
 }
+

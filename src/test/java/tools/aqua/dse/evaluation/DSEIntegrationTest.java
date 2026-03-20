@@ -197,7 +197,10 @@ public class DSEIntegrationTest {
 
         // Compile Base Classes
         FilePreparator.compileClasses(List.of("A", "B", "C"), "src/test/resources/example/"); //example directory
-        FilePreparator.compileClass("D", "src/test/resources/example/test/");
+        FilePreparator.compileClass("D", "src/test/resources/example/");
+        FilePreparator.compileClass("K", "src/test/resources/example/");
+        FilePreparator.compileClass("L", "src/test/resources/example/");
+        FilePreparator.compileClass("Main", "src/test/resources/example/");
 
         //execute example
         //printExample(exampleName, "src/test/resources/example/");

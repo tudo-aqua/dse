@@ -77,16 +77,20 @@ public class ConstructorSummaryManager {
             }
         }
 
-        StringBuilder declarationsString = new StringBuilder(String.join("\n", this.declarationsOfBluePrint));
-        StringBuilder summaries = new StringBuilder();
-        for (String objectIdentifier : objectIdentifiers) {
-            summaries.append(this.bluePrintConstructorSummaries.replace("__object_0", objectIdentifier)).append("\n");
-            declarationsString.append(String.format("\n (declare-fun %s.init () String)", objectIdentifier));
-            declarationsString.append("\n(declare-fun null () Int) \n");
+        String declarationsString = String.join("\n", this.declarationsOfBluePrint);
 
+        StringBuilder summariesOfAllObjects = new StringBuilder();
+        StringBuilder declarationsOfAllObjects = new StringBuilder();
+
+        for (String objectIdentifier : objectIdentifiers) {
+            summariesOfAllObjects.append(this.bluePrintConstructorSummaries.replaceAll("__object_0", objectIdentifier)).append("\n");
+            declarationsOfAllObjects.append(String.format("\n (declare-fun %s.init () String)", objectIdentifier));
+            declarationsOfAllObjects.append(declarationsString.replace("__object_0", objectIdentifier));
         }
+        declarationsOfAllObjects.append("\n(declare-fun null () Int) \n");
+
         String objectedNotIdentityConstraints = objectNotIdentityConstraints(objectIdentifiers.stream().toList());
-        String declaresAndSummaries = String.format("%n%s (assert (or %s)) %n %s", addPrefixToTypes(declarationsString.toString(), "__object_0"), summaries, objectedNotIdentityConstraints);
+        String declaresAndSummaries = String.format("%n%s (assert (or %s)) %n %s", addPrefixToTypes(declarationsOfAllObjects.toString(), "__object_0"), summariesOfAllObjects, objectedNotIdentityConstraints);
 
         return objectedNotIdentityConstraints.isBlank() ? declaresAndSummaries : declaresAndSummaries +"\n"+objectedNotIdentityConstraints;
 
@@ -141,9 +145,13 @@ public class ConstructorSummaryManager {
             traces.addAll(this.performDseOnConstructor("<>"+signature));
         }
 
+
+        //Collect declarations
+        String regex = "__(byte|char|short|int|long|float|double|string)_\\d";
         this.declarationsOfBluePrint.addAll(traces.stream()
                 .map(Trace::getDeclarations)
                 .flatMap(List::stream)
+//                .map(s -> s.replaceAll(regex, "__object_0" + "$0"))
                 .collect(Collectors.toSet()));
 
         return addPrefixToTypes(this.generateSmtCodeFromConstructorSummaryTraces(traces), "__object_0");
