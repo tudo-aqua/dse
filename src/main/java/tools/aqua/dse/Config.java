@@ -251,23 +251,6 @@ public class Config {
         if (props.containsKey("iflow.fraction")) {
             this.fraction = Double.parseDouble(props.getProperty("iflow.fraction"));
         }
-
-        if (props.containsKey("static.info")) {
-            String filename = props.getProperty("static.info");
-            StringBuilder sb = new StringBuilder();
-            try (BufferedReader r = new BufferedReader(new FileReader(filename))) {
-                String line = null;
-                while ((line = r.readLine()) != null) {
-                    sb.append(line);
-                }
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            this.clazzModel = new ClazzModel(sb.toString());
-        }
-
         long seed = (new Random()).nextLong();
         if (props.containsKey("random.seed")) {
             seed = Long.parseLong(props.getProperty("random.seed"));

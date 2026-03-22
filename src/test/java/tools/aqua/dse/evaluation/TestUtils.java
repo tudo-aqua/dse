@@ -47,16 +47,14 @@ public class TestUtils {
 //    }
 
     public static DSE getDseInstance(String exampleName,
-                                     String hierachryName) {
+                                     String pathToExamples) {
         Properties props = new Properties();
         props.setProperty("dse.dp", "z3");
         props.setProperty("dse.executor", "../executor.sh");
-        // Der Classpath wurde hier geändert
-        props.setProperty("dse.executor.args", "-cp src/test/resources/examples/:../verifier-stub/target/verifier-stub-1.0.jar -Dconcolic.execution=true " + exampleName);
+        props.setProperty("dse.executor.args", String.format("-cp %s:../verifier-stub/target/verifier-stub-1.0.jar -Dconcolic.execution=true %s", pathToExamples, exampleName));
         props.setProperty("dse.dp.incremental", "false");
         props.setProperty("dse.terminate.on", "completion");
         props.setProperty("dse.explore", "BFS");
-        props.setProperty("static.info", "src/test/resources/hierarchy/"+hierachryName+".txt");
 
         Config config = Config.fromProperties(props);
 
