@@ -358,7 +358,7 @@ public class ConstraintsTree {
         if (!config.isConstructorSummary()) {
           solverCtx.push();
           String staticSmtLibCode = config.getSmtProblemManager().getStaticManager().generateStaticSmtLibCode();
-          String dynamicSmtLibCode = config.getSmtProblemManager().getConstructorSummaryManager().generateSMTLibCode(path);
+          String dynamicSmtLibCode = config.getSmtProblemManager().getConstructorSummaryManager().generateFullConstructorSMTLIbCode(path);
           System.out.printf("\u001B[38;5;208m %s %s\u001B[0m%n", staticSmtLibCode, dynamicSmtLibCode);
           SmtProblemManager.addSmtProblemAsString(
                   dynamicSmtLibCode, solverCtx);

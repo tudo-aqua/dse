@@ -116,6 +116,7 @@ public class Executor {
 
         List<String> constructorValues = val.entries().stream()
                 .filter(valuationEntry -> pattern.matcher(valuationEntry.getVariable().getName()).find())
+                .sorted(Comparator.comparing(entry -> entry.getVariable().getName()))
                 .map(ValuationEntry::getValue)
                 .map(s -> (String) s)
                 .toList();

@@ -4,8 +4,9 @@ class Main {
 
   public static void main(String args[]) {
       Object o = Verifier.nondetObject(A.class, null);
-      //Object o2 = Verifier.nondetObject(A.class, null);
-      //System.out.println(o2);
+      Object o2 = Verifier.nondetObject(A.class, null);
+
+      assert (o2 != null);
 
       if (o instanceof B) {
         B b = (B) o;

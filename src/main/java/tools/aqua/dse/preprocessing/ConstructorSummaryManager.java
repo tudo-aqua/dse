@@ -40,6 +40,9 @@ public class ConstructorSummaryManager {
     }
 
 
+
+
+
     public String generateSMTLibCode(List<Expression<Boolean>> path) {
         StringBuilder declarations = new StringBuilder();
 
@@ -65,18 +68,6 @@ public class ConstructorSummaryManager {
                 .map(name -> name.split("\\.")[0])
                 .collect(Collectors.toSet());
 
-
-        // adjust delcare of constructor parameter per object
-        for (String declaration : this.declarationsOfBluePrint) {
-            String regex = "__(byte|char|short|int|long|float|double|string)_\\d+";
-            if (declaration.matches(regex)) {
-                this.declarationsOfBluePrint.remove(declaration);
-                for (String objectIdentifier : objectIdentifiers) {
-                    this.declarationsOfBluePrint.add(addPrefixToTypes(declaration, objectIdentifier));
-                }
-            }
-        }
-
         String declarationsString = String.join("\n", this.declarationsOfBluePrint);
 
         StringBuilder summariesOfAllObjects = new StringBuilder();
@@ -90,11 +81,31 @@ public class ConstructorSummaryManager {
         declarationsOfAllObjects.append("\n(declare-fun null () Int) \n");
 
         String objectedNotIdentityConstraints = objectNotIdentityConstraints(objectIdentifiers.stream().toList());
-        String declaresAndSummaries = String.format("%n%s (assert (or %s)) %n %s", addPrefixToTypes(declarationsOfAllObjects.toString(), "__object_0"), summariesOfAllObjects, objectedNotIdentityConstraints);
+        String declaresAndSummaries = String.format("%n%s (assert (or %s)) %n %s", declarationsOfAllObjects, summariesOfAllObjects, objectedNotIdentityConstraints);
 
         return objectedNotIdentityConstraints.isBlank() ? declaresAndSummaries : declaresAndSummaries +"\n"+objectedNotIdentityConstraints;
 
     }
+
+    public String generateFullConstructorSMTLIbCode(List<Expression<Boolean>> path) {
+        List<Variable<?>> freeVariables = extractFreeVariables(path);
+        List<String> objectIdentifiers = extractObjectIdentifiers(freeVariables);
+
+        String declarations = buildAllObjectDeclarations(objectIdentifiers);
+        String summaries = buildAllObjectSummaries(objectIdentifiers);
+        String objectNotIdentityConstraints = objectNotIdentityConstraints(objectIdentifiers);
+
+
+        return String.format("%s%n%s%n%s", declarations, summaries, objectNotIdentityConstraints);
+    }
+
+    private List<Variable<?>> extractFreeVariables(List<Expression<Boolean>> path) {
+        return path.stream()
+                .map(ExpressionUtil::freeVariables)
+                .flatMap(Collection::stream)
+                .toList();
+    }
+
 
     private void extractErrorWithinConstructors() {
         Pattern pattern = Pattern.compile("<([^>]+)>");
@@ -107,6 +118,71 @@ public class ConstructorSummaryManager {
         this.possibleErrorsWithInConstructors.addAll(errors);
     }
 
+    private List<String> extractObjectIdentifiers(List<Variable<?>> variables) {
+        Pattern pattern = Pattern.compile("^__object_\\d+.*");
+
+        return variables.stream()
+                .map(Variable::getName)
+                .filter(name -> pattern.matcher(name).matches())
+                .map(name -> name.split("\\.")[0])
+                .distinct() // Ensure uniqueness (replacement for Set behavior)
+                .toList();
+    }
+
+
+    /**
+     * Builds SMT-LIB declarations for a single object.
+     */
+    private String buildDeclarationsForObject(String objectIdentifier) {
+        StringBuilder sb = new StringBuilder();
+
+        String declarationsTemplate = String.join("\n", this.declarationsOfBluePrint);
+
+        // Declare init function for object
+        sb.append(String.format("\n(declare-fun %s.init () String)", objectIdentifier));
+
+        // Replace placeholder with actual object identifier
+        sb.append(declarationsTemplate.replace("__object_0", objectIdentifier));
+
+        return sb.toString();
+    }
+
+    /**
+     * Builds declarations for all objects.
+     */
+    private String buildAllObjectDeclarations(List<String> objectIdentifiers) {
+        StringBuilder sb = new StringBuilder();
+
+        for (String objectIdentifier : objectIdentifiers) {
+            sb.append(buildDeclarationsForObject(objectIdentifier));
+        }
+
+        // Add null declaration once
+        sb.append("\n(declare-fun null () Int)\n");
+
+        return sb.toString();
+    }
+
+    /**
+     * Builds summaries for all objects.
+     */
+    private String buildAllObjectSummaries(List<String> objectIdentifiers) {
+        StringBuilder sb = new StringBuilder();
+
+        for (String objectIdentifier : objectIdentifiers) {
+            sb.append(buildSummariesForObject(objectIdentifier));
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Builds constructor summaries for a single object.
+     */
+    private String buildSummariesForObject(String objectIdentifier) {
+        return String.format("(assert (or %s))",
+                this.bluePrintConstructorSummaries.replace("__object_0", objectIdentifier) + "\n");
+    }
 
     private String type(Variable v) {
         // TODO: add missing data types
@@ -151,10 +227,10 @@ public class ConstructorSummaryManager {
         this.declarationsOfBluePrint.addAll(traces.stream()
                 .map(Trace::getDeclarations)
                 .flatMap(List::stream)
-//                .map(s -> s.replaceAll(regex, "__object_0" + "$0"))
+                .map(s -> s.replaceAll(regex, "__object_0" + "$0"))
                 .collect(Collectors.toSet()));
 
-        return addPrefixToTypes(this.generateSmtCodeFromConstructorSummaryTraces(traces), "__object_0");
+        return this.generateSmtCodeFromConstructorSummaryTraces(traces);
     }
 
     private List<Trace> performDseOnConstructor(String constructorSignature) {
@@ -219,6 +295,8 @@ public class ConstructorSummaryManager {
                 ).collect(Collectors.joining(" "))
         );
 
+        erg = addObjectPrefixToPrimitives(erg, "__object_0");
+
         PathResult traceState = summaryTrace.getTraceState();
 
         if (traceState instanceof PathResult.ErrorResult) {
@@ -254,7 +332,7 @@ public class ConstructorSummaryManager {
      * @param prefix prefix to be added
      * @return modified String
      */
-    public static String addPrefixToTypes(String input, String prefix) {
+    public static String addObjectPrefixToPrimitives(String input, String prefix) {
         if (input == null || prefix == null) {
             return input;
         }
