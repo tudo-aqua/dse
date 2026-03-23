@@ -30,10 +30,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Random;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Config {
 
@@ -67,6 +66,8 @@ public class Config {
     private String executorCmd;
 
     private String executorArgs;
+
+    private List<String> classPaths = new ArrayList<>();
 
     private boolean b64encodeExecutorValue = false;
 
@@ -195,6 +196,16 @@ public class Config {
     private void parseProperties(Properties props) {
         if (props.containsKey("dse.executor.args")) {
             this.executorArgs = props.getProperty("dse.executor.args");
+
+            Pattern pattern = Pattern.compile("-cp\\s+([^\\s]+)");
+            Matcher matcher = pattern.matcher(this.executorArgs);
+
+            if (matcher.find()) {
+                this.classPaths = Arrays.stream(matcher.group(1).split(":")).toList();
+            }
+            else {
+                throw new IllegalStateException("no classpath specified");
+            }
         }
         if (props.containsKey("dse.executor")) {
             this.executorCmd = props.getProperty("dse.executor");
@@ -322,7 +333,7 @@ public class Config {
                     "because of recursion.");
         }
         if (this.smtProblemManager == null ) {
-            String path = "src/test/resources/example"; //todo: Load from properties
+            String path = this.classPaths.get(0);
             int depth = 2;
             this.smtProblemManager = new SmtProblemManager(path, depth);
         }

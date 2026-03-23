@@ -212,12 +212,13 @@ public class ConstructorSummaryManager {
 
     private String generateSmtCodeBluePrintForConstructorSelection() {
         List<String> signaturesConstructorCalls = this.opal.generateSignaturesOfPossibleConstructorCallsFromNondetObject(this.depth);
+        List<String> filteredSignaturesConstructorCalls = signaturesConstructorCalls.stream().distinct().toList();
 //        signaturesConstructorCalls.remove("LC;|(LA;)V|{LC;|(I)V|{}}");  //todo: After remove smt-solver problem
 //        signaturesConstructorCalls.remove("LC;|(I)V|{}");               //todo: After remove smt-solver problem
 
 
         List<Trace> traces = new ArrayList<>();
-        for (String signature : signaturesConstructorCalls) {
+        for (String signature : filteredSignaturesConstructorCalls) {
             traces.addAll(this.performDseOnConstructor("<>"+signature));
         }
 

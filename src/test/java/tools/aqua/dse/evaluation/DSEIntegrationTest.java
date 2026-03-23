@@ -1625,7 +1625,7 @@ public class DSEIntegrationTest {
         //define example
         String exampleName = "objects01";
 
-        String directoryOfTheExample = String.format("src/test/resources/sv_comp/%s/", exampleName);
+        String directoryOfTheExample = String.format("src/test/resources/svComp/%s/", exampleName);
 
         // Compile Base Classes
         FilePreparator.compileClasses(List.of("A", "B", "C", "D", "Sub", "Sub1", "Sub2", "Main"),
@@ -1667,7 +1667,7 @@ public class DSEIntegrationTest {
         //define example
         String exampleName = "objects02";
 
-        String directoryOfTheExample = String.format("src/test/resources/sv_comp/%s/", exampleName);
+        String directoryOfTheExample = String.format("src/test/resources/svComp/%s/", exampleName);
 
         // Compile Base Classes
         FilePreparator.compileClasses(List.of("A", "B", "C", "D", "Sub", "Sub1", "Sub2", "Main"),
@@ -1709,7 +1709,7 @@ public class DSEIntegrationTest {
         //define example
         String exampleName = "objects03";
 
-        String directoryOfTheExample = String.format("src/test/resources/sv_comp/%s/", exampleName);
+        String directoryOfTheExample = String.format("src/test/resources/svComp/%s/", exampleName);
 
         // Compile Base Classes
         FilePreparator.compileClasses(List.of("A", "B", "C", "D", "Sub", "Sub1", "Sub2", "Main"),
@@ -1751,7 +1751,7 @@ public class DSEIntegrationTest {
         //define example
         String exampleName = "objects04";
 
-        String directoryOfTheExample = String.format("src/test/resources/sv_comp/%s/", exampleName);
+        String directoryOfTheExample = String.format("src/test/resources/svComp/%s/", exampleName);
 
         // Compile Base Classes
         FilePreparator.compileClasses(List.of("A", "B", "C", "D", "Sub", "Sub1", "Sub2", "Main"),
@@ -1793,7 +1793,7 @@ public class DSEIntegrationTest {
         //define example
         String exampleName = "objects05";
 
-        String directoryOfTheExample = String.format("src/test/resources/sv_comp/%s/", exampleName);
+        String directoryOfTheExample = String.format("src/test/resources/svComp/%s/", exampleName);
 
         // Compile Base Classes
         FilePreparator.compileClasses(List.of("A", "B", "C", "D", "Sub", "Sub1", "Sub2", "Main"),
@@ -1835,7 +1835,7 @@ public class DSEIntegrationTest {
         //define example
         String exampleName = "objects06";
 
-        String directoryOfTheExample = String.format("src/test/resources/sv_comp/%s/", exampleName);
+        String directoryOfTheExample = String.format("src/test/resources/svComp/%s/", exampleName);
 
         // Compile Base Classes
         FilePreparator.compileClasses(List.of("A", "B", "C", "D", "Sub", "Sub1", "Sub2", "Main"),
@@ -1877,7 +1877,7 @@ public class DSEIntegrationTest {
         //define example
         String exampleName = "objects07";
 
-        String directoryOfTheExample = String.format("src/test/resources/sv_comp/%s/", exampleName);
+        String directoryOfTheExample = String.format("src/test/resources/svComp/%s/", exampleName);
 
         // Compile Base Classes
         FilePreparator.compileClasses(List.of("A", "B", "C", "D", "Sub", "Sub1", "Sub2", "Main"),
@@ -1919,7 +1919,7 @@ public class DSEIntegrationTest {
         //define example
         String exampleName = "objects08";
 
-        String directoryOfTheExample = String.format("src/test/resources/sv_comp/%s/", exampleName);
+        String directoryOfTheExample = String.format("src/test/resources/svComp/%s/", exampleName);
 
         // Compile Base Classes
         FilePreparator.compileClasses(List.of("A", "B", "C", "D", "Sub", "Sub1", "Sub2", "Main"),
@@ -1961,7 +1961,7 @@ public class DSEIntegrationTest {
         //define example
         String exampleName = "objects09";
 
-        String directoryOfTheExample = String.format("src/test/resources/sv_comp/%s/", exampleName);
+        String directoryOfTheExample = String.format("src/test/resources/svComp/%s/", exampleName);
 
         // Compile Base Classes
         FilePreparator.compileClasses(List.of("A", "B", "C", "D", "Sub", "Sub1", "Sub2", "Main"),
@@ -2003,7 +2003,7 @@ public class DSEIntegrationTest {
         //define example
         String exampleName = "objects10";
 
-        String directoryOfTheExample = String.format("src/test/resources/sv_comp/%s/", exampleName);
+        String directoryOfTheExample = String.format("src/test/resources/svComp/%s/", exampleName);
 
         // Compile Base Classes
         FilePreparator.compileClasses(List.of("A", "B", "C", "D", "Sub", "Sub1", "Sub2", "Main"),
@@ -2045,7 +2045,7 @@ public class DSEIntegrationTest {
         //define example
         String exampleName = "objects11";
 
-        String directoryOfTheExample = String.format("src/test/resources/sv_comp/%s/", exampleName);
+        String directoryOfTheExample = String.format("src/test/resources/svComp/%s/", exampleName);
 
         // Compile Base Classes
         FilePreparator.compileClasses(List.of("A", "B", "C", "D", "Sub", "Sub1", "Sub2", "Main"),
@@ -2087,7 +2087,7 @@ public class DSEIntegrationTest {
         //define example
         String exampleName = "objects12";
 
-        String directoryOfTheExample = String.format("src/test/resources/sv_comp/%s/", exampleName);
+        String directoryOfTheExample = String.format("src/test/resources/svComp/%s/", exampleName);
 
         // Compile Base Classes
         FilePreparator.compileClasses(List.of("A", "B", "C", "D", "Sub", "Sub1", "Sub2", "Main"),
@@ -2128,7 +2128,7 @@ public class DSEIntegrationTest {
         //define example
         String exampleName = "objects13";
 
-        String directoryOfTheExample = String.format("src/test/resources/sv_comp/%s/", exampleName);
+        String directoryOfTheExample = String.format("src/test/resources/svComp/%s/", exampleName);
 
         // Compile Base Classes
         FilePreparator.compileClasses(List.of("A", "B", "C", "D", "Sub", "Sub1", "Sub2", "Main"),
@@ -2170,7 +2170,7 @@ public class DSEIntegrationTest {
         //define example
         String exampleName = "objects14";
 
-        String directoryOfTheExample = String.format("src/test/resources/sv_comp/%s/", exampleName);
+        String directoryOfTheExample = String.format("src/test/resources/svComp/%s/", exampleName);
 
         // Compile Base Classes
         FilePreparator.compileClasses(List.of("A", "B", "C", "D", "Sub", "Sub1", "Sub2", "Main"),
