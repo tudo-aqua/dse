@@ -383,7 +383,7 @@ public class Opal {
                     Call<DUVar<ValueInformation>> call =
                             (callsite instanceof MethodCall)
                                     ? callsite.asMethodCall()
-                                    : callsite.asAssignment().expr().asFunctionCall();
+                                    : callsite.asAssignmentLike().expr().asFunctionCall();
 
                     /*
                      * First parameter of nondetObject -> Class parameter.
