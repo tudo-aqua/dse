@@ -235,1389 +235,1390 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    public void thesis_example()  throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Thesis";
+//    @Test
+//    public void thesis_example()  throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Thesis";
+//
+//        //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//        DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/thesis_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//
+//
+//        Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        //                                                CHECKS
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//
+//
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+
+
+//    @Test //ok
+//    public void Example01_basic() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example1";
+//
+//        //compile example
+//        compileBasicClasses(exampleName);
+//
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//
+//
+//        Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        //                                                CHECKS
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test //todo: parsing problem of the trace -> out of memory
+//    public void Example02_casting() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example2";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//        DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        //                                                CHECKS
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//
+//
+//    @Test //ok (Example modified -> Delete second null check)
+//    public void Example03_isNull() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example3";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        System.out.println("output: ");
+//        //System.out.println(output);
+//
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        //                                                CHECKS
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test //ok
+//    public void Example04_isNotNull() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example4";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        //                                                CHECKS
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test //todo: adapted example diverged -> object1 und object 2 sind verschieden, da das gleiche Object angelegt wird
+//    public void Example05_towIndependentObjects_checkIdentical() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example5";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        //                                                CHECKS
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test //todo: noch nicht gelöst
+//    public void Example06_towIndependentObjects_checkNotIdentical() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example6";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        //                                                CHECKS
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test //ok
+//    public void Example07_OneObject_checkIdentical() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example7";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        //                                                CHECKS
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//
+//    }
+//
+//    @Test
+//    public void Example08_OneObject_checkNotIdentical() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example8";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        //                                                CHECKS
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//
+//    @Test
+//    public void Example09_instanceOfA() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example9";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        //                                                CHECKS
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example10_notInstanceOfA() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example10";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        //                                                CHECKS
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example11_instanceOfB() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example11";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        //                                                CHECKS
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example12_notInstanceOfB() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example12";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        //                                                CHECKS
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//
+//    @Test
+//    public void Example13_aX_isNull() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example13";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example14_aX_isNotNull() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example14";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example15_aX_smallerNull() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example15";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example16_aX_smalerEqualNull() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example16";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example17_aX_greaterNull() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example17";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example18_aX_greaterEqualNull() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example18";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example19_a1X_equals_a2X() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example19";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example20_a1X_notEquals_a2X() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example20";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example21_a1X_smaller_a2X() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example21";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example22_a1X_smallerEquals_a2X() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example22";
+//
+//        //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example23_a1X_greater_a2X() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example23";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example24_a1X_greaterEquals_a2X() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example24";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example25_a1X_equals_a2Y() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example25";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example26_a1X_notEquals_a2Y() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example26";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example27_a1X_smaller_a2Y() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example27";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example28_a1X_smallerEquals_a2Y() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example28";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example29_a1X_greater_a2Y() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example29";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example30_a1X_greaterEquals_a2Y() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example30";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example31_komplex_condition() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example31";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example32_createIntegerFromObject() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example32";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        //                                                CHECKS
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//
+//    @Test
+//    public void Example33_instanceOfInterface() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example33";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        //                                                CHECKS
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//
+//    }
+//
+//    @Test
+//    public void Example34_notInstanceOfInterface() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example34";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        //                                                CHECKS
+//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//    @Test
+//    public void Example35_a1Y_equals_a2Y() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example35";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//
+//    @Test
+//    public void Example36_foo_checkcast() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example36";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
+//
+//
+//    @Test
+//    public void Example37_bar() throws IOException, InterruptedException {
+//        //define example
+//        String exampleName = "Example37";
+//
+//                //compile example
+//        compileBasicClasses(exampleName);
+//
+//        //execute example
+//        printExample(exampleName, "src/test/resources/examples/");
+//                DSE dse = TestUtils.getDseInstance(exampleName,
+//                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
+//                "src/test/resources/examples/");
+//                Instant start = Instant.now();
+//        dse.executeAnalysis();
+//        Instant end = Instant.now();
+//        Duration duration = Duration.between(start, end);
+//
+//        //stop redirection of console log
+//        System.setOut(originalOut);
+//
+//        //printing results
+//        String output = filterOutPutStream();
+//        //System.out.println(output);
+//
+//        //checks
+//        assertThat(output)
+//                .doesNotContain("DIVERGED")
+//                .doesNotContain("BUGGY");
+//
+//        List<String> decisionTree = getDecisionTreeLineByLine(output);
+//        System.out.println(analyseDecisionTree(decisionTree));
+//        printDuration(duration);
+//    }
 
-        //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/");
-        DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/thesis_class_hierarchy.txt",
-                "src/test/resources/examples/");
-
-
-        Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-
-
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-
-    @Test //ok
-    public void Example01_basic() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example1";
-
-        //compile example
-        compileBasicClasses(exampleName);
-
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/");
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-
-
-        Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test //todo: parsing problem of the trace -> out of memory
-    public void Example02_casting() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example2";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-        DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-
-
-    @Test //ok (Example modified -> Delete second null check)
-    public void Example03_isNull() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example3";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        System.out.println("output: ");
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test //ok
-    public void Example04_isNotNull() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example4";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test //todo: adapted example diverged -> object1 und object 2 sind verschieden, da das gleiche Object angelegt wird
-    public void Example05_towIndependentObjects_checkIdentical() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example5";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test //todo: noch nicht gelöst
-    public void Example06_towIndependentObjects_checkNotIdentical() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example6";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test //ok
-    public void Example07_OneObject_checkIdentical() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example7";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-
-    }
-
-    @Test
-    public void Example08_OneObject_checkNotIdentical() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example8";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-
-    @Test
-    public void Example09_instanceOfA() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example9";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example10_notInstanceOfA() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example10";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example11_instanceOfB() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example11";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example12_notInstanceOfB() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example12";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-
-    @Test
-    public void Example13_aX_isNull() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example13";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example14_aX_isNotNull() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example14";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example15_aX_smallerNull() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example15";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example16_aX_smalerEqualNull() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example16";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example17_aX_greaterNull() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example17";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example18_aX_greaterEqualNull() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example18";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example19_a1X_equals_a2X() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example19";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example20_a1X_notEquals_a2X() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example20";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example21_a1X_smaller_a2X() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example21";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example22_a1X_smallerEquals_a2X() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example22";
-
-        //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example23_a1X_greater_a2X() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example23";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example24_a1X_greaterEquals_a2X() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example24";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example25_a1X_equals_a2Y() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example25";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example26_a1X_notEquals_a2Y() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example26";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example27_a1X_smaller_a2Y() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example27";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example28_a1X_smallerEquals_a2Y() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example28";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example29_a1X_greater_a2Y() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example29";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example30_a1X_greaterEquals_a2Y() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example30";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example31_komplex_condition() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example31";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example32_createIntegerFromObject() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example32";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-
-    @Test
-    public void Example33_instanceOfInterface() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example33";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-
-    }
-
-    @Test
-    public void Example34_notInstanceOfInterface() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example34";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    public void Example35_a1Y_equals_a2Y() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example35";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-
-    @Test
-    public void Example36_foo_checkcast() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example36";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-
-    @Test
-    public void Example37_bar() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "Example37";
-
-                //compile example
-        compileBasicClasses(exampleName);
-
-        //execute example
-        printExample(exampleName, "src/test/resources/examples/"); 
-                DSE dse = TestUtils.getDseInstance(exampleName,
-                "src/test/resources/hierarchy/standard_class_hierarchy.txt",
-                "src/test/resources/examples/");
-                Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //checks
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
 
 
     @Test

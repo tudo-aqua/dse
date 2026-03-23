@@ -140,12 +140,12 @@ public class Executor {
                     throw new RuntimeException("Could not find valueOfPrimitive for " + primitive);
                 }
 
-                modifiedConstructorValues.add(constructorValue.replace(primitive, valueOfPrimitive.get().toString()));
+                constructorValue = constructorValue.replace(primitive, valueOfPrimitive.get().toString());
                 replaced = true;
             }
-            if (!replaced) {
-                modifiedConstructorValues.add(constructorValue);
-            }
+
+            modifiedConstructorValues.add(constructorValue);
+
         }
 
         if (modifiedConstructorValues.isEmpty()) {

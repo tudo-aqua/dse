@@ -10,16 +10,12 @@
 import tools.aqua.concolic.Verifier;
 
 public class Main {
-
     public static void main(String[] args) {
-        public static void main(String[] args) {
-            Any o1 = Verifier.nondetObject(Any.class, null);
-            Any o2 = Verifier.nondetObject(Any.class, null);
-            // assertion violation reachable
-            if (o1 != o2) {
-                assert false;
-            }
+        Any o1 = Verifier.nondetObject(Any.class, null);
+        Any o2 = Verifier.nondetObject(Any.class, null);
+        // assertion violation reachable
+        if (o1 != o2) {
+            assert false;
         }
-
     }
 }

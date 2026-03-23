@@ -334,7 +334,7 @@ public class Config {
         }
         if (this.smtProblemManager == null ) {
             String path = this.classPaths.get(0);
-            int depth = 2;
+            int depth = 3;
             this.smtProblemManager = new SmtProblemManager(path, depth);
         }
     }
