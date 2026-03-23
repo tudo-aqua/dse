@@ -490,7 +490,7 @@ public class ConstraintsTree {
 //              .sorted(Comparator.comparing(e -> e.getVariable().getName()))
 //              .collect(Collectors.toList());
 //      System.out.println("model: "+sortedEntries+"\033[0m");
-      System.out.println("model: "+val+"\033[0m");
+      System.out.println("model:\n"+val.toString().replaceAll(",", ",\n")+"\033[0m");
       currentValues = val;
       logger.finer("Found: " + res + " : " + val);
 

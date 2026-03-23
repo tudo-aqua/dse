@@ -127,7 +127,6 @@ public class Executor {
         List<String> modifiedConstructorValues = new ArrayList<>();
         for (String constructorValue : constructorValues) {
             Matcher matcher = pattern2.matcher(constructorValue);
-            boolean replaced = false;
             while (matcher.find()) {
                 String primitive = matcher.group();
 
@@ -141,7 +140,6 @@ public class Executor {
                 }
 
                 constructorValue = constructorValue.replace(primitive, valueOfPrimitive.get().toString());
-                replaced = true;
             }
 
             modifiedConstructorValues.add(constructorValue);
