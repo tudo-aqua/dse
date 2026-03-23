@@ -28,6 +28,7 @@ public class ConstructorSummaryManager {
     private final Set<String> declarationsOfBluePrint = new HashSet<>();
     private final String bluePrintConstructorSummaries;
     private final List<String> possibleErrorsWithInConstructors = new ArrayList<>();
+    private final List<String> objectsWithinAllTraces = new ArrayList<>();
 
     public ConstructorSummaryManager(String classPath, int depth) {
         this.classPath = classPath;
@@ -39,53 +40,6 @@ public class ConstructorSummaryManager {
         System.out.println("generateSmtCodeBluePrintForConstructorSelection-Done");
     }
 
-
-
-
-
-    public String generateSMTLibCode(List<Expression<Boolean>> path) {
-        StringBuilder declarations = new StringBuilder();
-
-        //declarations of the variables within the constructor summariesTheory
-        List<Variable<?>> freeVariables = path.stream()
-                .map(ExpressionUtil::freeVariables)
-                .flatMap(Collection::stream)
-                .toList();
-
-
-        for (Variable<?> freeVariable : freeVariables) {
-            declarations.append(String.format("(declare-fun %s () %s)\n",
-                    freeVariable.getName(),
-                    type(freeVariable)));
-        }
-
-        //constructor summaries
-        Pattern pattern = Pattern.compile("^__object_\\d+.*");
-
-        Set<String> objectIdentifiers = freeVariables.stream()
-                .map(Variable::getName)
-                .filter(name -> pattern.matcher(name).matches())
-                .map(name -> name.split("\\.")[0])
-                .collect(Collectors.toSet());
-
-        String declarationsString = String.join("\n", this.declarationsOfBluePrint);
-
-        StringBuilder summariesOfAllObjects = new StringBuilder();
-        StringBuilder declarationsOfAllObjects = new StringBuilder();
-
-        for (String objectIdentifier : objectIdentifiers) {
-            summariesOfAllObjects.append(this.bluePrintConstructorSummaries.replaceAll("__object_0", objectIdentifier)).append("\n");
-            declarationsOfAllObjects.append(String.format("\n (declare-fun %s.init () String)", objectIdentifier));
-            declarationsOfAllObjects.append(declarationsString.replace("__object_0", objectIdentifier));
-        }
-        declarationsOfAllObjects.append("\n(declare-fun null () Int) \n");
-
-        String objectedNotIdentityConstraints = objectNotIdentityConstraints(objectIdentifiers.stream().toList());
-        String declaresAndSummaries = String.format("%n%s (assert (or %s)) %n %s", declarationsOfAllObjects, summariesOfAllObjects, objectedNotIdentityConstraints);
-
-        return objectedNotIdentityConstraints.isBlank() ? declaresAndSummaries : declaresAndSummaries +"\n"+objectedNotIdentityConstraints;
-
-    }
 
     public String generateFullConstructorSMTLIbCode(List<Expression<Boolean>> path) {
         List<Variable<?>> freeVariables = extractFreeVariables(path);
@@ -119,13 +73,20 @@ public class ConstructorSummaryManager {
     }
 
     private List<String> extractObjectIdentifiers(List<Variable<?>> variables) {
+//        return variables.stream()
+//                .map(Variable::getName)
+//                .filter(this.objectsWithinAllTraces::contains)
+//                .distinct() // Ensure uniqueness (replacement for Set behavior)
+//                .toList();
+
         Pattern pattern = Pattern.compile("^__object_\\d+.*");
 
         return variables.stream()
                 .map(Variable::getName)
-                .filter(name -> pattern.matcher(name).matches())
-                .map(name -> name.split("\\.")[0])
-                .distinct() // Ensure uniqueness (replacement for Set behavior)
+                .filter(name -> name.endsWith(".cls") || name.endsWith(".err"))
+                .map(name -> name.substring(0, name.length()-4))
+                .distinct()
+                .filter(name -> !this.objectsWithinAllTraces.contains(name))
                 .toList();
     }
 
@@ -221,6 +182,13 @@ public class ConstructorSummaryManager {
         for (String signature : filteredSignaturesConstructorCalls) {
             traces.addAll(this.performDseOnConstructor("<>"+signature));
         }
+
+        //Collect objects
+        List<String> objectsInAllTraces = traces.stream()
+                .map(Trace::getObjectIdentifiers)
+                .flatMap(Collection::stream)
+                .toList();
+        this.objectsWithinAllTraces.addAll(objectsInAllTraces);
 
 
         //Collect declarations

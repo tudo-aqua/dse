@@ -324,6 +324,9 @@ public class Opal {
         StringBuilder result = new StringBuilder();
         types.foreach(tpe -> {
             ClassFile cf = (ClassFile) p.classFile(tpe).get();
+            if (cf.isAbstract()) {
+                return null;
+            }
             cf.constructors().foreach(constructor -> {
                 String base = String.format("%s|%s|", tpe.toJVMTypeName(), constructor.descriptor().toJVMDescriptor());
                 String parametersString = generateParametersString(p, constructor, base, depth);
