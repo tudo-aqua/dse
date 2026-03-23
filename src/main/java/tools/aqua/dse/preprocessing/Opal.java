@@ -163,12 +163,6 @@ public class Opal {
                                        String declaringClass) {}
 
     public Map<PolymorphicMethodDefinition, BranchData> createBranchInformationMap(List<PolymorphyInformation> rawInfos) {
-        // Step 1: Count occurrences per logical group
-//        int branchCount = (int) rawInfos.stream()
-//                .map(info -> new PolymorphicMethodDefinition(info.methodName(), info.methodDescriptor(), info.declaringClass()))
-//                .distinct()
-//                .count();
-
         Map<PolymorphicMethodDefinition, Integer> countsMap = rawInfos.stream()
                 .collect(Collectors.groupingBy(
                         info -> new PolymorphicMethodDefinition(info.methodName(), info.methodDescriptor(), info.declaringClass()),
@@ -180,33 +174,6 @@ public class Opal {
 
         return result;
 
-
-
-
-
-
-
-
-//
-//        // Step 2: Tracker for assigning incremental IDs within each group
-//        Map<PolymorphicMethodDefinition, Integer> idTracker = new HashMap<>();
-//        Map<PolymorphicMethodDefinition, BranchData> resultMap = new HashMap<>();
-//
-//        // Step 3: Populate the result map
-//        for (PolymorphyInformation info : rawInfos) {
-//            PolymorphicMethodDefinition key = new PolymorphicMethodDefinition(info.methodName(), info.methodDescriptor(), info.declaringClass());
-//
-//            int totalCount = countsMap.get(key).intValue()+1;
-//            int currentId = idTracker.getOrDefault(key, 0);
-//
-//            // Insert entry into the result map
-//            resultMap.put(key, new BranchData(currentId, totalCount));
-//
-//            // Increment ID for the next element in the same group
-//            idTracker.put(key, currentId + 1);
-//        }
-//
-//        return resultMap;
     }
 
     public List<PolymorphyInformation> collectPolymorphyInformation(List<KlassIdentifier> types) {
