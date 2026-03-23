@@ -322,6 +322,7 @@ public class Opal {
      */
     private static String generatedAllConstructors(Project p, scala.collection.Set<ClassType> types, int depth) {
         StringBuilder result = new StringBuilder();
+        result.append("null|NULL\n");
         types.foreach(tpe -> {
             ClassFile cf = (ClassFile) p.classFile(tpe).get();
             if (cf.isAbstract()) {

@@ -73,14 +73,6 @@ public class ConstructorSummaryManager {
     }
 
     private List<String> extractObjectIdentifiers(List<Variable<?>> variables) {
-//        return variables.stream()
-//                .map(Variable::getName)
-//                .filter(this.objectsWithinAllTraces::contains)
-//                .distinct() // Ensure uniqueness (replacement for Set behavior)
-//                .toList();
-
-        Pattern pattern = Pattern.compile("^__object_\\d+.*");
-
         return variables.stream()
                 .map(Variable::getName)
                 .filter(name -> name.endsWith(".cls") || name.endsWith(".err"))
