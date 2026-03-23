@@ -34,7 +34,8 @@ public class Opal {
     private final Project project;
     
     public Opal(String classPath) {
-        this.project = Project.apply(new File(classPath));
+        this.project = Project.apply(new File(classPath),
+                new File("/Users/mlazar/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home/jmods/java.base.jmod"));
     }
 
     public List<KlassIdentifier> extractKlassesFromClassPath() {
@@ -43,9 +44,11 @@ public class Opal {
 
         List<KlassIdentifier> classNames = new ArrayList<>();
 
-        classHierarchy.allSubtypes(ClassType.Object(), false).foreach(type -> {
+        this.project.allProjectClassFiles().foreach(x -> {
+            ClassType type = ((ClassFile) x).thisType();
+                    
             String subTypeName = type.toJVMTypeName();
-            if(!type.packageName().startsWith("java/") && !subTypeName.equals("LMain;")) {
+            if(!subTypeName.equals("LMain;")) {
                 classNames.add(new KlassIdentifier(type.toJava().replace(".", "/"), type.toJVMTypeName()));
             }
             return null;
@@ -94,11 +97,11 @@ public class Opal {
                 (ite (or"""
         );
 
-        ClassHierarchy ch = this.project.classHierarchy();
+        this.project.allProjectClassFiles().foreach(x -> {
+            ClassType subType = ((ClassFile) x).thisType();
+            ClassHierarchy ch = this.project.classHierarchy();
 
-        ch.allSubtypes(ClassType.Object(), false).foreach(subType -> {
             String subTypeName = subType.toJVMTypeName();
-
             //filter 1: subtype is not allowed to be from java/* and subtype is not allowed to be Main
             if(!subType.packageName().startsWith("java/") && !subTypeName.equals("LMain;")) { //todo: delete Main (just for testing purposes)
 
@@ -109,7 +112,7 @@ public class Opal {
                     String superTypeName = superType.toJVMTypeName();
 
                     // filter 2: Supertype is not allowed to be Object or Main
-                    if (!superTypeName.equals("Ljava/lang/Object;") && !superTypeName.equals("LMain;")) {
+                    if (!superTypeName.equals("LMain;")) {
                         result.append(String.format("\n  (and (= x!0 \"%s\")  (= x!1 \"%s\"))", subTypeName, superTypeName));
                     }
                     return null;
@@ -127,6 +130,42 @@ public class Opal {
         );
 
         return result.toString();
+
+//
+//        ClassHierarchy ch = this.project.classHierarchy();
+//
+//
+//        ch.allSubtypes(ClassType.Object(), false).foreach(subType -> {
+//            String subTypeName = subType.toJVMTypeName();
+//
+//            //filter 1: subtype is not allowed to be from java/* and subtype is not allowed to be Main
+//            if(!subType.packageName().startsWith("java/") && !subTypeName.equals("LMain;")) { //todo: delete Main (just for testing purposes)
+//
+//                // Add null relation
+//                result.append(String.format("\n  (and (= x!0 \"null\")  (= x!1 \"%s\"))", subTypeName));
+//
+//                ch.allSupertypes(subType, true).foreach(superType -> {
+//                    String superTypeName = superType.toJVMTypeName();
+//
+//                    // filter 2: Supertype is not allowed to be Object or Main
+//                    if (!superTypeName.equals("LMain;")) {
+//                        result.append(String.format("\n  (and (= x!0 \"%s\")  (= x!1 \"%s\"))", subTypeName, superTypeName));
+//                    }
+//                    return null;
+//                });
+//            }
+//            return null;
+//        });
+//
+//        result.append(
+//                """
+//
+//                ) true false)
+//                )))
+//                """
+//        );
+//
+//        return result.toString();
     }
 
     public List<PolymorphyInformation> collectPolymorphyInformation(ClassType[] types) {
