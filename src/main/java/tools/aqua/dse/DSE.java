@@ -67,7 +67,8 @@ public class DSE {
             checkAndSaveWitness(trace);
         }
 
-        System.out.println("\u001b[32m"+explorer.getAnalysis()+"\u001b[0m"); //todo:
+        System.out.println("\u001b[32mdecision tree of the analysed program:");
+        System.out.println(explorer.getAnalysis()+"\u001b[0m");
 
 //        InformationFlowAnalysis ia = new InformationFlowAnalysis(config);
 //

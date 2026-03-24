@@ -11,11 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FilePreparator {
-    private static final String DIRECTORY_CONSTRUCTOR_SCALING_TEST = "src/test/resources/generated/constructorScalingTest";
-    private static final String DIRECTORY_EXTENDS_WIDTH_SCALING_TEST = "src/test/resources/generated/extendsWithScalingTest";
-    private static final String DIRECTORY_EXTENDS_DEPTH_SCALING_TEST = "src/test/resources/generated/extendsDepthScalingTest";
-    private static final String DIRECTORY_NON_DET_OBJECT_SCALING_TEST = "src/test/resources/generated/nonDetObjectScalingTest";
-    private static final String DIRECTORY_OBJECT_ATTRIBUTE_SCALING_TEST = "src/test/resources/generated/objectAttributeScalingTest";
+    public static final String DIRECTORY_CONSTRUCTOR_SCALING_TEST = "src/test/resources/generated/constructorScalingTest";
+    public static final String DIRECTORY_EXTENDS_WIDTH_SCALING_TEST = "src/test/resources/generated/extendsWithScalingTest";
+    public static final String DIRECTORY_EXTENDS_DEPTH_SCALING_TEST = "src/test/resources/generated/extendsDepthScalingTest";
+    public static final String DIRECTORY_NON_DET_OBJECT_SCALING_TEST = "src/test/resources/generated/nonDetObjectScalingTest";
+    public static final String DIRECTORY_OBJECT_ATTRIBUTE_SCALING_TEST = "src/test/resources/generated/objectAttributeScalingTest";
 
     /**
      * Creates a single file in the given target directory.

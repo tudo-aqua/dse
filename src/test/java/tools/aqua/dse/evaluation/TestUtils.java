@@ -98,6 +98,7 @@ public class TestUtils {
     public static List<String> getDecisionTreeLineByLine(String wholeLogs) {
         return Arrays.stream(wholeLogs.split("\\R"))
                 .map(String::trim)
+                .dropWhile(line -> !line.contains("decision tree of the analysed program:"))
                 .filter(line -> line.startsWith("+"))
                 .collect(Collectors.toList());
     }

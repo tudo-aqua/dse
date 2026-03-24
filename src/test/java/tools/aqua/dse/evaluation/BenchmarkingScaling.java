@@ -61,13 +61,9 @@ public class BenchmarkingScaling {
     // ----------------------------------------------------------------------------------------------------------
 
 
-    private static final Path CSV_FILE = Path.of("target/test-output/test_runs.csv");
-    private static final Path RESOURCE_DIRECTORY = Path.of("src/test/resources");
-
     private static final List<String> CSV_COLUMNS = List.of(
             "testName",
             "exampleName",
-            "hierarchyName",
             "run",
             "duration[ms]",
             "#PATHS",
@@ -81,20 +77,33 @@ public class BenchmarkingScaling {
             "UNSAT"
     );
 
+
     /**
      * Setup method executed once before all parameterized tests.
      * Deletes previous CSV file if it exists and creates a new one with header.
      */
     @BeforeAll
-    static void setupCsvFile() throws IOException {
+    static void setupCsvFile(){
+        try {
+            cleanCSVFile(CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS);
+        } catch (IOException e) {
+            throw new RuntimeException("Something went wrong by csv CleanUp: "+e);
+        }
+    }
+
+    /**
+     * Setup method executed once before all parameterized tests.
+     * Deletes previous CSV file if it exists and creates a new one with header.
+     */
+    static void cleanCSVFile(Path csvFile) throws IOException {
         // Ensure parent directories exist
-        Files.createDirectories(CSV_FILE.getParent());
+        Files.createDirectories(csvFile.getParent());
 
         // Delete existing CSV file if present
-        Files.deleteIfExists(CSV_FILE);
+        Files.deleteIfExists(csvFile);
 
         // Create a new CSV file with header
-        Files.writeString(CSV_FILE, String.join(",", CSV_COLUMNS)+"\n", StandardOpenOption.CREATE);
+        Files.writeString(csvFile, String.join(",", CSV_COLUMNS)+"\n", StandardOpenOption.CREATE);
     }
 
     /**
@@ -104,17 +113,20 @@ public class BenchmarkingScaling {
      * @param values list of values corresponding to the column headers
      * @throws IOException if writing to file fails
      */
-    private void writeToCsv(List<String> values) throws IOException {
+    private void writeToCsv(List<String> values, Path csvFile) throws IOException {
         if (values.size() != CSV_COLUMNS.size()) {
             throw new IllegalArgumentException("Values count does not match header count");
         }
         String csvLine = String.join(",", values) + "\n";
-        Files.writeString(CSV_FILE, csvLine, StandardOpenOption.APPEND);
+        Files.writeString(csvFile, csvLine, StandardOpenOption.APPEND);
     }
 
     private static final int BASIC_EXAMPLE_NUMBER_OF_REPETITIONS = 1;
+    private static final String CSV_FILE_PREFIX = "target/test-output/";
 
-    private static final int CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS = 100;
+    private static final String NAME_OF_THE_CONSTRUCTOR_SCALING_TEST = "constructorScalingTest";
+    private static final Path CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS = Path.of(CSV_FILE_PREFIX + "constructorScalingMeasurement.csv");
+    private static final int CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS = 5;
     private static final int CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS = 2;
 
     private static final int EXTENDS_WIDTH_SCALING_MAX_WIDTH = 100;
@@ -142,22 +154,17 @@ public class BenchmarkingScaling {
 
     private void performMetricCalculation(String testName,
                                           String currentExampleName,
-                                          String currentHierarchyName,
                                           String currentRunGroup,
                                           String pathToExamples,
-                                          String pathToHierarchies) throws IOException {
-        TestUtils.printExample(currentExampleName, pathToExamples);
+                                          Path csvFile) throws IOException {
+//        TestUtils.printExample(currentExampleName, pathToExamples);
 
         System.out.println("testName: " + testName);
         System.out.println("currentExampleName: "+ currentExampleName);
-        System.out.println("currentHierarchyName: " + currentHierarchyName);
         System.out.println("currentRunGroup: "+ currentRunGroup);
 
-        DSE dse = TestUtils.getDseInstance(currentExampleName,
-                String.format("%s%s.txt", pathToHierarchies, currentHierarchyName),
-                pathToExamples);
-
         long start = System.currentTimeMillis();
+        DSE dse = TestUtils.getDseInstance("Main", pathToExamples);
         dse.executeAnalysis();
         long end = System.currentTimeMillis();
 
@@ -192,7 +199,6 @@ public class BenchmarkingScaling {
         List<String> row = List.of(
                 testName,
                 currentExampleName,
-                currentHierarchyName,
                 String.valueOf(currentRunGroup),
                 String.valueOf(duration),
                 String.valueOf(metricsMap.get("#PATHS")),
@@ -205,7 +211,7 @@ public class BenchmarkingScaling {
                 String.valueOf(metricsMap.get("#EXECUTED_PATHS")),
                 String.valueOf(metricsMap.get("UNSAT"))
         );
-        writeToCsv(row);
+        writeToCsv(row, csvFile);
     }
 
 
@@ -260,145 +266,126 @@ public class BenchmarkingScaling {
             "Sub2"
             );
 
-    static Stream<Arguments> testResourceProvider0() {
 
-
-        String klassHierarchyName = "standard_class_hierarchy";
-
-        return IntStream.range(0, BASIC_EXAMPLES.size())
-                .boxed()
-                .flatMap(i ->
-                        IntStream.range(1, BASIC_EXAMPLE_NUMBER_OF_REPETITIONS + 1)
-                                .mapToObj(j -> Arguments.of(
-                                        BASIC_EXAMPLES.get(i),
-                                        klassHierarchyName,
-                                        String.format("RunGroup%d", i + 1)
-                                ))
-                );
-    }
 
 
     static Stream<Arguments> testResourceProvider1() {
-
-        return IntStream.range(0, CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS)
+        return IntStream.range(1, CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS)
                 .boxed()
                 .flatMap(i ->
-                        IntStream.range(1, CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS+1)
+                        IntStream.range(1, CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS + 1)
                                 .mapToObj(j -> Arguments.of(
-                                        "ExampleScalingConstructors",
-                                        String.format("scaling_constructors_%d_hierarchy", i),
-                                        String.format("RunGroup%d", i)
+                                        String.format("RunGroup%d", i),             // currentRunGroup
+                                        String.format("/factor%d", i)                // subdirectory
                                 ))
                 );
-
-    }
-    @ParameterizedTest
-    @MethodSource("testResourceProvider1")
-    public void constructorScalingTest(String currentExampleName,
-                                       String currentPKlassHierarchyName,
-                                       String currentRunGroup
-    ) throws IOException {
-        String testName = "constructorScalingTest";
-        performMetricCalculation(
-                testName,
-                currentExampleName,
-                currentPKlassHierarchyName,
-                currentRunGroup,
-                "src/test/resources/examples/generated/",
-                "src/test/resources/hierarchy/generated/");
-    }
-
-    static Stream<Arguments> testResourceProvider2() {
-
-        return IntStream.range(0, EXTENDS_WIDTH_SCALING_MAX_WIDTH)
-                .boxed()
-                .flatMap(i ->
-                        IntStream.range(1, EXTENDS_WIDTH_SCALING_NUMBER_OF_REPETITIONS+1)
-                                .mapToObj(j -> Arguments.of(
-                                        "ExampleExtendsWidth",
-                                        String.format("ExtendsWidth%d", i),
-                                        String.format("RunGroup%d", i)
-                                ))
-                );
-
-    }
-    @ParameterizedTest
-    @MethodSource("testResourceProvider2")
-    public void extendsWidthScalingTest(String currentExampleName,
-                                       String currentPKlassHierarchyName,
-                                       String currentRunGroup
-    ) throws IOException {
-        String testName = "extendsWidthScalingTest";
-        performMetricCalculation(
-                testName,
-                currentExampleName,
-                currentPKlassHierarchyName,
-                currentRunGroup,
-                "src/test/resources/examples/generated/",
-                "src/test/resources/hierarchy/generated/");
-    }
-
-
-    static Stream<Arguments> testResourceProvider4() {
-
-        return IntStream.range(1, NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS+1)
-                .boxed()
-                .flatMap(i ->
-                        IntStream.range(1, NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS+1)
-                                .mapToObj(j -> Arguments.of(
-                                        String.format("ExampleScalingNonDetObject%d",i),
-                                        "ScalingNonDetObject",
-                                        String.format("RunGroup%d", i)
-                                ))
-                );
-
-    }
-    @ParameterizedTest
-    @MethodSource("testResourceProvider4")
-    public void nondetObjectScalingTest(String currentExampleName,
-                                        String currentPKlassHierarchyName,
-                                        String currentRunGroup
-    ) throws IOException {
-        String testName = "nondetObjectScalingTest";
-        performMetricCalculation(
-                testName,
-                currentExampleName,
-                currentPKlassHierarchyName,
-                currentRunGroup,
-                "src/test/resources/examples/generated/",
-                "src/test/resources/hierarchy/generated/");
-    }
-
-    static Stream<Arguments> testResourceProvider5() {
-
-        return IntStream.range(1, OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH+1)
-                .boxed()
-                .flatMap(i ->
-                        IntStream.range(1, OBJECT_ATTRIBUTE_SCALING_NUMBER_OF_REPETITIONS+1)
-                                .mapToObj(j -> Arguments.of(
-                                        "ExampleScalingInnerClasses",
-                                        String.format("AttributeDepthHierarchy%d", i),
-                                        String.format("RunGroup%d", i)
-                                ))
-                );
-
     }
 
     @ParameterizedTest
-    @MethodSource("testResourceProvider5")
-    public void objectAttributeScalingTest(String currentExampleName,
-                                        String currentPKlassHierarchyName,
-                                        String currentRunGroup
+    @MethodSource("testResourceProvider1")
+    public void constructorScalingTest(String currentRunGroup,
+                                       String subdirectory
     ) throws IOException {
-        String testName = "objectAttributeScalingTest";
+
         performMetricCalculation(
-                testName,
-                currentExampleName,
-                currentPKlassHierarchyName,
+                NAME_OF_THE_CONSTRUCTOR_SCALING_TEST,
+                "ExampleScalingConstructors",
                 currentRunGroup,
-                "src/test/resources/examples/generated/",
-                "src/test/resources/hierarchy/generated/");
+                FilePreparator.DIRECTORY_CONSTRUCTOR_SCALING_TEST+subdirectory,
+                CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS);
     }
+
+//    static Stream<Arguments> testResourceProvider2() {
+//
+//        return IntStream.range(0, EXTENDS_WIDTH_SCALING_MAX_WIDTH)
+//                .boxed()
+//                .flatMap(i ->
+//                        IntStream.range(1, EXTENDS_WIDTH_SCALING_NUMBER_OF_REPETITIONS+1)
+//                                .mapToObj(j -> Arguments.of(
+//                                        "ExampleExtendsWidth",
+//                                        String.format("ExtendsWidth%d", i),
+//                                        String.format("RunGroup%d", i)
+//                                ))
+//                );
+//    }
+//
+//    @ParameterizedTest
+//    @MethodSource("testResourceProvider2")
+//    public void extendsWidthScalingTest(String currentExampleName,
+//                                       String currentPKlassHierarchyName,
+//                                       String currentRunGroup
+//    ) throws IOException {
+//        String testName = "extendsWidthScalingTest";
+//        performMetricCalculation(
+//                testName,
+//                currentExampleName,
+//                currentPKlassHierarchyName,
+//                currentRunGroup,
+//                "src/test/resources/examples/generated/",
+//                "src/test/resources/hierarchy/generated/");
+//    }
+//
+//
+//    static Stream<Arguments> testResourceProvider4() {
+//
+//        return IntStream.range(1, NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS+1)
+//                .boxed()
+//                .flatMap(i ->
+//                        IntStream.range(1, NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS+1)
+//                                .mapToObj(j -> Arguments.of(
+//                                        String.format("ExampleScalingNonDetObject%d",i),
+//                                        "ScalingNonDetObject",
+//                                        String.format("RunGroup%d", i)
+//                                ))
+//                );
+//
+//    }
+//    @ParameterizedTest
+//    @MethodSource("testResourceProvider4")
+//    public void nondetObjectScalingTest(String currentExampleName,
+//                                        String currentPKlassHierarchyName,
+//                                        String currentRunGroup
+//    ) throws IOException {
+//        String testName = "nondetObjectScalingTest";
+//        performMetricCalculation(
+//                testName,
+//                currentExampleName,
+//                currentPKlassHierarchyName,
+//                currentRunGroup,
+//                "src/test/resources/examples/generated/",
+//                "src/test/resources/hierarchy/generated/");
+//    }
+//
+//    static Stream<Arguments> testResourceProvider5() {
+//
+//        return IntStream.range(1, OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH+1)
+//                .boxed()
+//                .flatMap(i ->
+//                        IntStream.range(1, OBJECT_ATTRIBUTE_SCALING_NUMBER_OF_REPETITIONS+1)
+//                                .mapToObj(j -> Arguments.of(
+//                                        "ExampleScalingInnerClasses",
+//                                        String.format("AttributeDepthHierarchy%d", i),
+//                                        String.format("RunGroup%d", i)
+//                                ))
+//                );
+//
+//    }
+//
+//    @ParameterizedTest
+//    @MethodSource("testResourceProvider5")
+//    public void objectAttributeScalingTest(String currentExampleName,
+//                                        String currentPKlassHierarchyName,
+//                                        String currentRunGroup
+//    ) throws IOException {
+//        String testName = "objectAttributeScalingTest";
+//        performMetricCalculation(
+//                testName,
+//                currentExampleName,
+//                currentPKlassHierarchyName,
+//                currentRunGroup,
+//                "src/test/resources/examples/generated/",
+//                "src/test/resources/hierarchy/generated/");
+//    }
 
 
 }
