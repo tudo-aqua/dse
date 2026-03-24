@@ -282,7 +282,19 @@ public class ConstructorSummaryManager {
             return "";
         }
 
-        return String.format("(assert (not (= %s)))", String.join(" ", objectIdentifiers));
+        StringBuilder erg = new StringBuilder();
+        for (String identifier1 : objectIdentifiers) {
+            for (String identifier2 : objectIdentifiers) {
+                if (identifier1.equals(identifier2)) {
+                    continue;
+                }
+                erg.append(String.format("(or ( and (not (= %s %s))) (and (= %s null)(= %s null)))",
+                        identifier1, identifier2, identifier1, identifier2));
+            }
+        }
+        String temp = String.format("(assert (and %s))", erg);
+        System.out.println(temp);
+        return temp;
     }
 
     /**
