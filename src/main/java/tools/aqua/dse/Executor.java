@@ -39,11 +39,14 @@ public class Executor {
 
     private ClazzModel clazzModel;
 
+    private Config config;
+
     public Executor(Config config) {
         this.executurCmd = config.getExecutorCmd();
         this.executorArgs = config.getExecutorArgs();
         this.b64encode = config.isB64encodeExecutorValue();
         this.clazzModel = config.getClazzModel();
+        this.config = config;
     }
 
     public Trace execute(Valuation val, Config config) {
@@ -130,16 +133,30 @@ public class Executor {
             while (matcher.find()) {
                 String primitive = matcher.group();
 
+
                 Optional<?> valueOfPrimitive = val.entries().stream()
                         .filter(valuationEntry -> valuationEntry.getVariable().getName().equals(primitive))
                         .findFirst()
                         .map(ValuationEntry::getValue);
                 
                 if (valueOfPrimitive.isEmpty()) {
-                    throw new RuntimeException("Could not find valueOfPrimitive for " + primitive);
-                }
+                    Set<String> declarationsOfBluePrint =
+                            this.config.getSmtProblemManager().getConstructorSummaryManager().getDeclarationsOfBluePrint();
 
-                constructorValue = constructorValue.replace(primitive, valueOfPrimitive.get().toString());
+                    String variableNameLookingFor = primitive.replaceAll("__object_\\d+", "__object_0");
+
+
+                    Optional<String> declaration = declarationsOfBluePrint.stream()
+                            .filter(s -> s.contains(variableNameLookingFor))
+                            .findFirst();
+
+                    String s = declaration.get().split("\\(\\)")[1];
+                    s = s.substring(0, s.length()-1).trim();
+                    constructorValue = constructorValue.replace(primitive, getDefault(s));
+                }
+                else {
+                    constructorValue = constructorValue.replace(primitive, valueOfPrimitive.get().toString());
+                }
             }
 
             modifiedConstructorValues.add(constructorValue);
@@ -154,6 +171,21 @@ public class Executor {
                 String.join(",", modifiedConstructorValues));
     }
 
+
+    private String getDefault(String type) {
+        switch (type) {
+            case "String": return "";
+            case "Bool": return "false";
+            case "(_ BitVec 8)": return "0";
+            case "(_ BitVec 16)": return "0";
+            case "(_ BitVec 32)": return "0";
+            case "(_ BitVec 64)": return "0L";
+            case "(_ FloatingPoint 8 24)": return "0.0";
+            case "(_ FloatingPoint 11 53)": return "0.0";
+
+            default: throw new IllegalArgumentException("unsupported type: " + type);
+        }
+    }
 
     /**
      * Generates a system property string that defines constructor IDs for concolic execution.

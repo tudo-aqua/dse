@@ -20,6 +20,9 @@ package tools.aqua.dse.tree;
 
 import gov.nasa.jpf.constraints.api.*;
 import gov.nasa.jpf.constraints.api.ConstraintSolver.Result;
+import gov.nasa.jpf.constraints.smtlibUtility.smtconverter.SMTLibExportVisitor;
+import gov.nasa.jpf.constraints.smtlibUtility.smtconverter.SMTLibExportWrapper;
+import gov.nasa.jpf.constraints.solvers.dontknow.DontKnowSolver;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import tools.aqua.dse.Config;
 import tools.aqua.dse.paths.PathResult;
@@ -27,9 +30,14 @@ import tools.aqua.dse.preprocessing.SmtProblemManager;
 import tools.aqua.dse.trace.Decision;
 import tools.aqua.dse.trace.Trace;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import static gov.nasa.jpf.constraints.util.CharsetIO.toNormalizedStringUTF8;
+import static gov.nasa.jpf.constraints.util.CharsetIO.wrapInUTF8PrintStream;
 
 public class ConstraintsTree {
 
@@ -359,7 +367,8 @@ public class ConstraintsTree {
           solverCtx.push();
           String staticSmtLibCode = config.getSmtProblemManager().getStaticManager().generateStaticSmtLibCode();
           String dynamicSmtLibCode = config.getSmtProblemManager().getConstructorSummaryManager().generateFullConstructorSMTLIbCode(path);
-          System.out.printf("\u001B[38;5;208m %s %s\u001B[0m%n", staticSmtLibCode, dynamicSmtLibCode);
+
+          System.out.printf("\u001B[38;5;208m %s %s \u001B[0m%n", staticSmtLibCode, dynamicSmtLibCode);
           SmtProblemManager.addSmtProblemAsString(
                   dynamicSmtLibCode, solverCtx);
         }

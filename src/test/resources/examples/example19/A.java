@@ -5,9 +5,9 @@ public class A implements Greeter{
 
     public A() {}
 
-    public A(int x) {
-        assert false: "Error in constructor A()";
-    }
+//    public A(int x) {
+//        assert false: "Error in constructor A()";
+//    }
 
     public A(int x,  int y) {
     	this.x = x; 

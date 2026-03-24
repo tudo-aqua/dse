@@ -1,11 +1,13 @@
 package tools.aqua.dse.preprocessing;
 
 import gov.nasa.jpf.constraints.api.SolverContext;
+import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.smtlibUtility.SMTProblem;
 import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParser;
 import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParserException;
 
 import java.io.IOException;
+import java.util.Set;
 
 public class SmtProblemManager {
     private final StaticManager staticManager;
@@ -34,6 +36,9 @@ public class SmtProblemManager {
             throw new RuntimeException(e);
         }
         smtProblem.addProblemToContext(solverContext);
+
     }
+
+
 
 }

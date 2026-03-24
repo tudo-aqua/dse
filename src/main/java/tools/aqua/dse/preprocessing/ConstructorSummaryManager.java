@@ -306,4 +306,8 @@ public class ConstructorSummaryManager {
     public List<String> getPossibleErrorsWithInConstructors() {
         return possibleErrorsWithInConstructors;
     }
+
+    public Set<String> getDeclarationsOfBluePrint() {
+        return declarationsOfBluePrint;
+    }
 }

@@ -13,3 +13,4 @@ target/*
 /src/main/resources/summaries.txt
 /GEMINI.md
 /src/main/resources/dse.smtlib
+/src/test/resources/generated
