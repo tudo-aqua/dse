@@ -45,8 +45,17 @@ public class ConstructorSummaryManager {
         List<Variable<?>> freeVariables = extractFreeVariables(path);
         List<String> objectIdentifiers = extractObjectIdentifiers(freeVariables);
 
-        String declarations = buildAllObjectDeclarations(objectIdentifiers);
-        String summaries = buildAllObjectSummaries(objectIdentifiers);
+//        Pattern baseClassPattern = Pattern.compile("__object_\\d+\\.cls|__object_\\d+\\.err");
+        Pattern baseClassPattern = Pattern.compile("__object_\\d+$");
+        List<String> baseIdentifiers = objectIdentifiers.stream()
+                .filter(identifier -> baseClassPattern.matcher(identifier).find())
+                .toList();
+
+        System.out.println("baseIdentifiers: " + baseIdentifiers);
+        System.out.println("objectIdentifiers: " + objectIdentifiers);
+
+        String declarations = buildAllObjectDeclarations(baseIdentifiers);
+        String summaries = buildAllObjectSummaries(baseIdentifiers);
         String objectNotIdentityConstraints = objectNotIdentityConstraints(objectIdentifiers);
 
 

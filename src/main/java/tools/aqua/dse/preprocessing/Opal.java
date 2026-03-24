@@ -208,8 +208,12 @@ public class Opal {
                         Collectors.reducing(0, info -> 1, Integer::sum)
                 ));
 
+        int i = 0;
         HashMap<PolymorphicMethodDefinition, BranchData> result = new HashMap<>();
-        countsMap.forEach((key, value) -> result.put(key, new BranchData(value-1, countsMap.size())));
+
+        for (PolymorphicMethodDefinition polymorphicMethodDefinition :countsMap.keySet()) {
+            result.put(polymorphicMethodDefinition,new BranchData(i++, countsMap.size()));
+        }
 
         return result;
 
