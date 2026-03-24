@@ -15,6 +15,12 @@ public class FilePreparator {
     private static final Path KLASS_HIERARCHY_DIRECTORY = Path.of("src/test/resources/hierarchy/generated");
     private static final Path EXAMPLE_DIRECTORY = Path.of("src/test/resources/examples/generated");
 
+    private static final String DIRECTORY_CONSTRUCTOR_SCALING_TEST = "src/test/resources/generated/constructorScalingTest";
+    private static final String DIRECTORY_EXTENDS_WIDTH_SCALING_TEST = "src/test/resources/generated/extendsWithScalingTest";
+    private static final String DIRECTORY_EXTENDS_DEPTH_SCALING_TEST = "src/test/resources/generated/extendsDepthScalingTest";
+    private static final String DIRECTORY_NON_DET_OBJECT_SCALING_TEST = "src/test/resources/generated/nonDetObjectScalingTest";
+    private static final String DIRECTORY_OBJECT_ATTRIBUTE_SCALING_TEST = "src/test/resources/generated/objectAttributeScalingTest";
+
     /**
      * Creates a single file in the given target directory.
      *
@@ -131,36 +137,6 @@ public class FilePreparator {
     // ***************************************************************************************************************
     private static final String SCALING_CONSTRUCTORS_CLASS_IDENTIFIER = "ScalingConstructor";
 
-    private static String scalingConstructors_generateClassHierarchy(int klassId) {
-        String classToConstruct = String.format("L%s;", SCALING_CONSTRUCTORS_CLASS_IDENTIFIER);
-
-        StringBuilder constructorStringBuilder = new StringBuilder();
-
-        for (int i = 0; i < klassId; i++) {
-            constructorStringBuilder.append(
-                    String.format("%s|(%s)V,",
-                            classToConstruct,
-                            "I".repeat(i))
-            );
-        }
-
-        String constructorString = constructorStringBuilder.substring(0, Math.max(0,constructorStringBuilder.length() - 1));
-
-
-        return String.format("class %s {%s}",
-                classToConstruct,
-                constructorString);
-    }
-
-    private static void scalingConstructors_createAllClassHierarchies(int numberOfConstructors) {
-        for (int i = 0; i <= numberOfConstructors; i++) {
-            createSingleFile(String.format("scaling_constructors_%d_hierarchy", i),
-                    "txt",
-                    scalingConstructors_generateClassHierarchy(i),
-                    KLASS_HIERARCHY_DIRECTORY);
-        }
-    }
-
     private static String scalingConstructors_generateSingleJavaConstructor(int numberOfParameters) {
         StringBuilder parameterListStringBuilder = new StringBuilder();
         for (int i = 0; i < numberOfParameters; i++) {
@@ -180,41 +156,80 @@ public class FilePreparator {
         return String.format("public class %s {%s%n}",  SCALING_CONSTRUCTORS_CLASS_IDENTIFIER, constructorsString);
     }
 
-    private static String scalingConstructors_createJavaClass(int numberOfConstructors) {
+    private static String scalingConstructors_createJavaClass(int numberOfConstructors,
+                                                              String directory) {
         String filename = String.format("%s", SCALING_CONSTRUCTORS_CLASS_IDENTIFIER);
         createSingleFile(filename,
                 "java",
                 scalingConstructors_generateJavaClassContent(numberOfConstructors),
-                EXAMPLE_DIRECTORY);
+                Path.of(directory));
         return filename;
     }
 
-    private static String scalingConstructors_createExamples() {
-        String className = "ExampleScalingConstructors";
-        String fileContent =String.format(
+    private static String createBaseMainClass(Path directory) {
+        String fileContent =
                 """
                 import tools.aqua.concolic.Verifier;
                 
-                public class %s {
+                public class Main {
                     public static void main(String[] args) {
                         Object o = Verifier.nondetObject();
                     }
                 }
-                """, className);
+                """;
 
-        createSingleFile(className, "java", fileContent, EXAMPLE_DIRECTORY);
-        return className;
+        createSingleFile("Main", "java", fileContent, directory);
+        return "Main";
     }
-
 
     public static void setUpConstructorScalingTest(int numberOfConstructors) throws IOException, InterruptedException {
         List<String> listOfClassNames = new ArrayList<>();
-        scalingConstructors_createAllClassHierarchies(numberOfConstructors);
-        listOfClassNames.add(scalingConstructors_createJavaClass(numberOfConstructors));
-        listOfClassNames.add(scalingConstructors_createExamples());
-        compileClasses(listOfClassNames, "src/test/resources/examples/generated");
 
+        for (int i = 1; i <= numberOfConstructors; i++) {
+            String directory = String.format("%s/factor%d/", DIRECTORY_CONSTRUCTOR_SCALING_TEST, i);
+            listOfClassNames.add(createBaseMainClass(Paths.get(directory)));
+            listOfClassNames.add(scalingConstructors_createJavaClass(i, directory));
+            compileClasses(listOfClassNames, directory);
+        }
     }
+
+    private static String createNonDetObjectMain(int numberOfNonDetObjectCalls,
+                                                 Path directory) {
+        String fileContent = String.format(
+                """
+                import tools.aqua.concolic.Verifier;
+                
+                public class Main {
+                    public static void main(String[] args) {
+                        %s
+                    }
+                }
+                """, createNonDetObjectCalls(numberOfNonDetObjectCalls));
+
+        createSingleFile("Main", "java", fileContent, directory);
+        return "Main";
+    }
+
+    private static String createNonDetObjectCalls(int numberOfNonDetObjectCalls) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < numberOfNonDetObjectCalls; i++) {
+            stringBuilder.append(String.format("Object o%d = Verifier.nondetObject(A0.class, null);%n", numberOfNonDetObjectCalls));
+        }
+        return stringBuilder.toString();
+    }
+
+
+//    public static void setUpConstructorScalingTest(int numberOfConstructors) throws IOException, InterruptedException {
+//        List<String> listOfClassNames = new ArrayList<>();
+//
+//        for (int i = 1; i <= numberOfConstructors; i++) {
+//            String directory = String.format("%s/factor%d/", DIRECTORY_CONSTRUCTOR_SCALING_TEST, i);
+//            listOfClassNames.add(createNonDetObjectMain(i, Paths.get(directory)));
+//            listOfClassNames.add(scalingConstructors_createJavaClass(i, directory));
+//            compileClasses(listOfClassNames, directory);
+//        }
+//
+//    }
 
     // ***************************************************************************************************************
     //                                            Extends WIDTH Test
@@ -284,13 +299,15 @@ public class FilePreparator {
         return className;
     }
 
-    private static List<String> scalingExtendsWidth_createAllJavaClasses(int width) {
+    private static List<String> scalingExtendsWidth_createAllJavaClass(int width,
+                                                                 String directory) {
         List<String> listOfClassNames = new ArrayList<>();
         for (int i = 0; i <= width; i++) {
             listOfClassNames.add(scalingExtendsWidth_createSingleJavaClass(i));
         }
         return listOfClassNames;
     }
+
 
 
     //------------------------------------------------------------------------------------------------------------
@@ -315,12 +332,16 @@ public class FilePreparator {
     //------------------------------------------------------------------------------------------------------------
 
 
-    public static void setUpExtendsWidthTest(int width) throws IOException, InterruptedException {
-        scalingExtendsWidth_createAllClassHierarchyFiles(width);
-        List<String> listOfClasses = scalingExtendsWidth_createAllJavaClasses(width);
-        listOfClasses.add(scalingExtendsWidth_createExamples());
-        compileClasses(listOfClasses, "src/test/resources/examples/generated");
-    }
+//    public static void setUpExtendsWidthTest(int width) throws IOException, InterruptedException {
+//        List<String> listOfClassNames = new ArrayList<>();
+//        for (int i = 1; i <= width; i++) {
+//            String directory = String.format("%s/factor%d/", DIRECTORY_EXTENDS_WIDTH_SCALING_TEST, i);
+//            listOfClassNames.add(createBaseMainClass(Paths.get(directory)));
+//            listOfClassNames.add(scalingExtendsWidth_createAllJavaClass(i, directory));
+//            compileClasses(listOfClassNames, directory);
+//        }
+//
+//    }
 
     // ***************************************************************************************************************
     //                                            Extends Depth Test
@@ -432,21 +453,6 @@ public class FilePreparator {
 
     private static final String SCALING_NON_DET_OBJECT_IDENTIFIER = "ScalingNonDetObject";
 
-
-    private static String scalingNonDetObject_generateKlassHierarchyContent() {
-        return """
-                class LScalingNonDetObject1; { LScalingNonDetObject1;|()V, LScalingNonDetObject1;|(I)V}
-                class LScalingNonDetObject2; { LScalingNonDetObject2;|()V}
-               """;
-    }
-
-    private static void scalingNonDetObject_classHierarchy() {
-        createSingleFile(SCALING_NON_DET_OBJECT_IDENTIFIER,
-                "txt",
-                scalingNonDetObject_generateKlassHierarchyContent(),
-                KLASS_HIERARCHY_DIRECTORY);
-    }
-
     private static String scalingNonDetObject_generateSingleNonDetObjectCall(int id) {
         return String.format("Object o%d = Verifier.nondetObject();", id);
     }
@@ -474,12 +480,13 @@ public class FilePreparator {
                 scalingNonDetObject_generateAllNonDetObjectCall(numberNonDetObjectsCalls));
     }
 
-    private static String scalingNonDetObject_createSingleExampleFile(int numberNonDetObjectsCalls) {
+    private static String scalingNonDetObject_createSingleExampleFile(int numberNonDetObjectsCalls,
+                                                                      String directory) {
         String className = String.format("Example%s%d", SCALING_NON_DET_OBJECT_IDENTIFIER, numberNonDetObjectsCalls);
         createSingleFile(className,
                 "java",
                 scalingNonDetObject_generateContentForExampleFile(numberNonDetObjectsCalls),
-                EXAMPLE_DIRECTORY);
+                Path.of(directory));
 
         return className;
     }
@@ -487,7 +494,7 @@ public class FilePreparator {
     private static List<String> scalingNonDetObject_createAllExampleFiles(int numberNonDetObjectsCalls) {
         List<String> listOfKlassNames =  new ArrayList<>();
         for (int i = 1; i <= numberNonDetObjectsCalls; i++) {
-            listOfKlassNames.add(scalingNonDetObject_createSingleExampleFile(i));
+            listOfKlassNames.add(scalingNonDetObject_createSingleExampleFile(i, "")); //todo: use correct path
         }
         return listOfKlassNames;
     }
@@ -525,11 +532,17 @@ public class FilePreparator {
 
 
     public static void setUpNonDetObjectTest(int numberNonDetObjectsCalls) throws IOException, InterruptedException {
-        scalingNonDetObject_classHierarchy();
-        List<String> listOfKlassNames = scalingNonDetObject_createAllExampleFiles(numberNonDetObjectsCalls);
-        listOfKlassNames.addAll(scalingNonDetObject_generateJavaFiles());
-        compileClasses(listOfKlassNames, "src/test/resources/examples/generated");
+
+        List<String> listOfClassNames = new ArrayList<>();
+        for (int i = 1; i <= numberNonDetObjectsCalls; i++) {
+            String directory = String.format("%s/factor%d/", DIRECTORY_NON_DET_OBJECT_SCALING_TEST, i);
+            listOfClassNames.add(createBaseMainClass(Paths.get(directory)));
+            listOfClassNames.add(scalingConstructors_createJavaClass(i, directory));
+            compileClasses(listOfClassNames, directory);
+        }
     }
+
+
 
 
     /**
@@ -599,10 +612,10 @@ public class FilePreparator {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         setUpConstructorScalingTest(3);
+        setUpNonDetObjectTest(3);
 //        setUpExtendsWidthTest(3);
 //        setUpExtendsDepthTest(3);
-//        setUpNonDetObjectTest(3);
-        setUpAttributeScalingTest(3);
-        setUpAttributeScalingTest(3);
+//        setUpAttributeScalingTest(3);
+//        setUpAttributeScalingTest(3);
     }
 }

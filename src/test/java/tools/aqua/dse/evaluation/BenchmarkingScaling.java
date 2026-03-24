@@ -133,11 +133,11 @@ public class BenchmarkingScaling {
     @BeforeAll
     static void setUpTestFiles() throws IOException, InterruptedException {
         FilePreparator.setUpConstructorScalingTest(CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS);
-        FilePreparator.setUpExtendsWidthTest(EXTENDS_WIDTH_SCALING_MAX_WIDTH);
-        FilePreparator.setUpExtendsDepthTest(EXTENDS_DEPTH_SCALING_MAX_DEPTH);
-        FilePreparator.setUpNonDetObjectTest(NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS);
-        FilePreparator.setUpAttributeScalingTest(OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH);
-        FilePreparator.compileClasses(BenchmarkingScaling.BASIC_EXAMPLES, "src/test/resources/examples/");
+//        FilePreparator.setUpExtendsWidthTest(EXTENDS_WIDTH_SCALING_MAX_WIDTH);
+//        FilePreparator.setUpExtendsDepthTest(EXTENDS_DEPTH_SCALING_MAX_DEPTH);
+//        FilePreparator.setUpNonDetObjectTest(NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS);
+//        FilePreparator.setUpAttributeScalingTest(OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH);
+//        FilePreparator.compileClasses(BenchmarkingScaling.BASIC_EXAMPLES, "src/test/resources/examples/");
     }
 
     private void performMetricCalculation(String testName,
