@@ -120,11 +120,6 @@
 	-->
 	<dependencies>
 		<dependency>
-			<groupId>tools.aqua.redistribution</groupId>
-			<artifactId>jSMTLIB</artifactId>
-			<version>0.9.10.4</version>
-		</dependency>
-		<dependency>
 			<groupId>tools.aqua</groupId>
 			<artifactId>jconstraints-core</artifactId>
 			<version>0.9.7-BV-SNAPSHOT</version>
@@ -158,6 +153,12 @@
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
 			<version>${testng.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13.2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
