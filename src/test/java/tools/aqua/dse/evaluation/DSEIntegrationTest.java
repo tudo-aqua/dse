@@ -241,12 +241,54 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
         //printExample(exampleName, "src/test/resources/example/");
         DSE dse = TestUtils.getDseInstance("Main",
+                directoryOfTheExample);
+
+        Instant start = Instant.now();
+        dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        //System.out.println(output);
+
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //                                                CHECKS
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        assertThat(output)
+                .doesNotContain("DIVERGED")
+                .doesNotContain("BUGGY");
+
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+
+        System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
+    }
+
+    @Test
+    public void example01BaseLine() throws IOException, InterruptedException {
+        //define example
+        String exampleName = "example01";
+
+        String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
+
+        // Compile Base Classes
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
+                directoryOfTheExample);
+
+        //execute example
+        //printExample(exampleName, "src/test/resources/example/");
+        DSE dse = TestUtils.getDseBaseLineInstance("Main",
                 directoryOfTheExample);
 
         Instant start = Instant.now();
@@ -283,7 +325,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -325,7 +367,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -367,7 +409,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -409,7 +451,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -451,7 +493,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -493,7 +535,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -535,7 +577,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -577,7 +619,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -619,7 +661,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -661,7 +703,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -703,7 +745,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -745,7 +787,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -787,7 +829,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -829,7 +871,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -871,7 +913,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -913,7 +955,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -955,7 +997,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -997,7 +1039,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -1039,7 +1081,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -1081,7 +1123,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -1123,7 +1165,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -1165,7 +1207,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -1207,7 +1249,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -1249,7 +1291,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -1291,7 +1333,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -1333,7 +1375,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -1375,7 +1417,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -1417,7 +1459,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -1459,7 +1501,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -1501,7 +1543,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -1543,7 +1585,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -1585,7 +1627,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -1627,7 +1669,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -1669,7 +1711,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
@@ -1711,7 +1753,7 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Main"),
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
                 directoryOfTheExample);
 
         //execute example
