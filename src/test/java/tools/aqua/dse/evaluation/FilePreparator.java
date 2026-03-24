@@ -9,6 +9,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class FilePreparator {
     public static final String DIRECTORY_CONSTRUCTOR_SCALING_TEST = "src/test/resources/generated/constructorScalingTest";
@@ -84,6 +86,7 @@ public class FilePreparator {
             listOfClassNames.add(createBaseMainClass(Paths.get(directory)));
             listOfClassNames.addAll(scalingObjectAtributes_createJavaClasses(i, directory));
             compileClasses(listOfClassNames, directory);
+
         }
     }
 
@@ -129,13 +132,59 @@ public class FilePreparator {
                 
                 public class Main {
                     public static void main(String[] args) {
-                        Object o = Verifier.nondetObject(A0.class, null);
+                        Object o = Verifier.nondetObject(A0.class, new Factories.A0Factory());
                     }
                 }
                 """;
 
         createSingleFile("Main", "java", fileContent, directory);
         return "Main";
+    }
+
+    private static String generateParameterList(int numberOfParameters) {
+        return IntStream.range(0, numberOfParameters)
+                .mapToObj(i -> "Verifier.nondetInt()")
+                .collect(Collectors.joining(","));
+    }
+
+    private static String generateConstructorWithParameters(int numberOfParameters) {
+        return String.format("case %d:\n\t\t\t\t\treturn new %s(%s);",
+                numberOfParameters+1,
+                SCALING_CONSTRUCTORS_CLASS_IDENTIFIER,
+                generateParameterList(numberOfParameters));
+    }
+
+    private static String generateAllConstructors(int numberOfParameters) {
+        return IntStream.range(0, numberOfParameters)
+                .mapToObj(FilePreparator::generateConstructorWithParameters)
+                .collect(Collectors.joining("\n\t\t"));
+    }
+
+    private static String createConstructorScalingFactory(String directory,
+                                                          int numberOfConstructors) {
+        String factoryClassTemplate = """
+                import tools.aqua.concolic.*;
+                
+                public class Factories {
+                    public static class A0Factory implements ObjectFactory<A0> {
+                        @Override
+                        public A0 createObject() {
+                            final int i = Verifier.nondetInt();
+                            switch (i) {
+                                %s
+                                default: 
+                                    return null; 
+                            }
+                        }
+                    }
+                }
+                """;
+
+        String content = String.format(factoryClassTemplate, generateAllConstructors(numberOfConstructors));
+
+        String fileName = "Factories";
+        createSingleFile(fileName, "java", content, Path.of(directory));
+        return fileName;
     }
 
     public static void setUpConstructorScalingTest(int numberOfConstructors) throws IOException, InterruptedException {
@@ -145,6 +194,7 @@ public class FilePreparator {
             String directory = String.format("%s/factor%d/", DIRECTORY_CONSTRUCTOR_SCALING_TEST, i);
             listOfClassNames.add(createBaseMainClass(Paths.get(directory)));
             listOfClassNames.add(scalingConstructors_createJavaClass(i, directory));
+            listOfClassNames.add(createConstructorScalingFactory(directory, i));
             compileClasses(listOfClassNames, directory);
         }
     }
@@ -329,7 +379,7 @@ public class FilePreparator {
     private static String createNonDetObjectCalls(int numberOfNonDetObjectCalls) {
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < numberOfNonDetObjectCalls; i++) {
-            stringBuilder.append(String.format("Object o%d = Verifier.nondetObject(%s.class, null);%n\t\t",
+            stringBuilder.append(String.format("Object o%d = Verifier.nondetObject(%s.class, new Factories.AFactory());%n\t\t",
                     i, SCALING_NON_DET_OBJECT_IDENTIFIER));
         }
         return stringBuilder.toString();
@@ -337,7 +387,10 @@ public class FilePreparator {
 
 
     private static String nonDetObject_generateJavaClassContent() {
-        return String.format("public class %s {}",  SCALING_NON_DET_OBJECT_IDENTIFIER);
+        String content = """
+                public class %s {}
+                """;
+        return String.format(content,  SCALING_NON_DET_OBJECT_IDENTIFIER);
     }
 
     private static String nonDetObject_createJavaClass(String directory) {
@@ -349,6 +402,30 @@ public class FilePreparator {
         return filename;
     }
 
+    private static String createNonDetFactory(String directory) {
+        String factoryClassContent = """
+                import tools.aqua.concolic.*;
+                
+                public class Factories {
+                    public static class AFactory implements ObjectFactory<A> {
+                        @Override
+                        public A createObject() {
+                            final int i = Verifier.nondetInt();
+                            switch (i) {
+                                case 1:
+                                    return new A();
+                                default:
+                                    return null;
+                            }
+                        }
+                    }
+                }
+                """;
+                String fileName = "Factories";
+                createSingleFile(fileName, "java", factoryClassContent, Path.of(directory));
+                return fileName;
+    }
+
 
     public static void setUpNonDetObjectTest(int numberNonDetObjectsCalls) throws IOException, InterruptedException {
 
@@ -357,6 +434,8 @@ public class FilePreparator {
             String directory = String.format("%s/factor%d/", DIRECTORY_NON_DET_OBJECT_SCALING_TEST, i);
             listOfClassNames.add(nonDetObject_createMain(i, Paths.get(directory)));
             listOfClassNames.add(nonDetObject_createJavaClass(directory));
+            listOfClassNames.add(createNonDetFactory(directory));
+            createNonDetFactory(directory);
             compileClasses(listOfClassNames, directory);
         }
     }
@@ -430,8 +509,8 @@ public class FilePreparator {
     public static void main(String[] args) throws IOException, InterruptedException {
         setUpConstructorScalingTest(3);
         setUpNonDetObjectTest(3);
-        setUpExtendsWidthTest(3);
-        setUpExtendsDepthTest(3);
-        setUpAttributeScalingTest(3);
+//        setUpExtendsWidthTest(3);
+//        setUpExtendsDepthTest(3);
+//        setUpAttributeScalingTest(3);
     }
 }

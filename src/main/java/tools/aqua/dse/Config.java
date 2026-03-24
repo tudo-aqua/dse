@@ -133,6 +133,9 @@ public class Config {
         System.out.println("Create SolverContext");
         SolverContext ctx = new LoggingSolverContext(this.solver.createContext());
 
+//        boolean baselineEvaluation = this.executorArgs.contains("-Dconcolic.object.factories=true");
+
+//        if (!this.constructorSummary || !baselineEvaluation) {
         if (!this.constructorSummary) {
             ctx.push();
             this.initializeSmtProblemManager();

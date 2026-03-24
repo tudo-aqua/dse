@@ -17,6 +17,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -77,23 +79,8 @@ public class BenchmarkingScaling {
             "UNSAT"
     );
 
+    private static final Set<Path> INITIALIZED_CSV_FILES = ConcurrentHashMap.newKeySet();
 
-    /**
-     * Setup method executed once before all parameterized tests.
-     * Deletes previous CSV file if it exists and creates a new one with header.
-     */
-    @BeforeAll
-    static void setupCsvFile(){
-        try {
-            cleanCSVFile(CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS);
-            cleanCSVFile(CSV_FILE_EXTENDS_WIDTH_SCALING);
-            cleanCSVFile(CSV_FILE_EXTENDS_DEPTH_SCALING);
-            cleanCSVFile(CSV_FILE_NON_DET_OBJECT_SCALING);
-//            cleanCSVFile(CSV_FILE_OBJECT_ATTRIBUTE_SCALING);
-        } catch (IOException e) {
-            throw new RuntimeException("Something went wrong by csv CleanUp: "+e);
-        }
-    }
 
     /**
      * Setup method executed once before all parameterized tests.
@@ -130,26 +117,31 @@ public class BenchmarkingScaling {
 
     private static final String NAME_OF_THE_CONSTRUCTOR_SCALING_TEST = "constructorScalingTest";
     private static final Path CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS = Path.of(CSV_FILE_PREFIX + "constructorScalingMeasurement.csv");
+    private static final Path CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS_BASELINE = Path.of(CSV_FILE_PREFIX + "constructorScalingBaselineMeasurement.csv");
     private static final int CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS = 4;
     private static final int CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS = 2;
 
     private static final String NAME_OF_THE_EXTENDS_WIDTH_SCALING_TEST = "extendsWidthScalingTest";
     private static final Path CSV_FILE_EXTENDS_WIDTH_SCALING = Path.of(CSV_FILE_PREFIX + "extendsWidthScalingMeasurement.csv");
+    private static final Path CSV_FILE_EXTENDS_WIDTH_SCALING_BASELINE = Path.of(CSV_FILE_PREFIX + "extendsWidthScalingBaselineMeasurement.csv");
     private static final int EXTENDS_WIDTH_SCALING_MAX_WIDTH = 4;
     private static final int EXTENDS_WIDTH_SCALING_NUMBER_OF_REPETITIONS = 2;
 
     private static final String NAME_OF_THE_EXTENDS_DEPTH_SCALING_TEST = "extendsDepthScalingTest";
     private static final Path CSV_FILE_EXTENDS_DEPTH_SCALING = Path.of(CSV_FILE_PREFIX + "extendsDepthScalingMeasurement.csv");
+    private static final Path CSV_FILE_EXTENDS_DEPTH_SCALING_BASELINE = Path.of(CSV_FILE_PREFIX + "extendsDepthScalingBaselineMeasurement.csv");
     private static final int EXTENDS_DEPTH_SCALING_MAX_DEPTH = 4;
     private static final int EXTENDS_DEPTH_SCALING_NUMBER_OF_REPETITIONS = 2;
 
     private static final String NAME_OF_THE_NON_DET_OBJECT_SCALING_TEST = "nondetObjectScalingTest";
     private static final Path CSV_FILE_NON_DET_OBJECT_SCALING = Path.of(CSV_FILE_PREFIX + "nondetObjectScalingMeasurement.csv");
+    private static final Path CSV_FILE_NON_DET_OBJECT_SCALING_BASELINE = Path.of(CSV_FILE_PREFIX + "nondetObjectScalingBaselineMeasurement.csv");
     private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS = 4;
     private static final int NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS = 2;
 
     private static final String NAME_OF_THE_OBJECT_ATTRIBUTE_SCALING_TEST = "objectAttributeScalingTest";
     private static final Path CSV_FILE_OBJECT_ATTRIBUTE_SCALING = Path.of(CSV_FILE_PREFIX + "objectAttributeScalingMeasurement.csv");
+    private static final Path CSV_FILE_OBJECT_ATTRIBUTE_SCALING_BASELINE = Path.of(CSV_FILE_PREFIX + "objectAttributeScalingBaselineMeasurement.csv");
     private static final int OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH = 4;
     private static final int OBJECT_ATTRIBUTE_SCALING_NUMBER_OF_REPETITIONS = 2;
 
@@ -157,7 +149,7 @@ public class BenchmarkingScaling {
     @BeforeAll
     static void setUpTestFiles() throws IOException, InterruptedException {
         FilePreparator.setUpConstructorScalingTest(CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS);
-        FilePreparator.setUpExtendsWidthTest(EXTENDS_WIDTH_SCALING_MAX_WIDTH);
+//        FilePreparator.setUpExtendsWidthTest(EXTENDS_WIDTH_SCALING_MAX_WIDTH);
 //        FilePreparator.setUpExtendsDepthTest(EXTENDS_DEPTH_SCALING_MAX_DEPTH);
         FilePreparator.setUpNonDetObjectTest(NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS);
 //        FilePreparator.setUpAttributeScalingTest(OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH);
@@ -167,15 +159,28 @@ public class BenchmarkingScaling {
                                           String currentExampleName,
                                           String currentRunGroup,
                                           String pathToExamples,
-                                          Path csvFile) throws IOException {
+                                          Path csvFile,
+                                          boolean baseLineEvaluation) throws IOException {
 //        TestUtils.printExample(currentExampleName, pathToExamples);
+
+        if (INITIALIZED_CSV_FILES.add(csvFile)) {
+            cleanCSVFile(csvFile);
+            System.out.println("CSV File cleaned and initialized: " + csvFile);
+        }
+
 
         System.out.println("testName: " + testName);
         System.out.println("currentExampleName: "+ currentExampleName);
         System.out.println("currentRunGroup: "+ currentRunGroup);
 
         long start = System.currentTimeMillis();
-        DSE dse = TestUtils.getDseInstance("Main", pathToExamples);
+        DSE dse;
+        if(baseLineEvaluation) {
+            dse = TestUtils.getDseBaseLineInstance("Main", pathToExamples);
+        }
+        else {
+            dse = TestUtils.getDseInstance("Main", pathToExamples);
+        }
         dse.executeAnalysis();
         long end = System.currentTimeMillis();
 
@@ -281,7 +286,7 @@ public class BenchmarkingScaling {
 
 
     static Stream<Arguments> testResourceProvider1() {
-        return IntStream.range(1, CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS)
+        return IntStream.range(1, CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS+1)
                 .boxed()
                 .flatMap(i ->
                         IntStream.range(1, CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS + 1)
@@ -303,7 +308,23 @@ public class BenchmarkingScaling {
                 "ExampleScalingConstructors",
                 currentRunGroup,
                 FilePreparator.DIRECTORY_CONSTRUCTOR_SCALING_TEST+subdirectory,
-                CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS);
+                CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS,
+                false);
+    }
+
+    @ParameterizedTest
+    @MethodSource("testResourceProvider1")
+    public void constructorScalingBaselineTest(String currentRunGroup,
+                                       String subdirectory
+    ) throws IOException {
+
+        performMetricCalculation(
+                NAME_OF_THE_CONSTRUCTOR_SCALING_TEST,
+                "ExampleScalingConstructors",
+                currentRunGroup,
+                FilePreparator.DIRECTORY_CONSTRUCTOR_SCALING_TEST+subdirectory,
+                CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS_BASELINE,
+                true);
     }
 
 
@@ -329,7 +350,8 @@ public class BenchmarkingScaling {
                 "ExampleScalingWidth",
                 currentRunGroup,
                 FilePreparator.DIRECTORY_EXTENDS_WIDTH_SCALING_TEST+subdirectory,
-                CSV_FILE_EXTENDS_WIDTH_SCALING);
+                CSV_FILE_EXTENDS_WIDTH_SCALING,
+                false);
     }
 
     static Stream<Arguments> testResourceProvider3() {
@@ -354,7 +376,8 @@ public class BenchmarkingScaling {
                 "ExampleScalingDepth",
                 currentRunGroup,
                 FilePreparator.DIRECTORY_EXTENDS_DEPTH_SCALING_TEST+subdirectory,
-                CSV_FILE_EXTENDS_DEPTH_SCALING);
+                CSV_FILE_EXTENDS_DEPTH_SCALING,
+                false);
     }
 
     static Stream<Arguments> testResourceProvider4() {
@@ -379,6 +402,22 @@ public class BenchmarkingScaling {
                 "ExampleScalingWidth",
                 currentRunGroup,
                 FilePreparator.DIRECTORY_NON_DET_OBJECT_SCALING_TEST+subdirectory,
-                CSV_FILE_NON_DET_OBJECT_SCALING);
+                CSV_FILE_NON_DET_OBJECT_SCALING,
+                false);
+    }
+
+    @ParameterizedTest
+    @MethodSource("testResourceProvider4")
+    public void nonDetObjectScalingScalingBaselineTest(String currentRunGroup,
+                                                       String subdirectory
+    ) throws IOException {
+
+        performMetricCalculation(
+                NAME_OF_THE_NON_DET_OBJECT_SCALING_TEST,
+                "ExampleScalingWidth",
+                currentRunGroup,
+                FilePreparator.DIRECTORY_NON_DET_OBJECT_SCALING_TEST+subdirectory,
+                CSV_FILE_NON_DET_OBJECT_SCALING_BASELINE,
+                true);
     }
 }
