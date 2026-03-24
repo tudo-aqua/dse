@@ -86,6 +86,10 @@ public class BenchmarkingScaling {
     static void setupCsvFile(){
         try {
             cleanCSVFile(CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS);
+            cleanCSVFile(CSV_FILE_EXTENDS_WIDTH_SCALING);
+            cleanCSVFile(CSV_FILE_EXTENDS_DEPTH_SCALING);
+            cleanCSVFile(CSV_FILE_NON_DET_OBJECT_SCALING);
+//            cleanCSVFile(CSV_FILE_OBJECT_ATTRIBUTE_SCALING);
         } catch (IOException e) {
             throw new RuntimeException("Something went wrong by csv CleanUp: "+e);
         }
@@ -126,30 +130,37 @@ public class BenchmarkingScaling {
 
     private static final String NAME_OF_THE_CONSTRUCTOR_SCALING_TEST = "constructorScalingTest";
     private static final Path CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS = Path.of(CSV_FILE_PREFIX + "constructorScalingMeasurement.csv");
-    private static final int CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS = 5;
+    private static final int CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS = 4;
     private static final int CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS = 2;
 
-    private static final int EXTENDS_WIDTH_SCALING_MAX_WIDTH = 100;
+    private static final String NAME_OF_THE_EXTENDS_WIDTH_SCALING_TEST = "extendsWidthScalingTest";
+    private static final Path CSV_FILE_EXTENDS_WIDTH_SCALING = Path.of(CSV_FILE_PREFIX + "extendsWidthScalingMeasurement.csv");
+    private static final int EXTENDS_WIDTH_SCALING_MAX_WIDTH = 4;
     private static final int EXTENDS_WIDTH_SCALING_NUMBER_OF_REPETITIONS = 2;
 
-    private static final int EXTENDS_DEPTH_SCALING_MAX_DEPTH = 100;
+    private static final String NAME_OF_THE_EXTENDS_DEPTH_SCALING_TEST = "extendsDepthScalingTest";
+    private static final Path CSV_FILE_EXTENDS_DEPTH_SCALING = Path.of(CSV_FILE_PREFIX + "extendsDepthScalingMeasurement.csv");
+    private static final int EXTENDS_DEPTH_SCALING_MAX_DEPTH = 4;
     private static final int EXTENDS_DEPTH_SCALING_NUMBER_OF_REPETITIONS = 2;
 
-    private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS = 100;
+    private static final String NAME_OF_THE_NON_DET_OBJECT_SCALING_TEST = "nondetObjectScalingTest";
+    private static final Path CSV_FILE_NON_DET_OBJECT_SCALING = Path.of(CSV_FILE_PREFIX + "nondetObjectScalingMeasurement.csv");
+    private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS = 4;
     private static final int NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS = 2;
 
-    private static final int OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH = 100;
+    private static final String NAME_OF_THE_OBJECT_ATTRIBUTE_SCALING_TEST = "objectAttributeScalingTest";
+    private static final Path CSV_FILE_OBJECT_ATTRIBUTE_SCALING = Path.of(CSV_FILE_PREFIX + "objectAttributeScalingMeasurement.csv");
+    private static final int OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH = 4;
     private static final int OBJECT_ATTRIBUTE_SCALING_NUMBER_OF_REPETITIONS = 2;
 
 
     @BeforeAll
     static void setUpTestFiles() throws IOException, InterruptedException {
         FilePreparator.setUpConstructorScalingTest(CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS);
-//        FilePreparator.setUpExtendsWidthTest(EXTENDS_WIDTH_SCALING_MAX_WIDTH);
+        FilePreparator.setUpExtendsWidthTest(EXTENDS_WIDTH_SCALING_MAX_WIDTH);
 //        FilePreparator.setUpExtendsDepthTest(EXTENDS_DEPTH_SCALING_MAX_DEPTH);
-//        FilePreparator.setUpNonDetObjectTest(NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS);
+        FilePreparator.setUpNonDetObjectTest(NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS);
 //        FilePreparator.setUpAttributeScalingTest(OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH);
-//        FilePreparator.compileClasses(BenchmarkingScaling.BASIC_EXAMPLES, "src/test/resources/examples/");
     }
 
     private void performMetricCalculation(String testName,
@@ -295,97 +306,79 @@ public class BenchmarkingScaling {
                 CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS);
     }
 
-//    static Stream<Arguments> testResourceProvider2() {
-//
-//        return IntStream.range(0, EXTENDS_WIDTH_SCALING_MAX_WIDTH)
-//                .boxed()
-//                .flatMap(i ->
-//                        IntStream.range(1, EXTENDS_WIDTH_SCALING_NUMBER_OF_REPETITIONS+1)
-//                                .mapToObj(j -> Arguments.of(
-//                                        "ExampleExtendsWidth",
-//                                        String.format("ExtendsWidth%d", i),
-//                                        String.format("RunGroup%d", i)
-//                                ))
-//                );
-//    }
-//
-//    @ParameterizedTest
-//    @MethodSource("testResourceProvider2")
-//    public void extendsWidthScalingTest(String currentExampleName,
-//                                       String currentPKlassHierarchyName,
-//                                       String currentRunGroup
-//    ) throws IOException {
-//        String testName = "extendsWidthScalingTest";
-//        performMetricCalculation(
-//                testName,
-//                currentExampleName,
-//                currentPKlassHierarchyName,
-//                currentRunGroup,
-//                "src/test/resources/examples/generated/",
-//                "src/test/resources/hierarchy/generated/");
-//    }
-//
-//
-//    static Stream<Arguments> testResourceProvider4() {
-//
-//        return IntStream.range(1, NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS+1)
-//                .boxed()
-//                .flatMap(i ->
-//                        IntStream.range(1, NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS+1)
-//                                .mapToObj(j -> Arguments.of(
-//                                        String.format("ExampleScalingNonDetObject%d",i),
-//                                        "ScalingNonDetObject",
-//                                        String.format("RunGroup%d", i)
-//                                ))
-//                );
-//
-//    }
-//    @ParameterizedTest
-//    @MethodSource("testResourceProvider4")
-//    public void nondetObjectScalingTest(String currentExampleName,
-//                                        String currentPKlassHierarchyName,
-//                                        String currentRunGroup
-//    ) throws IOException {
-//        String testName = "nondetObjectScalingTest";
-//        performMetricCalculation(
-//                testName,
-//                currentExampleName,
-//                currentPKlassHierarchyName,
-//                currentRunGroup,
-//                "src/test/resources/examples/generated/",
-//                "src/test/resources/hierarchy/generated/");
-//    }
-//
-//    static Stream<Arguments> testResourceProvider5() {
-//
-//        return IntStream.range(1, OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH+1)
-//                .boxed()
-//                .flatMap(i ->
-//                        IntStream.range(1, OBJECT_ATTRIBUTE_SCALING_NUMBER_OF_REPETITIONS+1)
-//                                .mapToObj(j -> Arguments.of(
-//                                        "ExampleScalingInnerClasses",
-//                                        String.format("AttributeDepthHierarchy%d", i),
-//                                        String.format("RunGroup%d", i)
-//                                ))
-//                );
-//
-//    }
-//
-//    @ParameterizedTest
-//    @MethodSource("testResourceProvider5")
-//    public void objectAttributeScalingTest(String currentExampleName,
-//                                        String currentPKlassHierarchyName,
-//                                        String currentRunGroup
-//    ) throws IOException {
-//        String testName = "objectAttributeScalingTest";
-//        performMetricCalculation(
-//                testName,
-//                currentExampleName,
-//                currentPKlassHierarchyName,
-//                currentRunGroup,
-//                "src/test/resources/examples/generated/",
-//                "src/test/resources/hierarchy/generated/");
-//    }
 
+    static Stream<Arguments> testResourceProvider2() {
+        return IntStream.range(0, EXTENDS_WIDTH_SCALING_MAX_WIDTH)
+                .boxed()
+                .flatMap(i ->
+                        IntStream.range(1, EXTENDS_WIDTH_SCALING_NUMBER_OF_REPETITIONS + 1)
+                                .mapToObj(j -> Arguments.of(
+                                        String.format("RunGroup%d", i),             // currentRunGroup
+                                        String.format("/factor%d", i)                // subdirectory
+                                ))
+                );
+    }
+    @ParameterizedTest
+    @MethodSource("testResourceProvider2")
+    public void extendsWidthScalingTest(String currentRunGroup,
+                                        String subdirectory
+    ) throws IOException {
 
+        performMetricCalculation(
+                NAME_OF_THE_EXTENDS_WIDTH_SCALING_TEST,
+                "ExampleScalingWidth",
+                currentRunGroup,
+                FilePreparator.DIRECTORY_EXTENDS_WIDTH_SCALING_TEST+subdirectory,
+                CSV_FILE_EXTENDS_WIDTH_SCALING);
+    }
+
+    static Stream<Arguments> testResourceProvider3() {
+        return IntStream.range(0, EXTENDS_DEPTH_SCALING_MAX_DEPTH)
+                .boxed()
+                .flatMap(i ->
+                        IntStream.range(1, EXTENDS_DEPTH_SCALING_NUMBER_OF_REPETITIONS + 1)
+                                .mapToObj(j -> Arguments.of(
+                                        String.format("RunGroup%d", i),             // currentRunGroup
+                                        String.format("/factor%d", i)                // subdirectory
+                                ))
+                );
+    }
+    @ParameterizedTest
+    @MethodSource("testResourceProvider3")
+    public void extendsDepthScalingTest(String currentRunGroup,
+                                        String subdirectory
+    ) throws IOException {
+
+        performMetricCalculation(
+                NAME_OF_THE_EXTENDS_DEPTH_SCALING_TEST,
+                "ExampleScalingDepth",
+                currentRunGroup,
+                FilePreparator.DIRECTORY_EXTENDS_DEPTH_SCALING_TEST+subdirectory,
+                CSV_FILE_EXTENDS_DEPTH_SCALING);
+    }
+
+    static Stream<Arguments> testResourceProvider4() {
+        return IntStream.range(1, NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS+1)
+                .boxed()
+                .flatMap(i ->
+                        IntStream.range(1, NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS + 1)
+                                .mapToObj(j -> Arguments.of(
+                                        String.format("RunGroup%d", i),             // currentRunGroup
+                                        String.format("/factor%d", i)                // subdirectory
+                                ))
+                );
+    }
+    @ParameterizedTest
+    @MethodSource("testResourceProvider4")
+    public void nonDetObjectScalingScalingTest(String currentRunGroup,
+                                               String subdirectory
+    ) throws IOException {
+
+        performMetricCalculation(
+                NAME_OF_THE_NON_DET_OBJECT_SCALING_TEST,
+                "ExampleScalingWidth",
+                currentRunGroup,
+                FilePreparator.DIRECTORY_NON_DET_OBJECT_SCALING_TEST+subdirectory,
+                CSV_FILE_NON_DET_OBJECT_SCALING);
+    }
 }
