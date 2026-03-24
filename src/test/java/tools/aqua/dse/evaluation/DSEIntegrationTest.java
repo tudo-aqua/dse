@@ -226,7 +226,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -268,7 +268,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -310,7 +310,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -352,7 +352,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -394,7 +394,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -436,7 +436,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -478,7 +478,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -520,7 +520,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -562,7 +562,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -604,7 +604,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -646,7 +646,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -688,7 +688,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -730,7 +730,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -772,7 +772,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -814,7 +814,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -856,7 +856,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -898,7 +898,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -940,7 +940,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -982,7 +982,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1024,7 +1024,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1066,7 +1066,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1108,7 +1108,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1150,7 +1150,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1192,7 +1192,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1234,7 +1234,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1276,7 +1276,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1318,7 +1318,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1360,7 +1360,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1402,7 +1402,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1444,7 +1444,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1486,7 +1486,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1528,7 +1528,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1570,7 +1570,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1612,7 +1612,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1654,7 +1654,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1696,7 +1696,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1738,7 +1738,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1780,7 +1780,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1822,7 +1822,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1864,7 +1864,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1906,7 +1906,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1948,7 +1948,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1990,7 +1990,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -2032,7 +2032,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -2074,7 +2074,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -2116,7 +2116,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -2158,7 +2158,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -2200,7 +2200,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -2242,7 +2242,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -2283,7 +2283,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -2325,7 +2325,7 @@ public class DSEIntegrationTest {
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
-        List<String> decisionTree = getDecisionTreeLineByLine(output);
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
         System.out.println(analyseDecisionTree(decisionTree));
