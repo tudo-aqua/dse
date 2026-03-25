@@ -4,7 +4,7 @@ public class Main {
     public static void main(String[] args) {
         Object o = Verifier.nondetObject(A.class, new Factories.AFactory());
 
-        if (!(o instanceof Greeter)) {
+        if (o instanceof Greeter) {
             assert false;
         }
     }

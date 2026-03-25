@@ -2903,6 +2903,92 @@ public class DSEIntegrationTest {
     }
 
     @Test@Tag("own-test")
+    public void example32() throws IOException, InterruptedException {
+        //define example
+        String exampleName = "example32";
+
+        String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
+
+        // Compile Base Classes
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
+                directoryOfTheExample);
+
+        //execute example
+        //printExample(exampleName, "src/test/resources/example/");
+        DSE dse = TestUtils.getDseInstance("Main",
+                directoryOfTheExample);
+
+        Instant start = Instant.now();
+        dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        //System.out.println(output);
+
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //                                                CHECKS
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        assertThat(output)
+                .doesNotContain("DIVERGED")
+                .doesNotContain("BUGGY");
+
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+
+        System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
+    }
+
+    @Test
+    @Tag("own-tests-baseline")
+    public void example32Baseline() throws IOException, InterruptedException {
+        //define example
+        String exampleName = "example32";
+
+        String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
+
+        // Compile Base Classes
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
+                directoryOfTheExample);
+
+        //execute example
+        //printExample(exampleName, "src/test/resources/example/");
+        DSE dse = TestUtils.getDseBaseLineInstance("Main",
+                directoryOfTheExample);
+
+        Instant start = Instant.now();
+        dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        //System.out.println(output);
+
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //                                                CHECKS
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        assertThat(output)
+                .doesNotContain("DIVERGED")
+                .doesNotContain("BUGGY");
+
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+
+        System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
+    }
+
+    @Test
+    @Tag("own-tests")
     public void example33() throws IOException, InterruptedException {
         //define example
         String exampleName = "example33";
@@ -3207,92 +3293,6 @@ public class DSEIntegrationTest {
     public void example36Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example36";
-
-        String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
-
-        // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
-                directoryOfTheExample);
-
-        //execute example
-        //printExample(exampleName, "src/test/resources/example/");
-        DSE dse = TestUtils.getDseBaseLineInstance("Main",
-                directoryOfTheExample);
-
-        Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
-
-
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    @Tag("own-tests")
-    public void example37() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "example37";
-
-        String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
-
-        // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
-                directoryOfTheExample);
-
-        //execute example
-        //printExample(exampleName, "src/test/resources/example/");
-        DSE dse = TestUtils.getDseInstance("Main",
-                directoryOfTheExample);
-
-        Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
-
-
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    @Tag("own-tests-baseline")
-    public void example37Baseline() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "example37";
 
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
 
