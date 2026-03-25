@@ -289,13 +289,13 @@ public class BenchmarkingScaling {
     }
 
     static Stream<Arguments> testResourceProvider1() {
-        return IntStream.range(1, CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS+1)
+        return IntStream.range(1, CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS + 1)
                 .boxed()
-                .flatMap(i ->
-                        IntStream.range(1, CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS + 1)
-                                .mapToObj(j -> Arguments.of(
-                                        String.format("RunGroup%d", i),             // currentRunGroup
-                                        String.format("/factor%d", i)                // subdirectory
+                .flatMap(j ->
+                        IntStream.range(1, CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS + 1)
+                                .mapToObj(i -> Arguments.of(
+                                        String.format("RunGroup%d", j),              // j = Aktuelle Wiederholung (Run)
+                                        String.format("/factor%d", i)                // i = Aktueller Faktor (Subdirectory)
                                 ))
                 );
     }
@@ -332,13 +332,13 @@ public class BenchmarkingScaling {
 
 
     static Stream<Arguments> testResourceProvider2() {
-        return IntStream.range(0, EXTENDS_WIDTH_SCALING_MAX_WIDTH)
+        return IntStream.range(1, EXTENDS_WIDTH_SCALING_NUMBER_OF_REPETITIONS + 1)
                 .boxed()
-                .flatMap(i ->
-                        IntStream.range(1, EXTENDS_WIDTH_SCALING_NUMBER_OF_REPETITIONS + 1)
-                                .mapToObj(j -> Arguments.of(
-                                        String.format("RunGroup%d", i),             // currentRunGroup
-                                        String.format("/factor%d", i)                // subdirectory
+                .flatMap(j ->
+                        IntStream.range(0, EXTENDS_WIDTH_SCALING_MAX_WIDTH)
+                                .mapToObj(i -> Arguments.of(
+                                        String.format("RunGroup%d", j),
+                                        String.format("/factor%d", i)
                                 ))
                 );
     }
@@ -358,13 +358,13 @@ public class BenchmarkingScaling {
     }
 
     static Stream<Arguments> testResourceProvider3() {
-        return IntStream.range(0, EXTENDS_DEPTH_SCALING_MAX_DEPTH)
+        return IntStream.range(1, EXTENDS_DEPTH_SCALING_NUMBER_OF_REPETITIONS + 1)
                 .boxed()
-                .flatMap(i ->
-                        IntStream.range(1, EXTENDS_DEPTH_SCALING_NUMBER_OF_REPETITIONS + 1)
-                                .mapToObj(j -> Arguments.of(
-                                        String.format("RunGroup%d", i),             // currentRunGroup
-                                        String.format("/factor%d", i)                // subdirectory
+                .flatMap(j ->
+                        IntStream.range(0, EXTENDS_DEPTH_SCALING_MAX_DEPTH)
+                                .mapToObj(i -> Arguments.of(
+                                        String.format("RunGroup%d", j),
+                                        String.format("/factor%d", i)
                                 ))
                 );
     }
@@ -384,13 +384,13 @@ public class BenchmarkingScaling {
     }
 
     static Stream<Arguments> testResourceProvider4() {
-        return IntStream.range(1, NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS+1)
+        return IntStream.range(1, NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS + 1)
                 .boxed()
-                .flatMap(i ->
-                        IntStream.range(1, NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS + 1)
-                                .mapToObj(j -> Arguments.of(
-                                        String.format("RunGroup%d", i),             // currentRunGroup
-                                        String.format("/factor%d", i)                // subdirectory
+                .flatMap(j ->
+                        IntStream.range(1, NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS + 1)
+                                .mapToObj(i -> Arguments.of(
+                                        String.format("RunGroup%d", j),
+                                        String.format("/factor%d", i)
                                 ))
                 );
     }
