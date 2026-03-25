@@ -51,9 +51,12 @@ public class Executor {
 
     public Trace execute(Valuation val, Config config) {
 //        System.out.println("model: " + val);
-        List<String> chosenConstructors = extractChosenConstructors(val);
 
-        String constructors = generateConstructors(val);
+
+        String constructors = "";
+        if (!config.isBaselineEvaluation()) {
+            constructors = generateConstructors(val);
+        }
 
         String[] cmd = new String[] {
             this.executurCmd,

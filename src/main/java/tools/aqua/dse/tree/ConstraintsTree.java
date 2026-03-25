@@ -363,8 +363,8 @@ public class ConstraintsTree {
       System.out.println("current decision path: " + Arrays.toString( path.toArray() ));
 
       //Add object-specific constraints
-        if (!config.isConstructorSummary()) {
-          solverCtx.push();
+      solverCtx.push();
+        if (!config.isConstructorSummary() && !config.isBaselineEvaluation()) {
           String staticSmtLibCode = config.getSmtProblemManager().getStaticManager().generateStaticSmtLibCode();
           String dynamicSmtLibCode = config.getSmtProblemManager().getConstructorSummaryManager().generateFullConstructorSMTLIbCode(path);
 

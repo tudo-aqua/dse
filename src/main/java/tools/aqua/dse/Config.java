@@ -92,6 +92,8 @@ public class Config {
 
     private SmtProblemManager smtProblemManager;
 
+    private boolean baselineEvaluation;
+
     private Config(Properties properties) {
         this.properties = properties;
     }
@@ -133,10 +135,9 @@ public class Config {
         System.out.println("Create SolverContext");
         SolverContext ctx = new LoggingSolverContext(this.solver.createContext());
 
-//        boolean baselineEvaluation = this.executorArgs.contains("-Dconcolic.object.factories=true");
+        this.baselineEvaluation = this.executorArgs.contains("-Dconcolic.object.factories=true");
 
-//        if (!this.constructorSummary || !baselineEvaluation) {
-        if (!this.constructorSummary) {
+        if (!this.constructorSummary && !this.baselineEvaluation) {
             ctx.push();
             this.initializeSmtProblemManager();
             this.smtProblemManager.getStaticManager().setStaticSmtLibCode(ctx);
@@ -349,5 +350,9 @@ public class Config {
 
     public boolean isConstructorSummary() {
         return constructorSummary;
+    }
+
+    public boolean isBaselineEvaluation() {
+        return baselineEvaluation;
     }
 }
