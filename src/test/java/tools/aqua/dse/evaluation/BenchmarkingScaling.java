@@ -1,9 +1,6 @@
 package tools.aqua.dse.evaluation;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -25,6 +22,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class BenchmarkingScaling {
     // ----------------------------------------------------------------------------------------------------------
     //                                       intercepting the output
@@ -130,32 +128,12 @@ public class BenchmarkingScaling {
     private static final int CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS = 30;
     private static final int CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS = 2;
 
-    private static final String NAME_OF_THE_EXTENDS_WIDTH_SCALING_TEST = "extendsWidthScalingTest";
-    private static final String NAME_OF_THE_EXTENDS_WIDTH_SCALING_TEST_BASELINE = "extendsWidthScalingTestBaseline";
-    private static final Path CSV_FILE_EXTENDS_WIDTH_SCALING = Path.of(CSV_FILE_PREFIX + "extendsWidthScalingMeasurement.csv");
-    private static final Path CSV_FILE_EXTENDS_WIDTH_SCALING_BASELINE = Path.of(CSV_FILE_PREFIX + "extendsWidthScalingBaselineMeasurement.csv");
-    private static final int EXTENDS_WIDTH_SCALING_MAX_WIDTH = 4;
-    private static final int EXTENDS_WIDTH_SCALING_NUMBER_OF_REPETITIONS = 2;
-
-    private static final String NAME_OF_THE_EXTENDS_DEPTH_SCALING_TEST = "extendsDepthScalingTest";
-    private static final String NAME_OF_THE_EXTENDS_DEPTH_SCALING_TEST_BASELINE = "extendsDepthScalingTestBaseline";
-    private static final Path CSV_FILE_EXTENDS_DEPTH_SCALING = Path.of(CSV_FILE_PREFIX + "extendsDepthScalingMeasurement.csv");
-    private static final Path CSV_FILE_EXTENDS_DEPTH_SCALING_BASELINE = Path.of(CSV_FILE_PREFIX + "extendsDepthScalingBaselineMeasurement.csv");
-    private static final int EXTENDS_DEPTH_SCALING_MAX_DEPTH = 4;
-    private static final int EXTENDS_DEPTH_SCALING_NUMBER_OF_REPETITIONS = 2;
-
     private static final String NAME_OF_THE_NON_DET_OBJECT_SCALING_TEST = "nondetObjectScalingTest";
     private static final String NAME_OF_THE_NON_DET_OBJECT_SCALING_TEST_BASELINE = "nondetObjectScalingTestBaseline";
     private static final Path CSV_FILE_NON_DET_OBJECT_SCALING = Path.of(CSV_FILE_PREFIX + "nondetObjectScalingMeasurement.csv");
     private static final Path CSV_FILE_NON_DET_OBJECT_SCALING_BASELINE = Path.of(CSV_FILE_PREFIX + "nondetObjectScalingBaselineMeasurement.csv");
     private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS = 12;
     private static final int NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS = 1;
-
-    private static final String NAME_OF_THE_OBJECT_ATTRIBUTE_SCALING_TEST = "objectAttributeScalingTest";
-    private static final Path CSV_FILE_OBJECT_ATTRIBUTE_SCALING = Path.of(CSV_FILE_PREFIX + "objectAttributeScalingMeasurement.csv");
-    private static final Path CSV_FILE_OBJECT_ATTRIBUTE_SCALING_BASELINE = Path.of(CSV_FILE_PREFIX + "objectAttributeScalingBaselineMeasurement.csv");
-    private static final int OBJECT_ATTRIBUTE_SCALING_MAX_DEPTH = 4;
-    private static final int OBJECT_ATTRIBUTE_SCALING_NUMBER_OF_REPETITIONS = 2;
 
 
     @BeforeAll
@@ -255,8 +233,17 @@ public class BenchmarkingScaling {
     //------------------------------------------------------------------------------------------------------------
 
     @Test
+    @Order(1)
     public void JVMStartUpExample() {
-        System.out.println("Example to Cold-Start the JVM");
+        System.out.println("Real Warm-up: Executing DSE once to load classes and trigger JIT...");
+        try {
+            DSE dse = TestUtils.getDseInstance("Main", FilePreparator.DIRECTORY_EXAMPLE_TEST + "/example01");
+            dse.executeAnalysis();
+        } catch (Exception e) {
+            System.err.println("Warm-up hint: " + e.getMessage());
+        }
+
+        System.out.println("Warm-up complete.");
     }
 
 
@@ -275,6 +262,7 @@ public class BenchmarkingScaling {
 
     @ParameterizedTest
     @MethodSource("testResourceProvider0")
+    @Order(2)
     public void exampleTest(String exampleName,
                             String currentRunGroup,
                             String subdirectory
@@ -291,6 +279,7 @@ public class BenchmarkingScaling {
 
     @ParameterizedTest
     @MethodSource("testResourceProvider0")
+    @Order(3)
     public void exampleTestBaseline(String exampleName,
                             String currentRunGroup,
                             String subdirectory
@@ -321,6 +310,7 @@ public class BenchmarkingScaling {
 
     @ParameterizedTest
     @MethodSource("testResourceProvider1")
+    @Order(4)
     public void constructorScalingTest(String currentRunGroup,
                                        String exampleName,
                                        String subdirectory
@@ -337,6 +327,7 @@ public class BenchmarkingScaling {
 
     @ParameterizedTest
     @MethodSource("testResourceProvider1")
+    @Order(5)
     public void constructorScalingBaselineTest(String currentRunGroup,
                                                String exampleName,
                                                String subdirectory
@@ -350,60 +341,6 @@ public class BenchmarkingScaling {
                 CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS_BASELINE,
                 true);
     }
-
-
-//    static Stream<Arguments> testResourceProvider2() {
-//        return IntStream.range(1, EXTENDS_WIDTH_SCALING_NUMBER_OF_REPETITIONS + 1)
-//                .boxed()
-//                .flatMap(j ->
-//                        IntStream.range(0, EXTENDS_WIDTH_SCALING_MAX_WIDTH)
-//                                .mapToObj(i -> Arguments.of(
-//                                        String.format("RunGroup%03d", j),
-//                                        String.format("/factor%03d", i)
-//                                ))
-//                );
-//    }
-//    @ParameterizedTest
-//    @MethodSource("testResourceProvider2")
-//    public void extendsWidthScalingTest(String currentRunGroup,
-//                                        String subdirectory
-//    ) throws IOException {
-//
-//        performMetricCalculation(
-//                NAME_OF_THE_EXTENDS_WIDTH_SCALING_TEST,
-//                "ExampleScalingWidth",
-//                currentRunGroup,
-//                FilePreparator.DIRECTORY_EXTENDS_WIDTH_SCALING_TEST+subdirectory,
-//                CSV_FILE_EXTENDS_WIDTH_SCALING,
-//                false);
-//    }
-//
-//    static Stream<Arguments> testResourceProvider3() {
-//        return IntStream.range(1, EXTENDS_DEPTH_SCALING_NUMBER_OF_REPETITIONS + 1)
-//                .boxed()
-//                .flatMap(j ->
-//                        IntStream.range(0, EXTENDS_DEPTH_SCALING_MAX_DEPTH)
-//                                .mapToObj(i -> Arguments.of(
-//                                        String.format("RunGroup%03d", j),
-//                                        String.format("/factor%03d", i)
-//                                ))
-//                );
-//    }
-//    @ParameterizedTest
-//    @MethodSource("testResourceProvider3")
-//    public void extendsDepthScalingTest(String currentRunGroup,
-//                                        String exampleName,
-//                                        String subdirectory
-//    ) throws IOException {
-//
-//        performMetricCalculation(
-//                NAME_OF_THE_EXTENDS_DEPTH_SCALING_TEST_BASELINE,
-//                exampleName,
-//                currentRunGroup,
-//                FilePreparator.DIRECTORY_EXTENDS_DEPTH_SCALING_TEST+subdirectory,
-//                CSV_FILE_EXTENDS_DEPTH_SCALING,
-//                false);
-//    }
 
     static Stream<Arguments> testResourceProvider4() {
         return IntStream.range(1, NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS + 1)
@@ -419,6 +356,7 @@ public class BenchmarkingScaling {
     }
     @ParameterizedTest
     @MethodSource("testResourceProvider4")
+    @Order(6)
     public void nonDetObjectScalingScalingTest(String currentRunGroup,
                                                String exampleName,
                                                String subdirectory
@@ -435,6 +373,7 @@ public class BenchmarkingScaling {
 
     @ParameterizedTest
     @MethodSource("testResourceProvider4")
+    @Order(7)
     public void nonDetObjectScalingScalingBaselineTest(String currentRunGroup,
                                                        String exampleName,
                                                        String subdirectory
