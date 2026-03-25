@@ -18,6 +18,7 @@ public class FilePreparator {
     public static final String DIRECTORY_EXTENDS_DEPTH_SCALING_TEST = "src/test/resources/generated/extendsDepthScalingTest";
     public static final String DIRECTORY_NON_DET_OBJECT_SCALING_TEST = "src/test/resources/generated/nonDetObjectScalingTest";
     public static final String DIRECTORY_OBJECT_ATTRIBUTE_SCALING_TEST = "src/test/resources/generated/objectAttributeScalingTest";
+    public static final String DIRECTORY_EXAMPLE_TEST = "src/test/resources/examples";
 
     /**
      * Creates a single file in the given target directory.
@@ -506,9 +507,18 @@ public class FilePreparator {
         }
     }
 
+    public static void setUpExampleTests() throws IOException, InterruptedException {
+        for (int i = 1; i <=36; i++) {
+            String testNumber = String.format("%02d", i);
+            compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
+                    DIRECTORY_EXAMPLE_TEST+"/example"+testNumber+"/");
+        }
+    }
+
     public static void main(String[] args) throws IOException, InterruptedException {
-        setUpConstructorScalingTest(3);
-        setUpNonDetObjectTest(3);
+        setUpExampleTests();
+//        setUpConstructorScalingTest(3);
+//        setUpNonDetObjectTest(3);
 //        setUpExtendsWidthTest(3);
 //        setUpExtendsDepthTest(3);
 //        setUpAttributeScalingTest(3);
