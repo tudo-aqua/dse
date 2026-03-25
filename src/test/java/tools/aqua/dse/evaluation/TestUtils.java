@@ -116,6 +116,24 @@ public class TestUtils {
                 .collect(Collectors.toList());
     }
 
+    public static boolean decisionTreeContainsAssertionViolation(List<String> decisionTreeLines) {
+        return decisionTreeLines.stream().anyMatch(line -> line.contains("java/lang/AssertionError"));
+    }
+
+    public static boolean validAssert(List<String> decisionTreeLines) {
+        return !decisionTreeContainsAssertionViolation(decisionTreeLines);
+    }
+
+    public static boolean decisionTreeContainsLanguageException(List<String> decisionTreeLines) {
+        return decisionTreeLines.stream()
+                .filter(line -> !line.contains("java/lang/AssertionError"))
+                .anyMatch(line -> line.contains("ERROR"));
+    }
+
+    public static boolean noRuntimeException(List<String> decisionTreeLines) {
+        return !decisionTreeContainsLanguageException(decisionTreeLines);
+    }
+
     public static String getSetUpTime(String wholeLogs) {
         Pattern pattern = Pattern.compile("set-up-time:\\s*(\\d+)ms");
         return Arrays.stream(wholeLogs.split("\\R"))
