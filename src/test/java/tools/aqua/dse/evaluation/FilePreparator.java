@@ -24,7 +24,6 @@ public class FilePreparator {
      * Creates a single file in the given target directory.
      *
      * @param fileName        Name of the file (must end with ".java").
-     *
      * @param targetDirectory Target folder where the file will be created.
      */
     public static void createSingleFile(String fileName,
@@ -34,7 +33,7 @@ public class FilePreparator {
         try {
             Files.createDirectories(targetDirectory);
 
-            Path filePath = targetDirectory.resolve(fileName+"."+fileExtension);
+            Path filePath = targetDirectory.resolve(fileName + "." + fileExtension);
 
             Files.writeString(filePath, fileContent);
 
@@ -53,7 +52,7 @@ public class FilePreparator {
 
 
     private static String generateContentJavaAttributeDepth(int klassId,
-                                                        boolean isLastKlass) {
+                                                            boolean isLastKlass) {
         String classToConstruct = String.format("%s%d", SCALING_Attribute_IDENTIFIER, klassId);
         String nextClass = String.format("%s%d", SCALING_Attribute_IDENTIFIER, klassId + 1);
 
@@ -69,7 +68,7 @@ public class FilePreparator {
     private static List<String> scalingObjectAtributes_createJavaClasses(int depth,
                                                                          String directory) {
         List<String> namesOfCreatedJavaClasses = new ArrayList<>();
-        for  (int i = 0; i <= depth; i++) {
+        for (int i = 0; i <= depth; i++) {
             String className = String.format("%s%d", SCALING_Attribute_IDENTIFIER, i);
             namesOfCreatedJavaClasses.add(className);
             createSingleFile(className,
@@ -83,11 +82,11 @@ public class FilePreparator {
     public static void setUpAttributeScalingTest(int depth) throws IOException, InterruptedException {
         List<String> listOfClassNames = new ArrayList<>();
         for (int i = 0; i <= depth; i++) {
-            String directory = String.format("%s/factor%d/", DIRECTORY_OBJECT_ATTRIBUTE_SCALING_TEST, i);
+            // Factor formatted to 3 digits (e.g., factor001)
+            String directory = String.format("%s/factor%03d/", DIRECTORY_OBJECT_ATTRIBUTE_SCALING_TEST, i);
             listOfClassNames.add(createBaseMainClass(Paths.get(directory)));
             listOfClassNames.addAll(scalingObjectAtributes_createJavaClasses(i, directory));
             compileClasses(listOfClassNames, directory);
-
         }
     }
 
@@ -113,7 +112,7 @@ public class FilePreparator {
             constructorsString.append(scalingConstructors_generateSingleJavaConstructor(i));
         }
 
-        return String.format("public class %s {%s%n}",  SCALING_CONSTRUCTORS_CLASS_IDENTIFIER, constructorsString);
+        return String.format("public class %s {%s%n}", SCALING_CONSTRUCTORS_CLASS_IDENTIFIER, constructorsString);
     }
 
     private static String scalingConstructors_createJavaClass(int numberOfConstructors,
@@ -129,14 +128,14 @@ public class FilePreparator {
     private static String createBaseMainClass(Path directory) {
         String fileContent =
                 """
-                import tools.aqua.concolic.Verifier;
-                
-                public class Main {
-                    public static void main(String[] args) {
-                        Object o = Verifier.nondetObject(A0.class, new Factories.A0Factory());
-                    }
-                }
-                """;
+                        import tools.aqua.concolic.Verifier;
+                        
+                        public class Main {
+                            public static void main(String[] args) {
+                                Object o = Verifier.nondetObject(A0.class, new Factories.A0Factory());
+                            }
+                        }
+                        """;
 
         createSingleFile("Main", "java", fileContent, directory);
         return "Main";
@@ -150,7 +149,7 @@ public class FilePreparator {
 
     private static String generateConstructorWithParameters(int numberOfParameters) {
         return String.format("case %d:\n\t\t\t\t\treturn new %s(%s);",
-                numberOfParameters+1,
+                numberOfParameters + 1,
                 SCALING_CONSTRUCTORS_CLASS_IDENTIFIER,
                 generateParameterList(numberOfParameters));
     }
@@ -192,14 +191,14 @@ public class FilePreparator {
         List<String> listOfClassNames = new ArrayList<>();
 
         for (int i = 1; i <= numberOfConstructors; i++) {
-            String directory = String.format("%s/factor%d/", DIRECTORY_CONSTRUCTOR_SCALING_TEST, i);
+            // Factor formatted to 3 digits (e.g., factor001)
+            String directory = String.format("%s/factor%03d/", DIRECTORY_CONSTRUCTOR_SCALING_TEST, i);
             listOfClassNames.add(createBaseMainClass(Paths.get(directory)));
             listOfClassNames.add(scalingConstructors_createJavaClass(i, directory));
             listOfClassNames.add(createConstructorScalingFactory(directory, i));
             compileClasses(listOfClassNames, directory);
         }
     }
-
 
 
     // ***************************************************************************************************************
@@ -214,12 +213,12 @@ public class FilePreparator {
         String extendsFirstClass = String.format("extends %s0", SCALING_EXTENDS_WIDTH_IDENTIFIER);
 
         return String.format("""
-                public class %s %s{
-                    public %s(){}
-                }
-                """,
+                        public class %s %s{
+                            public %s(){}
+                        }
+                        """,
                 className,
-                isFirstClass ? "": extendsFirstClass,
+                isFirstClass ? "" : extendsFirstClass,
                 className);
     }
 
@@ -234,7 +233,7 @@ public class FilePreparator {
     }
 
     private static List<String> scalingExtendsWidth_createAllJavaClass(int width,
-                                                                 String directory) {
+                                                                       String directory) {
         List<String> listOfClassNames = new ArrayList<>();
         for (int i = 0; i <= width; i++) {
             listOfClassNames.add(scalingExtendsWidth_createSingleJavaClass(i, directory));
@@ -246,7 +245,8 @@ public class FilePreparator {
     public static void setUpExtendsWidthTest(int width) throws IOException, InterruptedException {
         List<String> listOfClassNames = new ArrayList<>();
         for (int i = 0; i <= width; i++) {
-            String directory = String.format("%s/factor%d/", DIRECTORY_EXTENDS_WIDTH_SCALING_TEST, i);
+            // Factor formatted to 3 digits (e.g., factor001)
+            String directory = String.format("%s/factor%03d/", DIRECTORY_EXTENDS_WIDTH_SCALING_TEST, i);
             listOfClassNames.add(createBaseMainClass(Paths.get(directory)));
             listOfClassNames.addAll(scalingExtendsWidth_createAllJavaClass(i, directory));
             compileClasses(listOfClassNames, directory);
@@ -265,13 +265,13 @@ public class FilePreparator {
                 SCALING_EXTENDS_DEPTH_IDENTIFIER,
                 klassId);
 
-        String previousClass =  String.format("L%s%d;",
+        String previousClass = String.format("L%s%d;",
                 SCALING_EXTENDS_DEPTH_IDENTIFIER,
-                klassId-1);
+                klassId - 1);
 
         return String.format("class %s %s {%s|()V}",
                 classToConstruct,
-                isFirstClass ? "": String.format("extends %s",previousClass),
+                isFirstClass ? "" : String.format("extends %s", previousClass),
                 classToConstruct);
     }
 
@@ -289,12 +289,12 @@ public class FilePreparator {
         String extendsFirstClass = String.format("extends %s0", SCALING_EXTENDS_DEPTH_IDENTIFIER);
 
         return String.format("""
-                public class %s %s{
-                    public %s(){}
-                }
-                """,
+                        public class %s %s{
+                            public %s(){}
+                        }
+                        """,
                 className,
-                isFirstClass ? "": extendsFirstClass,
+                isFirstClass ? "" : extendsFirstClass,
                 className);
     }
 
@@ -320,7 +320,8 @@ public class FilePreparator {
     public static void setUpExtendsDepthTest(int depth) throws IOException, InterruptedException {
         List<String> listOfClassNames = new ArrayList<>();
         for (int i = 0; i <= depth; i++) {
-            String directory = String.format("%s/factor%d/", DIRECTORY_EXTENDS_DEPTH_SCALING_TEST, i);
+            // Factor formatted to 3 digits (e.g., factor001)
+            String directory = String.format("%s/factor%03d/", DIRECTORY_EXTENDS_DEPTH_SCALING_TEST, i);
             listOfClassNames.add(createBaseMainClass(Paths.get(directory)));
             listOfClassNames.addAll(scalingExtendsDepth_createAllJavaClasses(i, directory));
             compileClasses(listOfClassNames, directory);
@@ -348,14 +349,14 @@ public class FilePreparator {
     private static String scalingNonDetObject_generateContentForExampleFile(int numberNonDetObjectsCalls) {
         String className = String.format("Example%s%d", SCALING_NON_DET_OBJECT_IDENTIFIER, numberNonDetObjectsCalls);
         return String.format("""
-                import tools.aqua.concolic.Verifier;
-                
-                public class %s {
-                    public static void main(String[] args) {
-                        %s
-                    }
-                }
-                """,
+                        import tools.aqua.concolic.Verifier;
+                        
+                        public class %s {
+                            public static void main(String[] args) {
+                                %s
+                            }
+                        }
+                        """,
                 className,
                 scalingNonDetObject_generateAllNonDetObjectCall(numberNonDetObjectsCalls));
     }
@@ -364,14 +365,14 @@ public class FilePreparator {
                                                   Path directory) {
         String fileContent = String.format(
                 """
-                import tools.aqua.concolic.Verifier;
-                
-                public class Main {
-                    public static void main(String[] args) {
-                        %s
-                    }
-                }
-                """, createNonDetObjectCalls(numberOfNonDetObjectCalls));
+                        import tools.aqua.concolic.Verifier;
+                        
+                        public class Main {
+                            public static void main(String[] args) {
+                                %s
+                            }
+                        }
+                        """, createNonDetObjectCalls(numberOfNonDetObjectCalls));
 
         createSingleFile("Main", "java", fileContent, directory);
         return "Main";
@@ -391,7 +392,7 @@ public class FilePreparator {
         String content = """
                 public class %s {}
                 """;
-        return String.format(content,  SCALING_NON_DET_OBJECT_IDENTIFIER);
+        return String.format(content, SCALING_NON_DET_OBJECT_IDENTIFIER);
     }
 
     private static String nonDetObject_createJavaClass(String directory) {
@@ -422,9 +423,9 @@ public class FilePreparator {
                     }
                 }
                 """;
-                String fileName = "Factories";
-                createSingleFile(fileName, "java", factoryClassContent, Path.of(directory));
-                return fileName;
+        String fileName = "Factories";
+        createSingleFile(fileName, "java", factoryClassContent, Path.of(directory));
+        return fileName;
     }
 
 
@@ -432,23 +433,22 @@ public class FilePreparator {
 
         List<String> listOfClassNames = new ArrayList<>();
         for (int i = 1; i <= numberNonDetObjectsCalls; i++) {
-            String directory = String.format("%s/factor%d/", DIRECTORY_NON_DET_OBJECT_SCALING_TEST, i);
+            // Factor formatted to 3 digits (e.g., factor001)
+            String directory = String.format("%s/factor%03d/", DIRECTORY_NON_DET_OBJECT_SCALING_TEST, i);
             listOfClassNames.add(nonDetObject_createMain(i, Paths.get(directory)));
             listOfClassNames.add(nonDetObject_createJavaClass(directory));
             listOfClassNames.add(createNonDetFactory(directory));
-            createNonDetFactory(directory);
             compileClasses(listOfClassNames, directory);
         }
     }
 
 
-
-
     /**
      * Executes the compilation command for a given Java class.
      * The paths are relative to the project root directory.
+     *
      * @param className The name of the class to compile (without .java extension).
-     * @throws IOException if an I/O error occurs.
+     * @throws IOException          if an I/O error occurs.
      * @throws InterruptedException if the current thread is interrupted while waiting for the process to complete.
      */
     public static void compileClass(String className,
@@ -473,8 +473,7 @@ public class FilePreparator {
                 sourceFile
         );
 
-        // Set the working directory to the project root (optional, but good practice).
-        // Adjust the path if necessary, or remove this line if it works without it.
+        // Set the working directory to the project root
         processBuilder.directory(Paths.get("").toAbsolutePath().toFile());
 
         // Merge the error and standard output streams
@@ -508,10 +507,10 @@ public class FilePreparator {
     }
 
     public static void setUpExampleTests() throws IOException, InterruptedException {
-        for (int i = 1; i <=36; i++) {
+        for (int i = 1; i <= 36; i++) {
             String testNumber = String.format("%02d", i);
             compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
-                    DIRECTORY_EXAMPLE_TEST+"/example"+testNumber+"/");
+                    DIRECTORY_EXAMPLE_TEST + "/example" + testNumber + "/");
         }
     }
 

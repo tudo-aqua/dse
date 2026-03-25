@@ -256,9 +256,9 @@ public class BenchmarkingScaling {
                 .flatMap(j ->
                         IntStream.range(1, 37)
                                 .mapToObj(i -> Arguments.of(
-                                        String.format("example%02d", i),
-                                        String.format("RunGroup%d", j),
-                                        String.format("/example%02d", i)
+                                        String.format("example%03d", i),
+                                        String.format("RunGroup%03d", j),
+                                        String.format("/example%03d", i)
                                 ))
                 );
     }
@@ -302,8 +302,9 @@ public class BenchmarkingScaling {
                 .flatMap(j ->
                         IntStream.range(1, CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS + 1)
                                 .mapToObj(i -> Arguments.of(
-                                        String.format("RunGroup%d", j),              // j = Aktuelle Wiederholung (Run)
-                                        String.format("/factor%d", i)                // i = Aktueller Faktor (Subdirectory)
+                                        String.format("RunGroup%03d", j),              // j = Aktuelle Wiederholung (Run)
+                                        String.format("numberConstructors%03d", i),
+                                        String.format("/factor%03d", i)                // i = Aktueller Faktor (Subdirectory)
                                 ))
                 );
     }
@@ -311,12 +312,13 @@ public class BenchmarkingScaling {
     @ParameterizedTest
     @MethodSource("testResourceProvider1")
     public void constructorScalingTest(String currentRunGroup,
+                                       String exampleName,
                                        String subdirectory
     ) throws IOException {
 
         performMetricCalculation(
                 NAME_OF_THE_CONSTRUCTOR_SCALING_TEST,
-                "ExampleScalingConstructors",
+                exampleName,
                 currentRunGroup,
                 FilePreparator.DIRECTORY_CONSTRUCTOR_SCALING_TEST+subdirectory,
                 CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS,
@@ -326,12 +328,13 @@ public class BenchmarkingScaling {
     @ParameterizedTest
     @MethodSource("testResourceProvider1")
     public void constructorScalingBaselineTest(String currentRunGroup,
-                                       String subdirectory
+                                               String exampleName,
+                                               String subdirectory
     ) throws IOException {
 
         performMetricCalculation(
                 NAME_OF_THE_CONSTRUCTOR_SCALING_TEST_BASELINE,
-                "ExampleScalingConstructors",
+                exampleName,
                 currentRunGroup,
                 FilePreparator.DIRECTORY_CONSTRUCTOR_SCALING_TEST+subdirectory,
                 CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS_BASELINE,
@@ -339,57 +342,58 @@ public class BenchmarkingScaling {
     }
 
 
-    static Stream<Arguments> testResourceProvider2() {
-        return IntStream.range(1, EXTENDS_WIDTH_SCALING_NUMBER_OF_REPETITIONS + 1)
-                .boxed()
-                .flatMap(j ->
-                        IntStream.range(0, EXTENDS_WIDTH_SCALING_MAX_WIDTH)
-                                .mapToObj(i -> Arguments.of(
-                                        String.format("RunGroup%d", j),
-                                        String.format("/factor%d", i)
-                                ))
-                );
-    }
-    @ParameterizedTest
-    @MethodSource("testResourceProvider2")
-    public void extendsWidthScalingTest(String currentRunGroup,
-                                        String subdirectory
-    ) throws IOException {
-
-        performMetricCalculation(
-                NAME_OF_THE_EXTENDS_WIDTH_SCALING_TEST,
-                "ExampleScalingWidth",
-                currentRunGroup,
-                FilePreparator.DIRECTORY_EXTENDS_WIDTH_SCALING_TEST+subdirectory,
-                CSV_FILE_EXTENDS_WIDTH_SCALING,
-                false);
-    }
-
-    static Stream<Arguments> testResourceProvider3() {
-        return IntStream.range(1, EXTENDS_DEPTH_SCALING_NUMBER_OF_REPETITIONS + 1)
-                .boxed()
-                .flatMap(j ->
-                        IntStream.range(0, EXTENDS_DEPTH_SCALING_MAX_DEPTH)
-                                .mapToObj(i -> Arguments.of(
-                                        String.format("RunGroup%d", j),
-                                        String.format("/factor%d", i)
-                                ))
-                );
-    }
-    @ParameterizedTest
-    @MethodSource("testResourceProvider3")
-    public void extendsDepthScalingTest(String currentRunGroup,
-                                        String subdirectory
-    ) throws IOException {
-
-        performMetricCalculation(
-                NAME_OF_THE_EXTENDS_DEPTH_SCALING_TEST_BASELINE,
-                "ExampleScalingDepth",
-                currentRunGroup,
-                FilePreparator.DIRECTORY_EXTENDS_DEPTH_SCALING_TEST+subdirectory,
-                CSV_FILE_EXTENDS_DEPTH_SCALING,
-                false);
-    }
+//    static Stream<Arguments> testResourceProvider2() {
+//        return IntStream.range(1, EXTENDS_WIDTH_SCALING_NUMBER_OF_REPETITIONS + 1)
+//                .boxed()
+//                .flatMap(j ->
+//                        IntStream.range(0, EXTENDS_WIDTH_SCALING_MAX_WIDTH)
+//                                .mapToObj(i -> Arguments.of(
+//                                        String.format("RunGroup%03d", j),
+//                                        String.format("/factor%03d", i)
+//                                ))
+//                );
+//    }
+//    @ParameterizedTest
+//    @MethodSource("testResourceProvider2")
+//    public void extendsWidthScalingTest(String currentRunGroup,
+//                                        String subdirectory
+//    ) throws IOException {
+//
+//        performMetricCalculation(
+//                NAME_OF_THE_EXTENDS_WIDTH_SCALING_TEST,
+//                "ExampleScalingWidth",
+//                currentRunGroup,
+//                FilePreparator.DIRECTORY_EXTENDS_WIDTH_SCALING_TEST+subdirectory,
+//                CSV_FILE_EXTENDS_WIDTH_SCALING,
+//                false);
+//    }
+//
+//    static Stream<Arguments> testResourceProvider3() {
+//        return IntStream.range(1, EXTENDS_DEPTH_SCALING_NUMBER_OF_REPETITIONS + 1)
+//                .boxed()
+//                .flatMap(j ->
+//                        IntStream.range(0, EXTENDS_DEPTH_SCALING_MAX_DEPTH)
+//                                .mapToObj(i -> Arguments.of(
+//                                        String.format("RunGroup%03d", j),
+//                                        String.format("/factor%03d", i)
+//                                ))
+//                );
+//    }
+//    @ParameterizedTest
+//    @MethodSource("testResourceProvider3")
+//    public void extendsDepthScalingTest(String currentRunGroup,
+//                                        String exampleName,
+//                                        String subdirectory
+//    ) throws IOException {
+//
+//        performMetricCalculation(
+//                NAME_OF_THE_EXTENDS_DEPTH_SCALING_TEST_BASELINE,
+//                exampleName,
+//                currentRunGroup,
+//                FilePreparator.DIRECTORY_EXTENDS_DEPTH_SCALING_TEST+subdirectory,
+//                CSV_FILE_EXTENDS_DEPTH_SCALING,
+//                false);
+//    }
 
     static Stream<Arguments> testResourceProvider4() {
         return IntStream.range(1, NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS + 1)
@@ -397,20 +401,22 @@ public class BenchmarkingScaling {
                 .flatMap(j ->
                         IntStream.range(1, NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS + 1)
                                 .mapToObj(i -> Arguments.of(
-                                        String.format("RunGroup%d", j),
-                                        String.format("/factor%d", i)
+                                        String.format("RunGroup%03d", j),
+                                        String.format("calls%03d", i),
+                                        String.format("/factor%03d", i)
                                 ))
                 );
     }
     @ParameterizedTest
     @MethodSource("testResourceProvider4")
     public void nonDetObjectScalingScalingTest(String currentRunGroup,
+                                               String exampleName,
                                                String subdirectory
     ) throws IOException {
 
         performMetricCalculation(
                 NAME_OF_THE_NON_DET_OBJECT_SCALING_TEST,
-                "ExampleScalingWidth",
+                exampleName,
                 currentRunGroup,
                 FilePreparator.DIRECTORY_NON_DET_OBJECT_SCALING_TEST+subdirectory,
                 CSV_FILE_NON_DET_OBJECT_SCALING,
@@ -420,12 +426,13 @@ public class BenchmarkingScaling {
     @ParameterizedTest
     @MethodSource("testResourceProvider4")
     public void nonDetObjectScalingScalingBaselineTest(String currentRunGroup,
+                                                       String exampleName,
                                                        String subdirectory
     ) throws IOException {
 
         performMetricCalculation(
                 NAME_OF_THE_NON_DET_OBJECT_SCALING_TEST_BASELINE,
-                "ExampleScalingWidth",
+                exampleName,
                 currentRunGroup,
                 FilePreparator.DIRECTORY_NON_DET_OBJECT_SCALING_TEST+subdirectory,
                 CSV_FILE_NON_DET_OBJECT_SCALING_BASELINE,
