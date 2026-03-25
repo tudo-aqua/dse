@@ -69,6 +69,7 @@ public class BenchmarkingScaling {
             "exampleName",
             "run",
             "duration[ms]",
+            "set-up-time[ms]",
             "#PATHS",
             "#EDGES",
             "#EDGES_OBJECT_CONSTRUCTOR_VARIATION",
@@ -126,7 +127,7 @@ public class BenchmarkingScaling {
     private static final String NAME_OF_THE_CONSTRUCTOR_SCALING_TEST_BASELINE = "constructorScalingTestBaseline";
     private static final Path CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS = Path.of(CSV_FILE_PREFIX + "constructorScalingMeasurement.csv");
     private static final Path CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS_BASELINE = Path.of(CSV_FILE_PREFIX + "constructorScalingBaselineMeasurement.csv");
-    private static final int CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS = 4;
+    private static final int CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS = 30;
     private static final int CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS = 2;
 
     private static final String NAME_OF_THE_EXTENDS_WIDTH_SCALING_TEST = "extendsWidthScalingTest";
@@ -147,8 +148,8 @@ public class BenchmarkingScaling {
     private static final String NAME_OF_THE_NON_DET_OBJECT_SCALING_TEST_BASELINE = "nondetObjectScalingTestBaseline";
     private static final Path CSV_FILE_NON_DET_OBJECT_SCALING = Path.of(CSV_FILE_PREFIX + "nondetObjectScalingMeasurement.csv");
     private static final Path CSV_FILE_NON_DET_OBJECT_SCALING_BASELINE = Path.of(CSV_FILE_PREFIX + "nondetObjectScalingBaselineMeasurement.csv");
-    private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS = 4;
-    private static final int NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS = 2;
+    private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS = 12;
+    private static final int NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS = 1;
 
     private static final String NAME_OF_THE_OBJECT_ATTRIBUTE_SCALING_TEST = "objectAttributeScalingTest";
     private static final Path CSV_FILE_OBJECT_ATTRIBUTE_SCALING = Path.of(CSV_FILE_PREFIX + "objectAttributeScalingMeasurement.csv");
@@ -199,6 +200,7 @@ public class BenchmarkingScaling {
         //get and transform output
         String output = filterOutPutStream();
         System.out.println("output: "+output);
+        String setUpTime = TestUtils.getSetUpTime(output);
         List<String> decisionTreeLineByLine = TestUtils.getDecisionTreeLineByLine(output);
 
 
@@ -226,6 +228,7 @@ public class BenchmarkingScaling {
                 currentExampleName,
                 String.valueOf(currentRunGroup),
                 String.valueOf(duration),
+                setUpTime,
                 String.valueOf(metricsMap.get("#PATHS")),
                 String.valueOf(metricsMap.get("#EDGES")),
                 String.valueOf(metricsMap.get("#EDGES_OBJECT_CONSTRUCTOR_VARIATION")),
@@ -256,9 +259,9 @@ public class BenchmarkingScaling {
                 .flatMap(j ->
                         IntStream.range(1, 37)
                                 .mapToObj(i -> Arguments.of(
-                                        String.format("example%03d", i),
-                                        String.format("RunGroup%03d", j),
-                                        String.format("/example%03d", i)
+                                        String.format("example%02d", i),
+                                        String.format("RunGroup%02d", j),
+                                        String.format("/example%02d", i)
                                 ))
                 );
     }

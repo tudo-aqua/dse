@@ -3,11 +3,10 @@ package tools.aqua.dse.evaluation;
 import tools.aqua.dse.Config;
 import tools.aqua.dse.DSE;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class TestUtils {
@@ -115,6 +114,17 @@ public class TestUtils {
                 .dropWhile(line -> !line.contains("decision tree of the analysed program:"))
                 .filter(line -> line.startsWith("+"))
                 .collect(Collectors.toList());
+    }
+
+    public static String getSetUpTime(String wholeLogs) {
+        Pattern pattern = Pattern.compile("set-up-time:\\s*(\\d+)ms");
+        return Arrays.stream(wholeLogs.split("\\R"))
+                .map(String::trim)
+                .map(pattern::matcher)
+                .filter(Matcher::find)
+                .map(matcher -> matcher.group(1))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Could not find set-up-time"));
     }
 
     public static Map<String, Long> analyseDecisionTree(List<String> decisionTreeLines) {

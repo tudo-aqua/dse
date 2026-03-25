@@ -14,8 +14,11 @@ public class SmtProblemManager {
     private final ConstructorSummaryManager constructorSummaryManager;
 
     public SmtProblemManager(String classPath, int depth) {
+        long start = System.currentTimeMillis();
         this.staticManager = new StaticManager(classPath);
         constructorSummaryManager = new ConstructorSummaryManager(classPath, depth);
+        long end = System.currentTimeMillis();
+        System.out.println("set-up-time: " + (end - start) + "ms");
     }
 
     public StaticManager getStaticManager() {
