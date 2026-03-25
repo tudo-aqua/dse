@@ -11,7 +11,7 @@ import tools.aqua.concolic.Verifier;
 
 public class Main {
     public static void main(String[] args) {
-        Object o = Verifier.nondetObject(Any.class, null);
+        Object o = Verifier.nondetObject(Any.class, new Factories.AnyFactory());
         // class-cast exception for types A and D
         B b = (B) o;
     }

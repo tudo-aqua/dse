@@ -11,7 +11,7 @@ import tools.aqua.concolic.Verifier;
 
 public class Main {
     public static void main(String[] args) {
-        Any o = Verifier.nondetObject(Any.class, null);
+        Any o = Verifier.nondetObject(Any.class, new Factories.AnyFactory());
         // assertion violation reachable
         if (o == null) {
             assert false;

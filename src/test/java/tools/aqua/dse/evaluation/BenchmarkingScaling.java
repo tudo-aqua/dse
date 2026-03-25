@@ -3,6 +3,7 @@ package tools.aqua.dse.evaluation;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -282,8 +283,10 @@ public class BenchmarkingScaling {
             "Sub2"
             );
 
-
-
+    @Test
+    public void JVMStartUpExample() {
+        System.out.println("Example to Cold-Start the JVM");
+    }
 
     static Stream<Arguments> testResourceProvider1() {
         return IntStream.range(1, CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS+1)

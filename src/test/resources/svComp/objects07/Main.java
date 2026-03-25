@@ -12,7 +12,7 @@ import tools.aqua.concolic.Verifier;
 public class Main {
 
     public static void main(String[] args) {
-        Any o1 = Verifier.nondetObject(Any.class, null);
+        Any o1 = Verifier.nondetObject(Any.class, new Factories.AnyFactory());
         Object o2 = o1;
         // assertion violation reachable
         if (o1 == o2) {
