@@ -121,7 +121,7 @@ public class BenchmarkingScaling {
     private static final String NAME_OF_THE_EXAMPLES_TEST_BASELINE = "examplesTestBaseline";
     private static final Path CSV_FILE_EXAMPLES = Path.of(CSV_FILE_PREFIX + "examplesMeasurement.csv");
     private static final Path CSV_FILE_EXAMPLES_BASELINE = Path.of(CSV_FILE_PREFIX + "examplesBaselineMeasurement.csv");
-    private static final int EXAMPLES_TEST_NUMBER_OF_REPETITIONS = 1;
+    private static final int EXAMPLES_TEST_NUMBER_OF_REPETITIONS = 2;
 
     private static final String NAME_OF_THE_CONSTRUCTOR_SCALING_TEST = "constructorScalingTest";
     private static final String NAME_OF_THE_CONSTRUCTOR_SCALING_TEST_BASELINE = "constructorScalingTestBaseline";
@@ -200,7 +200,14 @@ public class BenchmarkingScaling {
         //get and transform output
         String output = filterOutPutStream();
         System.out.println("output: "+output);
-        String setUpTime = TestUtils.getSetUpTime(output);
+
+        String setUpTime;
+        if (!baseLineEvaluation) {
+            setUpTime = TestUtils.getSetUpTime(output);
+        }
+        else {
+            setUpTime = "0";
+        }
         List<String> decisionTreeLineByLine = TestUtils.getDecisionTreeLineByLine(output);
 
 
