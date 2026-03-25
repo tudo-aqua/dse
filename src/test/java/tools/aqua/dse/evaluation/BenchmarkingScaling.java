@@ -138,9 +138,9 @@ public class BenchmarkingScaling {
 
     @BeforeAll
     static void setUpTestFiles() throws IOException, InterruptedException {
-//        FilePreparator.setUpConstructorScalingTest(CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS);
-//        FilePreparator.setUpNonDetObjectTest(NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS);
-//        FilePreparator.setUpExampleTests();
+        FilePreparator.setUpConstructorScalingTest(CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS);
+        FilePreparator.setUpNonDetObjectTest(NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS);
+        FilePreparator.setUpExampleTests();
     }
 
     private void performMetricCalculation(String testName,
