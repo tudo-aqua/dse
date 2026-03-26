@@ -14,3 +14,4 @@ target/*
 /GEMINI.md
 /src/main/resources/dse.smtlib
 /src/test/resources/generated
+!/src/main/resources/constructor/SummaryMain.class
