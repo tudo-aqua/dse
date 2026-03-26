@@ -119,21 +119,21 @@ public class BenchmarkingScaling {
     private static final String NAME_OF_THE_EXAMPLES_TEST_BASELINE = "examplesTestBaseline";
     private static final Path CSV_FILE_EXAMPLES = Path.of(CSV_FILE_PREFIX + "examplesMeasurement.csv");
     private static final Path CSV_FILE_EXAMPLES_BASELINE = Path.of(CSV_FILE_PREFIX + "examplesBaselineMeasurement.csv");
-    private static final int EXAMPLES_TEST_NUMBER_OF_REPETITIONS = 2;
+    private static final int EXAMPLES_TEST_NUMBER_OF_REPETITIONS = 10;
 
     private static final String NAME_OF_THE_CONSTRUCTOR_SCALING_TEST = "constructorScalingTest";
     private static final String NAME_OF_THE_CONSTRUCTOR_SCALING_TEST_BASELINE = "constructorScalingTestBaseline";
     private static final Path CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS = Path.of(CSV_FILE_PREFIX + "constructorScalingMeasurement.csv");
     private static final Path CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS_BASELINE = Path.of(CSV_FILE_PREFIX + "constructorScalingBaselineMeasurement.csv");
     private static final int CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS = 30;
-    private static final int CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS = 2;
+    private static final int CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS = 10;
 
     private static final String NAME_OF_THE_NON_DET_OBJECT_SCALING_TEST = "nondetObjectScalingTest";
     private static final String NAME_OF_THE_NON_DET_OBJECT_SCALING_TEST_BASELINE = "nondetObjectScalingTestBaseline";
     private static final Path CSV_FILE_NON_DET_OBJECT_SCALING = Path.of(CSV_FILE_PREFIX + "nondetObjectScalingMeasurement.csv");
     private static final Path CSV_FILE_NON_DET_OBJECT_SCALING_BASELINE = Path.of(CSV_FILE_PREFIX + "nondetObjectScalingBaselineMeasurement.csv");
     private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS = 12;
-    private static final int NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS = 1;
+    private static final int NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS = 10;
 
 
     @BeforeAll
