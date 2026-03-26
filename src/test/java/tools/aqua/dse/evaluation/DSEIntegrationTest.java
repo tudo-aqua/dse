@@ -1,7 +1,6 @@
 package tools.aqua.dse.evaluation;
 
 import org.junit.jupiter.api.*;
-import tools.aqua.dse.Config;
 import tools.aqua.dse.DSE;
 
 import java.io.*;
@@ -12,7 +11,6 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -100,24 +98,6 @@ public class DSEIntegrationTest {
     }
 
 
-    private static DSE getExecution(String exampleName,
-                                    String pathToClassHierachy, 
-                                    String pathToExamples) {
-        Properties props = new Properties();
-        props.setProperty("dse.dp", "z3");
-        props.setProperty("dse.executor", "../executor.sh");
-        props.setProperty("dse.executor.args", String.format("-cp %s/:../verifier-stub/target/verifier-stub-1.0.jar -Dconcolic.execution=true %s", pathToExamples, exampleName));
-        props.setProperty("dse.dp.incremental", "false");
-        props.setProperty("dse.terminate.on", "completion");
-        props.setProperty("dse.explore", "BFS");
-        props.setProperty("static.info", pathToClassHierachy);
-
-        Config config = Config.fromProperties(props);
-
-        return new DSE(config);
-    }
-
-
     private String filterOutPutStream() {
         if (this.debug) {
             return String.format("Console Log:%n %s%n Error Log: %n%s", capturedOutput, capturedErr);
@@ -138,10 +118,6 @@ public class DSEIntegrationTest {
 
     private Map<String, Long> analyseDecisionTree(List<String> decisionTreeLines) {
         Map<String, Long> counts = decisionTreeLines.stream()
-//                .filter(s -> s.startsWith("+ OK")
-//                        || s.startsWith("+ ERROR")
-//                        || s.startsWith("+ UNSAT")
-//                        || s.matches("^\\+ \\d+.*"))
                 .collect(Collectors.groupingBy(
                         s -> {
                             if (s.startsWith("+ OK")) return "OK";
@@ -181,13 +157,6 @@ public class DSEIntegrationTest {
         System.out.println("seconds: " + seconds);
         System.out.println("nanoSeconds: " + nanoSeconds);
 //        System.out.printf("%d : %d : %d", minutes,  seconds, nanoSeconds);
-    }
-
-    private void compileBasicClasses(String exampleName) throws IOException, InterruptedException {
-        if (this.compile) {
-            List<String> filesToCompile = List.of(exampleName, "AT", "A", "B", "BT","C","Sub", "Sub1", "Sub2", "Greeter");
-            FilePreparator.compileClasses(filesToCompile, "src/test/resources/examples/");
-        }
     }
 
     @Test
@@ -271,6 +240,9 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
+
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -314,7 +286,6 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
     }
@@ -356,6 +327,9 @@ public class DSEIntegrationTest {
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -442,6 +416,9 @@ public class DSEIntegrationTest {
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -531,6 +508,9 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
+
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -616,6 +596,9 @@ public class DSEIntegrationTest {
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -703,6 +686,8 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -788,6 +773,9 @@ public class DSEIntegrationTest {
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -875,6 +863,9 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
+
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -960,6 +951,9 @@ public class DSEIntegrationTest {
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1047,6 +1041,9 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
+
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -1132,6 +1129,9 @@ public class DSEIntegrationTest {
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1219,6 +1219,9 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
+
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -1304,6 +1307,9 @@ public class DSEIntegrationTest {
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1391,6 +1397,9 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
+
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -1476,6 +1485,9 @@ public class DSEIntegrationTest {
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1563,6 +1575,9 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
+
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -1648,6 +1663,9 @@ public class DSEIntegrationTest {
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -1735,6 +1753,9 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
+
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -1821,6 +1842,8 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -1907,6 +1930,8 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -1992,6 +2017,9 @@ public class DSEIntegrationTest {
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -2079,6 +2107,9 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
+
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -2164,6 +2195,9 @@ public class DSEIntegrationTest {
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -2252,6 +2286,8 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -2337,6 +2373,9 @@ public class DSEIntegrationTest {
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -2424,6 +2463,9 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
+
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -2509,6 +2551,9 @@ public class DSEIntegrationTest {
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -2596,6 +2641,9 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
+
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -2681,6 +2729,9 @@ public class DSEIntegrationTest {
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -2768,6 +2819,9 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
+
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -2854,6 +2908,9 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
+
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -2939,6 +2996,8 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -3025,6 +3084,9 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
+
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -3068,7 +3130,6 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
     }
@@ -3110,6 +3171,9 @@ public class DSEIntegrationTest {
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
 
 
         System.out.println(analyseDecisionTree(decisionTree));
@@ -3197,6 +3261,9 @@ public class DSEIntegrationTest {
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
+
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
@@ -3282,6 +3349,9 @@ public class DSEIntegrationTest {
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isFalse();
 
 
         System.out.println(analyseDecisionTree(decisionTree));
