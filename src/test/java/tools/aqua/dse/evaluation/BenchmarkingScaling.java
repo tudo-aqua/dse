@@ -132,7 +132,8 @@ public class BenchmarkingScaling {
     private static final String NAME_OF_THE_NON_DET_OBJECT_SCALING_TEST_BASELINE = "nondetObjectScalingTestBaseline";
     private static final Path CSV_FILE_NON_DET_OBJECT_SCALING = Path.of(CSV_FILE_PREFIX + "nondetObjectScalingMeasurement.csv");
     private static final Path CSV_FILE_NON_DET_OBJECT_SCALING_BASELINE = Path.of(CSV_FILE_PREFIX + "nondetObjectScalingBaselineMeasurement.csv");
-    private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS = 12;
+    private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS = 30;
+    private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS_BASELINE = 12;
     private static final int NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS = 10;
 
 
@@ -371,8 +372,21 @@ public class BenchmarkingScaling {
                 false);
     }
 
+    static Stream<Arguments> testResourceProvider5() {
+        return IntStream.range(1, NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS + 1)
+                .boxed()
+                .flatMap(j ->
+                        IntStream.range(1, NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS_BASELINE + 1)
+                                .mapToObj(i -> Arguments.of(
+                                        String.format("RunGroup%03d", j),
+                                        String.format("calls%03d", i),
+                                        String.format("/factor%03d", i)
+                                ))
+                );
+    }
+
     @ParameterizedTest
-    @MethodSource("testResourceProvider4")
+    @MethodSource("testResourceProvider5")
     @Order(7)
     public void nonDetObjectScalingScalingBaselineTest(String currentRunGroup,
                                                        String exampleName,
