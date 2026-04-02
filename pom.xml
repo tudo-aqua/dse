@@ -50,10 +50,6 @@
 	        	<enabled>true</enabled>
 	      	</snapshots>
 	    </repository>
-		<repository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
-		</repository>
 	</repositories>
 
 
@@ -64,7 +60,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven-release-plugin.version>2.5.3</maven-release-plugin.version>
 		<compiler-plugin.version>3.1</compiler-plugin.version>
-		<testng.version>6.8</testng.version>		
+		<testng.version>6.8</testng.version>
+		<jconstraints.version>0.9.8-FUN-PARS</jconstraints.version>
 	</properties>
 	
 	<!--	
@@ -124,29 +121,24 @@
 	-->
 	<dependencies>
 		<dependency>
-			<groupId>com.github.tudo-aqua</groupId>
-		    <artifactId>jSMTLIB</artifactId>
-		    <version>5c11ee5</version>
-		</dependency>
-		<dependency>
 			<groupId>tools.aqua</groupId>
 			<artifactId>jconstraints-core</artifactId>
-			<version>0.9.7-BV-SNAPSHOT</version>
+			<version>${jconstraints.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>tools.aqua</groupId>
-			<artifactId>jconstraints-z3</artifactId>
-			<version>0.9.7-BV-SNAPSHOT</version>
+			<artifactId>jconstraints-z3-all</artifactId>
+			<version>${jconstraints.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>tools.aqua</groupId>
 			<artifactId>jconstraints-cvc5-all</artifactId>
-			<version>0.9.7-BV-SNAPSHOT</version>
+			<version>${jconstraints.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>tools.aqua</groupId>
 			<artifactId>jconstraints-metasolver</artifactId>
-			<version>0.9.7-BV-SNAPSHOT</version>
+			<version>${jconstraints.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-cli</groupId>
