@@ -4662,6 +4662,57 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
+
+
+    @Test
+    @Tag("own-tests")
+    public void example37() throws IOException, InterruptedException {
+        //define example
+        String exampleName = "example37";
+
+        String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
+
+        // Compile Base Classes
+        FilePreparator.compileClasses(List.of("Main"),
+                directoryOfTheExample);
+
+        //execute example
+        //printExample(exampleName, "src/test/resources/example/");
+//        DSE dse = TestUtils.getDseInstance("Main",
+//                directoryOfTheExample);
+        DSE dse = TestUtils.getDseInstance("Main",
+                directoryOfTheExample,
+                directoryOfTheExample+"joda-money-2.0.3.jar");
+//                directoryOfTheExample+"pdfbox-app-4.0.0-SNAPSHOT.jar");
+
+        Instant start = Instant.now();
+        dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        //System.out.println(output);
+
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //                                                CHECKS
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        assertThat(output)
+                .doesNotContain("DIVERGED")
+                .doesNotContain("BUGGY");
+
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
+
+
+        System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
+    }
 }
 
 

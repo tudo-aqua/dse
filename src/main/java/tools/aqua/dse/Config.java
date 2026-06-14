@@ -338,7 +338,8 @@ public class Config {
         }
         if (this.smtProblemManager == null ) {
             String path = this.classPaths.get(0);
-            int depth = 3;
+            System.out.println("config path: " + path);
+            int depth = 3; //todo: Which depth is needed
             this.smtProblemManager = new SmtProblemManager(path, depth);
         }
     }

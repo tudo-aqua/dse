@@ -32,6 +32,7 @@ public class ConstructorSummaryManager {
 
     public ConstructorSummaryManager(String classPath, int depth) {
         this.classPath = classPath;
+        System.out.println("Opal class Path: "+classPath);
         this.opal = new Opal(classPath);
         this.depth = depth;
         System.out.println("generateSmtCodeBluePrintForConstructorSelection-Call");

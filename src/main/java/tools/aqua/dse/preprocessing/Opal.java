@@ -34,8 +34,10 @@ public class Opal {
     private final Project project;
     
     public Opal(String classPath) {
-        this.project = Project.apply(new File(classPath),
-                new File("/Users/mlazar/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home/jmods/java.base.jmod"));
+        this.project = Project.apply(
+                new File(classPath),
+                new File("/Users/mlazar/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home/jmods/java.base.jmod") //todo: more general
+        );
     }
 
     public List<KlassIdentifier> extractKlassesFromClassPath() {

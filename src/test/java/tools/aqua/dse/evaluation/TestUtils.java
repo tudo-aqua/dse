@@ -60,6 +60,23 @@ public class TestUtils {
         return  new DSE(config);
     }
 
+    public static DSE getDseInstance(String exampleName,
+                                     String pathToExamples,
+                                     String jarPath) {
+        Properties props = new Properties();
+        props.setProperty("dse.dp", "z3");
+        props.setProperty("dse.executor", "../executor.sh");
+        props.setProperty("dse.executor.args", String.format("-cp %s:%s:../verifier-stub/target/verifier-stub-1.0.jar -Dconcolic.execution=true %s", pathToExamples, jarPath, exampleName));
+        props.setProperty("dse.dp.incremental", "false");
+        props.setProperty("dse.terminate.on", "completion");
+        props.setProperty("dse.explore", "BFS");
+
+        Config config = Config.fromProperties(props);
+
+        return  new DSE(config);
+    }
+
+
     public static DSE getDseBaseLineInstance(String exampleName,
                                      String pathToExamples) {
         Properties props = new Properties();
@@ -75,22 +92,22 @@ public class TestUtils {
         return  new DSE(config);
     }
 
-    public static DSE getDseInstance(String exampleName,
-                                    String pathToClassHierachy,
-                                    String pathToExamples) {
-        Properties props = new Properties();
-        props.setProperty("dse.dp", "z3");
-        props.setProperty("dse.executor", "../executor.sh");
-        props.setProperty("dse.executor.args", String.format("-cp %s:../verifier-stub/target/verifier-stub-1.0.jar -Dconcolic.execution=true %s", pathToExamples, exampleName));
-        props.setProperty("dse.dp.incremental", "false");
-        props.setProperty("dse.terminate.on", "completion");
-        props.setProperty("dse.explore", "BFS");
-        props.setProperty("static.info", pathToClassHierachy);
-
-        Config config = Config.fromProperties(props);
-
-        return  new DSE(config);
-    }
+//    public static DSE getDseInstance(String exampleName,
+//                                    String pathToClassHierachy,
+//                                    String pathToExamples) {
+//        Properties props = new Properties();
+//        props.setProperty("dse.dp", "z3");
+//        props.setProperty("dse.executor", "../executor.sh");
+//        props.setProperty("dse.executor.args", String.format("-cp %s:../verifier-stub/target/verifier-stub-1.0.jar -Dconcolic.execution=true %s", pathToExamples, exampleName));
+//        props.setProperty("dse.dp.incremental", "false");
+//        props.setProperty("dse.terminate.on", "completion");
+//        props.setProperty("dse.explore", "BFS");
+//        props.setProperty("static.info", pathToClassHierachy);
+//
+//        Config config = Config.fromProperties(props);
+//
+//        return  new DSE(config);
+//    }
 
 //    public static DSE getDseInstance(String exampleName,
 //                                     String pathToClassHierarchy) {
