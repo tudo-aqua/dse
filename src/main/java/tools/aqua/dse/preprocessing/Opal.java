@@ -37,7 +37,8 @@ public class Opal {
         System.out.println("[Opal] Loading project from: " + classPath);
         this.project = Project.apply(
                 new File(classPath),
-                new File("/Users/mlazar/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home/jmods/java.base.jmod") //todo: more general
+//                new File("/Users/mlazar/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home/jmods/java.base.jmod") //todo: more general
+                org.opalj.bytecode.package$.MODULE$.JavaBase()
         );
         System.out.println("[Opal] Loaded " + this.project.projectClassFilesCount()
                 + " project classes, " + this.project.libraryClassFilesCount() + " library classes");
