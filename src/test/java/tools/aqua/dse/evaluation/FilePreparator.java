@@ -452,20 +452,15 @@ public class FilePreparator {
      * @throws InterruptedException if the current thread is interrupted while waiting for the process to complete.
      */
     public static void compileClass(String className,
-                                    String directoryOfTheClassesToCompile,
-                                    String pathToJar) throws IOException, InterruptedException {
+                                    String directoryOfTheClassesToCompile) throws IOException, InterruptedException {
         // Paths relative to the project root directory
         String verifierStub = "../verifier-stub/target/verifier-stub-1.0.jar";
         String examplesPath = directoryOfTheClassesToCompile;
+        String jarWildCard = examplesPath+"*";
 
         // Assemble the classpath. The separator is ':' for macOS/Linux.
-        String classPath = "";
-        if (pathToJar != null) {
-            classPath = verifierStub + File.pathSeparator + pathToJar + File.pathSeparator + examplesPath;
-        }
-        else {
-            classPath = verifierStub + File.pathSeparator + examplesPath;
-        }
+        String classPath = verifierStub + File.pathSeparator + jarWildCard + File.pathSeparator + examplesPath;
+
 
         // The source file to be compiled
         String sourceFile = examplesPath + className + ".java";
@@ -506,34 +501,10 @@ public class FilePreparator {
         }
     }
 
-
-    /**
-     * Executes the compilation command for a given Java class.
-     * The paths are relative to the project root directory.
-     *
-     * @param className The name of the class to compile (without .java extension).
-     * @throws IOException          if an I/O error occurs.
-     * @throws InterruptedException if the current thread is interrupted while waiting for the process to complete.
-     */
-    public static void compileClass(String className,
-                                    String directoryOfTheClassesToCompile) throws IOException, InterruptedException {
-        compileClass(className, directoryOfTheClassesToCompile, null);
-    }
-
-
-
     public static void compileClasses(List<String> classNames,
                                       String directoryOfTheClassesToCompile) throws IOException, InterruptedException {
         for (String className : classNames) {
             compileClass(className, directoryOfTheClassesToCompile);
-        }
-    }
-
-    public static void compileClasses(List<String> classNames,
-                                      String directoryOfTheClassesToCompile,
-                                      String pathToJar) throws IOException, InterruptedException {
-        for (String className : classNames) {
-            compileClass(className, directoryOfTheClassesToCompile, pathToJar);
         }
     }
 
