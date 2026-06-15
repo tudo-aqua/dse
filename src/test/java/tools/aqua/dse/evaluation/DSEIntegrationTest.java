@@ -4671,19 +4671,15 @@ public class DSEIntegrationTest {
         String exampleName = "example37";
 
         String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
+        String pathToJar = directoryOfTheExample + "joda-money-2.0.3.jar";
 
         // Compile Base Classes
-        FilePreparator.compileClasses(List.of("Main"),
-                directoryOfTheExample);
+        FilePreparator.compileClass("Main", directoryOfTheExample, directoryOfTheExample + "joda-money-2.0.3.jar");
 
         //execute example
-        //printExample(exampleName, "src/test/resources/example/");
-//        DSE dse = TestUtils.getDseInstance("Main",
-//                directoryOfTheExample);
         DSE dse = TestUtils.getDseInstance("Main",
                 directoryOfTheExample,
-                directoryOfTheExample+"joda-money-2.0.3.jar");
-//                directoryOfTheExample+"pdfbox-app-4.0.0-SNAPSHOT.jar");
+                pathToJar);
 
         Instant start = Instant.now();
         dse.executeAnalysis();

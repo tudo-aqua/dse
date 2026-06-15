@@ -34,10 +34,13 @@ public class Opal {
     private final Project project;
     
     public Opal(String classPath) {
+        System.out.println("[Opal] Loading project from: " + classPath);
         this.project = Project.apply(
                 new File(classPath),
                 new File("/Users/mlazar/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home/jmods/java.base.jmod") //todo: more general
         );
+        System.out.println("[Opal] Loaded " + this.project.projectClassFilesCount()
+                + " project classes, " + this.project.libraryClassFilesCount() + " library classes");
     }
 
     public List<KlassIdentifier> extractKlassesFromClassPath() {
@@ -48,7 +51,7 @@ public class Opal {
 
         this.project.allProjectClassFiles().foreach(x -> {
             ClassType type = ((ClassFile) x).thisType();
-                    
+
             String subTypeName = type.toJVMTypeName();
             if(!subTypeName.equals("LMain;")) {
                 classNames.add(new KlassIdentifier(type.toJava().replace(".", "/"), type.toJVMTypeName()));
@@ -56,6 +59,12 @@ public class Opal {
             return null;
         });
         classNames.sort(KlassIdentifier.COMPARATOR);
+        if (classNames.size() <= 50) {
+            System.out.println("[Opal] extractKlassesFromClassPath: " + classNames.size() + " classes: "
+                    + classNames.stream().map(KlassIdentifier::shortIdentifier).collect(Collectors.joining(", ")));
+        } else {
+            System.out.println("[Opal] extractKlassesFromClassPath: " + classNames.size() + " classes");
+        }
         return classNames;
     }
 
@@ -90,6 +99,7 @@ public class Opal {
      */
     public String generateExtendsSummary() {
         StringBuilder result = new StringBuilder();
+        int[] relationCount = {0};
 
         result.append(
                 """
@@ -109,6 +119,7 @@ public class Opal {
 
                 // Add null relation
                 result.append(String.format("\n  (and (= x!0 \"null\")  (= x!1 \"%s\"))", subTypeName));
+                relationCount[0]++;
 
                 ch.allSupertypes(subType, true).foreach(superType -> {
                     String superTypeName = superType.toJVMTypeName();
@@ -116,6 +127,7 @@ public class Opal {
                     // filter 2: Supertype is not allowed to be Object or Main
                     if (!superTypeName.equals("LMain;")) {
                         result.append(String.format("\n  (and (= x!0 \"%s\")  (= x!1 \"%s\"))", subTypeName, superTypeName));
+                        relationCount[0]++;
                     }
                     return null;
                 });
@@ -125,12 +137,13 @@ public class Opal {
 
         result.append(
                 """
-                
+
                 ) true false)
                 )))
                 """
         );
 
+        System.out.println("[Opal] generateExtendsSummary: " + relationCount[0] + " extends relations");
         return result.toString();
 
 //
@@ -192,6 +205,8 @@ public class Opal {
                 return null;
             });
         }
+        System.out.println("[Opal] collectPolymorphyInformation: " + types.length + " types -> "
+                + polymorphicInfos.size() + " methods");
         return polymorphicInfos;
     }
 
@@ -333,9 +348,15 @@ public class Opal {
      *
      */
     private static String generatedAllConstructors(Project p, scala.collection.Set<ClassType> types, int depth) {
+        System.out.println("[Opal] generatedAllConstructors: " + types.size() + " types, depth=" + depth);
         StringBuilder result = new StringBuilder();
         result.append("null|NULL\n");
         types.foreach(tpe -> {
+            if (p.classFile(tpe).isEmpty()) {
+                System.out.println("[Opal] generatedAllConstructors: skipping " + tpe.toJVMTypeName()
+                        + " (not in project class files)");
+                return null;
+            }
             ClassFile cf = (ClassFile) p.classFile(tpe).get();
             if (cf.isAbstract()) {
                 return null;
@@ -382,6 +403,7 @@ public class Opal {
 
 
     private List<String> possibleObjectsFromNondetObjectWithDepth(int depth) {
+        System.out.println("[Opal] possibleObjectsFromNondetObjectWithDepth: depth=" + depth);
 
         List<String> result = new ArrayList<>();
 
@@ -400,6 +422,8 @@ public class Opal {
         TypeIterator ti = (TypeIterator) this.project.get(TypeIteratorKey$.MODULE$);
         ContextProvider cp = (ContextProvider) this.project.get(ContextProviderKey$.MODULE$);
 
+        int[] callSiteIndex = {0};
+
         /*
          * Iterate over all callsites of nondetObject(...)
          */
@@ -408,6 +432,7 @@ public class Opal {
 
                     Context callerContext = callEdge._2();
                     int pc = (Integer) callEdge._3();
+                    callSiteIndex[0]++;
 
                     /*
                      * Retrieve TAC for the caller method.
@@ -467,6 +492,11 @@ public class Opal {
                                 scala.collection.Set<ClassType> subTypes =
                                         this.project.classHierarchy().allSubtypes(parameterType, true);
 
+                                System.out.println("[Opal]   call-site #" + callSiteIndex[0]
+                                        + ": param=" + parameterType.toJVMTypeName()
+                                        + ", subtypes=" + subTypes.size()
+                                        + ", depth=" + depth);
+
                                 /*
                                  * Generate constructor configurations for these types.
                                  */
@@ -489,16 +519,19 @@ public class Opal {
                     return null;
                 });
 
+        System.out.println("[Opal] nondetObject call-sites processed: " + callSiteIndex[0]);
         return result;
     }
 
     //generateSignaturesOfPossibleObjectsFromNondetObject
     public List<String> generateSignaturesOfPossibleConstructorCallsFromNondetObject(int depth) {
+        System.out.println("[Opal] generateSignaturesOfPossibleConstructorCallsFromNondetObject: depth=" + depth);
         List<String> result = new ArrayList<>();
         for(int i = 1; i <= depth; i++) {
             result.addAll(possibleObjectsFromNondetObjectWithDepth(i));
         }
-
+        System.out.println("[Opal] generateSignaturesOfPossibleConstructorCallsFromNondetObject: "
+                + result.size() + " signatures total");
         return result;
     }
 

@@ -62,11 +62,11 @@ public class TestUtils {
 
     public static DSE getDseInstance(String exampleName,
                                      String pathToExamples,
-                                     String jarPath) {
+                                     String pathToJar) {
         Properties props = new Properties();
         props.setProperty("dse.dp", "z3");
         props.setProperty("dse.executor", "../executor.sh");
-        props.setProperty("dse.executor.args", String.format("-cp %s:%s:../verifier-stub/target/verifier-stub-1.0.jar -Dconcolic.execution=true %s", pathToExamples, jarPath, exampleName));
+        props.setProperty("dse.executor.args", String.format("-cp %s:%s:../verifier-stub/target/verifier-stub-1.0.jar -Dconcolic.execution=true %s", pathToExamples, pathToJar, exampleName));
         props.setProperty("dse.dp.incremental", "false");
         props.setProperty("dse.terminate.on", "completion");
         props.setProperty("dse.explore", "BFS");
