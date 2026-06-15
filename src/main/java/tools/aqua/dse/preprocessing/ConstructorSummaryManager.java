@@ -205,17 +205,18 @@ public class ConstructorSummaryManager {
     }
 
     private List<Trace> performDseOnConstructor(String constructorSignature) {
+        String jarWildCard = this.classPath+"*";
         Properties props = new Properties();
         props.setProperty("dse.dp", "z3");
         props.setProperty("dse.constructor.summary", "true");
         props.setProperty("dse.executor", "../executor.sh");
         props.setProperty("dse.executor.args",
-                String.format("-cp %s/:src/main/resources/constructor:../verifier-stub/target/verifier-stub-1.0.jar " +
+                String.format("-cp %s/:%s:src/main/resources/constructor:../verifier-stub/target/verifier-stub-1.0.jar " +
                                 "-Dconcolic.execution=true " +
                                 "-Dconcolic.constructor.summary=true " +
 //                "-Dconcolic.constructors=%s " +
                                 "%s",
-                        this.classPath, "SummaryMain"));
+                        this.classPath, jarWildCard, "SummaryMain"));
         props.setProperty("dse.dp.incremental", "false");
         props.setProperty("dse.terminate.on", "completion");
         props.setProperty("dse.explore", "BFS");
