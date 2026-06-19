@@ -363,9 +363,11 @@ public class Opal {
                 return null;
             }
             cf.constructors().foreach(constructor -> {
-                String base = String.format("%s|%s|", tpe.toJVMTypeName(), constructor.descriptor().toJVMDescriptor());
-                String parametersString = generateParametersString(p, constructor, base, depth);
-                result.append(parametersString);
+//                if (constructor.isPublic()) {
+                    String base = String.format("%s|%s|", tpe.toJVMTypeName(), constructor.descriptor().toJVMDescriptor());
+                    String parametersString = generateParametersString(p, constructor, base, depth);
+                    result.append(parametersString);
+//                }
                 return null;
             });
             return null;
@@ -374,7 +376,7 @@ public class Opal {
     }
 
     private static String generateParametersString(Project p, Method constructor, String base, int depth) {
-        if(depth > 1 && !constructor.descriptor().parameterTypes().exists(type -> type.isClassType()))
+        if(depth > 1 && !constructor.descriptor().parameterTypes().exists(Type::isClassType))
             return "";
 
         StringBuilder result = new StringBuilder(base);
