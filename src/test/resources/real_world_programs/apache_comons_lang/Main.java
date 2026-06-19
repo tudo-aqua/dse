@@ -1,11 +1,11 @@
-import org.joda.money.Money;
+package real_world_programs.apache_comons_lang;
 import tools.aqua.concolic.Verifier;
 
 public class Main {
     public static void main(String[] args) {
         try {
-            Object o1 = Verifier.nondetObject(Money.class, null);
-            Object o2 = Verifier.nondetObject(Money.class, null);
+            Object o1 = Verifier.nondetObject(Object.class, null);
+            Object o2 = Verifier.nondetObject(Object.class, null);
 
             o1.equals(o2);
         }

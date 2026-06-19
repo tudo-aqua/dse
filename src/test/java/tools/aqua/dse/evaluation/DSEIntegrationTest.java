@@ -4668,9 +4668,9 @@ public class DSEIntegrationTest {
     @Tag("own-tests")
     public void example37() throws IOException, InterruptedException {
         //define example
-        String exampleName = "example37";
+        String exampleName = "joda_money";
 
-        String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
+        String directoryOfTheExample = String.format("src/test/resources/real_world_programs/%s/", exampleName);
 
         // Compile Base Classes
 //        FilePreparator.compileClass("Main", directoryOfTheExample, directoryOfTheExample + "joda-money-2.0.3.jar");
