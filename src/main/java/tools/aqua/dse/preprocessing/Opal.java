@@ -363,11 +363,11 @@ public class Opal {
                 return null;
             }
             cf.constructors().foreach(constructor -> {
-//                if (constructor.isPublic()) {
+                if (constructor.isPublic()) {
                     String base = String.format("%s|%s|", tpe.toJVMTypeName(), constructor.descriptor().toJVMDescriptor());
                     String parametersString = generateParametersString(p, constructor, base, depth);
                     result.append(parametersString);
-//                }
+                }
                 return null;
             });
             return null;

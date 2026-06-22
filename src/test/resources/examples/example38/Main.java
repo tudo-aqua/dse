@@ -1,6 +1,5 @@
 package examples.example38;
 
-import org.joda.money.Money;
 import tools.aqua.concolic.Verifier;
 
 public class Main {
