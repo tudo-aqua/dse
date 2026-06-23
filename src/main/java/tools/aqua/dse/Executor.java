@@ -78,13 +78,18 @@ public class Executor {
         System.out.println(String.join(" ", cmd));
         try {
             Path output = Files.createTempFile("dse", "");
-            int rc = (new ProcessBuilder())
+            Process process = (new ProcessBuilder())
                     .command(cmd)
                     .redirectErrorStream(true)
                     .redirectOutput(ProcessBuilder.Redirect.to(output.toFile()))
-                    .start()
-                    .waitFor();
-
+                    .start();
+            try {
+                process.waitFor();
+            } catch (InterruptedException e) {
+                process.destroyForcibly();
+                Thread.currentThread().interrupt();
+                return null;
+            }
             List<String> lines = Files.readAllLines(output);
             System.out.println("\033[34m%%%%%%%%%%% Executor Output Start");
             lines.forEach(System.out::println);

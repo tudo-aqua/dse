@@ -348,10 +348,10 @@ public class Opal {
      * LC;|(LA;)V|{LC;|(LA;)V|{LC;|(LA;)V|{null|NULL}}
      *
      */
-    private static String generatedAllConstructors(Project p, scala.collection.Set<ClassType> types, int depth) {
+    private static List<String> generatedAllConstructors(Project p, scala.collection.Set<ClassType> types, int depth) {
         System.out.println("[Opal] generatedAllConstructors: " + types.size() + " types, depth=" + depth);
-        StringBuilder result = new StringBuilder();
-        result.append("null|NULL\n");
+        List<String> result = new ArrayList<>();
+        result.add("null|NULL");
         types.foreach(tpe -> {
             if (p.classFile(tpe).isEmpty()) {
                 System.out.println("[Opal] generatedAllConstructors: skipping " + tpe.toJVMTypeName()
@@ -365,43 +365,54 @@ public class Opal {
             cf.constructors().foreach(constructor -> {
                 if (constructor.isPublic()) {
                     String base = String.format("%s|%s|", tpe.toJVMTypeName(), constructor.descriptor().toJVMDescriptor());
-                    String parametersString = generateParametersString(p, constructor, base, depth);
-                    result.append(parametersString);
+                    result.addAll(generateParametersString(p, constructor, base, depth));
                 }
                 return null;
             });
             return null;
         });
-        return result.toString();
+        return result;
     }
 
-    private static String generateParametersString(Project p, Method constructor, String base, int depth) {
-        if(depth > 1 && !constructor.descriptor().parameterTypes().exists(Type::isClassType))
-            return "";
+    private static final int MAX_CONSTRUCTOR_SIGNATURES =
+            Integer.parseInt(System.getProperty("dse.opal.maxConstructorSignatures", "1000000"));
 
-        StringBuilder result = new StringBuilder(base);
+    private static List<String> generateParametersString(Project p, Method constructor, String base, int depth) {
+        if(depth > 1 && !constructor.descriptor().parameterTypes().exists(Type::isClassType))
+            return List.of();
+
+        List<String> prefixes = new ArrayList<>();
+        prefixes.add(base);
+
         constructor.descriptor().parameterTypes().foreach(type -> {
             if(type.isClassType()) { /* TODO What about array types? */
                 if (depth == 1) {
-                    result.append("{null|NULL}");
+                    prefixes.replaceAll(p2 -> p2 + "{null|NULL}");
                 } else {
                     scala.collection.Set<ClassType> subclasses = p.classHierarchy().allSubtypes(type.asClassType(), true);
-                    String paramConstructors = generatedAllConstructors(p, subclasses, depth - 1);
-                    Stream<String> prefixes = result.toString().lines();
-                    result.setLength(0);
-                    prefixes.forEach(prefix -> {
-                        paramConstructors.lines().forEach(paramConstructor -> {
-                            result.append(prefix).append("{").append(paramConstructor).append("}\n");
-                        });
-                    });
+                    List<String> paramConstructors = generatedAllConstructors(p, subclasses, depth - 1);
+                    long product = (long) prefixes.size() * (long) paramConstructors.size();
+                    if (product > MAX_CONSTRUCTOR_SIGNATURES) {
+                        throw new IllegalStateException(String.format(
+                            "Cartesian explosion in constructor signature generation: %d × %d = %d exceeds limit %d. "
+                                + "Reduce depth or increase -Ddse.opal.maxConstructorSignatures=<n>.",
+                            prefixes.size(), paramConstructors.size(), product, MAX_CONSTRUCTOR_SIGNATURES));
+                    }
+                    List<String> next = new ArrayList<>((int) product);
+                    for (String prefix : prefixes) {
+                        for (String pc : paramConstructors) {
+                            next.add(prefix + "{" + pc + "}");
+                        }
+                    }
+                    prefixes.clear();
+                    prefixes.addAll(next);
                 }
-            } else
-                result.append("{}");
+            } else {
+                prefixes.replaceAll(p2 -> p2 + "{}");
+            }
             return null;
         });
-        if(depth == 1)
-            result.append('\n');
-        return result.toString();
+        return prefixes;
     }
 
 
@@ -503,13 +514,10 @@ public class Opal {
                                 /*
                                  * Generate constructor configurations for these types.
                                  */
-                                String constructors =
+                                List<String> constructors =
                                         generatedAllConstructors(this.project, subTypes, depth);
 
-                                /*
-                                 * Convert the result string into individual lines.
-                                 */
-                                constructors.lines().forEach(result::add);
+                                result.addAll(constructors);
 
                                 return null;
                             },
