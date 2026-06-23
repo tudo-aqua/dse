@@ -237,6 +237,8 @@ public class ConstructorSummaryManager {
             traces.addAll(this.performDseOnConstructor("<>"+signature));
         }
 
+        traces.removeIf(t -> t == null || t.getTraceState() instanceof PathResult.AbortResult);
+
         //Collect objects
         List<String> objectsInAllTraces = traces.stream()
                 .map(Trace::getObjectIdentifiers)
