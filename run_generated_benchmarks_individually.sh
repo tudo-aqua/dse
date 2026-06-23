@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_DIR="${SCRIPT_DIR}/src/test/resources/generated-examples-log"
+LOG_DIR="${SCRIPT_DIR}/src/test/resources/generated-examples-log-2"
 mkdir -p "${LOG_DIR}"
 
 TESTS=(
@@ -129,6 +129,7 @@ for method in "${TESTS[@]}"; do
 
   set +e
   mvn -f "${SCRIPT_DIR}/pom.xml" \
+    -DargLine="-Xss128m" \
     -DfailIfNoTests=false \
     -Dsurefire.failIfNoSpecifiedTests=false \
     -Dtest="GeneratedBenchmarksTest#${method}" \

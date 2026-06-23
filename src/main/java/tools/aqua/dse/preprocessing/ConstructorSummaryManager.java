@@ -14,7 +14,11 @@ import tools.aqua.dse.trace.Decision;
 import tools.aqua.dse.trace.Trace;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,14 +35,28 @@ public class ConstructorSummaryManager {
     private final List<String> objectsWithinAllTraces = new ArrayList<>();
 
     public ConstructorSummaryManager(String classPath, int depth) {
+        this(classPath, depth, false);
+    }
+
+    public ConstructorSummaryManager(String classPath, int depth, boolean useCache) {
         this.classPath = classPath;
         System.out.println("Opal class Path: "+classPath);
         this.opal = new Opal(classPath);
         this.depth = depth;
-        System.out.println("generateSmtCodeBluePrintForConstructorSelection-Call");
-        this.bluePrintConstructorSummaries = this.generateSmtCodeBluePrintForConstructorSelection();
+        if (useCache && cacheExists()) {
+            System.out.println("ConstructorBluePrint cache found — loading from disk");
+            this.bluePrintConstructorSummaries = loadBluePrintFromCache();
+            System.out.println("ConstructorBluePrint loaded from cache");
+        } else {
+            System.out.println("generateSmtCodeBluePrintForConstructorSelection-Call");
+            this.bluePrintConstructorSummaries = this.generateSmtCodeBluePrintForConstructorSelection();
+            System.out.println("generateSmtCodeBluePrintForConstructorSelection-Done");
+            if (useCache) {
+                writeBluePrintToCache(this.bluePrintConstructorSummaries);
+                System.out.println("ConstructorBluePrint written to cache");
+            }
+        }
         extractErrorWithinConstructors();
-        System.out.println("generateSmtCodeBluePrintForConstructorSelection-Done");
     }
 
 
@@ -80,6 +98,40 @@ public class ConstructorSummaryManager {
             errors.add(matcher.group(1));
         }
         this.possibleErrorsWithInConstructors.addAll(errors);
+    }
+
+    private boolean cacheExists() {
+        Path base = Paths.get(classPath);
+        return Files.exists(base.resolve("ConstructurBluePrint.txt"))
+                && Files.exists(base.resolve("ConstructurDeclarations.txt"))
+                && Files.exists(base.resolve("ConstructurObjects.txt"));
+    }
+
+    private String loadBluePrintFromCache() {
+        Path base = Paths.get(classPath);
+        try {
+            String blueprint = Files.readString(base.resolve("ConstructurBluePrint.txt"));
+            List<String> declarations = Files.readAllLines(base.resolve("ConstructurDeclarations.txt"));
+            List<String> objects = Files.readAllLines(base.resolve("ConstructurObjects.txt"));
+            this.declarationsOfBluePrint.addAll(declarations);
+            this.objectsWithinAllTraces.addAll(objects);
+            return blueprint;
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read ConstructorBluePrint cache from " + base, e);
+        }
+    }
+
+    private void writeBluePrintToCache(String blueprint) {
+        Path base = Paths.get(classPath);
+        try {
+            Files.writeString(base.resolve("ConstructurBluePrint.txt"), blueprint);
+            Files.write(base.resolve("ConstructurDeclarations.txt"),
+                    new ArrayList<>(this.declarationsOfBluePrint));
+            Files.write(base.resolve("ConstructurObjects.txt"),
+                    this.objectsWithinAllTraces);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to write ConstructorBluePrint cache to " + base, e);
+        }
     }
 
     private List<String> extractObjectIdentifiers(List<Variable<?>> variables) {

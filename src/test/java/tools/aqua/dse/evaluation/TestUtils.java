@@ -11,6 +11,9 @@ import java.util.stream.Collectors;
 
 public class TestUtils {
 
+    public static final boolean BLUEPRINT_CACHE_ENABLED =
+            Boolean.parseBoolean(System.getProperty("test.blueprint.cache", "true"));
+
     public static void printExample(String exampleName,
                                     String directorOfExample
     ) {
@@ -56,6 +59,9 @@ public class TestUtils {
         props.setProperty("dse.dp.incremental", "false");
         props.setProperty("dse.terminate.on", "completion");
         props.setProperty("dse.explore", "BFS");
+        if (BLUEPRINT_CACHE_ENABLED) {
+            props.setProperty("dse.constructor.blueprint.cache", "true");
+        }
 
         Config config = Config.fromProperties(props);
 
@@ -71,6 +77,9 @@ public class TestUtils {
         props.setProperty("dse.dp.incremental", "false");
         props.setProperty("dse.terminate.on", "completion");
         props.setProperty("dse.explore", "BFS");
+        if (BLUEPRINT_CACHE_ENABLED) {
+            props.setProperty("dse.constructor.blueprint.cache", "true");
+        }
 
         Config config = Config.fromProperties(props);
 

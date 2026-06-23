@@ -16,4 +16,7 @@ target/*
 /src/test/resources/generated
 !/src/main/resources/constructor/SummaryMain.class
 /src/test/resources/generated-examples
-/src/test/resources/generated-examples-log
+/src/test/resources/generated-examples-log*
+ConstructurBluePrint.txt
+ConstructurDeclarations.txt
+ConstructurObjects.txt

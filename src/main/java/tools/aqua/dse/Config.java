@@ -89,6 +89,7 @@ public class Config {
     private ClazzModel clazzModel = null;
 
     private boolean constructorSummary = false;
+    private boolean constructorBlueprintCache = false;
 
     private SmtProblemManager smtProblemManager;
 
@@ -263,6 +264,10 @@ public class Config {
             this.constructorSummary = Boolean.parseBoolean(props.getProperty("dse.constructor.summary"));
         }
 
+        if (props.containsKey("dse.constructor.blueprint.cache")) {
+            this.constructorBlueprintCache = Boolean.parseBoolean(props.getProperty("dse.constructor.blueprint.cache"));
+        }
+
         if (props.containsKey("iflow.fraction")) {
             this.fraction = Double.parseDouble(props.getProperty("iflow.fraction"));
         }
@@ -340,7 +345,7 @@ public class Config {
             String path = this.classPaths.get(0);
             System.out.println("config path: " + path);
             int depth = 1; //todo: Which depth is needed
-            this.smtProblemManager = new SmtProblemManager(path, depth);
+            this.smtProblemManager = new SmtProblemManager(path, depth, this.constructorBlueprintCache);
         }
     }
 

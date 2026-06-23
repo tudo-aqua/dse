@@ -14,9 +14,13 @@ public class SmtProblemManager {
     private final ConstructorSummaryManager constructorSummaryManager;
 
     public SmtProblemManager(String classPath, int depth) {
+        this(classPath, depth, false);
+    }
+
+    public SmtProblemManager(String classPath, int depth, boolean useCache) {
         long start = System.currentTimeMillis();
         this.staticManager = new StaticManager(classPath);
-        constructorSummaryManager = new ConstructorSummaryManager(classPath, depth);
+        constructorSummaryManager = new ConstructorSummaryManager(classPath, depth, useCache);
         long end = System.currentTimeMillis();
         System.out.println("set-up-time: " + (end - start) + "ms");
     }
