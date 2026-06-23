@@ -353,6 +353,9 @@ public class Opal {
         List<String> result = new ArrayList<>();
         result.add("null|NULL");
         types.foreach(tpe -> {
+            if (tpe.packageName().contains("jdk")) {
+                return null;
+            }
             if (p.classFile(tpe).isEmpty()) {
                 System.out.println("[Opal] generatedAllConstructors: skipping " + tpe.toJVMTypeName()
                         + " (not in project class files)");
