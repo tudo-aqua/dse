@@ -4856,50 +4856,50 @@ public class DSEIntegrationTest {
 //    }
 //
 //
-//    @Test
-//    @Tag("own-tests")
-//    public void examplejoda() throws IOException, InterruptedException {
-//        //define example
-//        String exampleName = "joda_money";
-//
-//        String directoryOfTheExample = String.format("src/test/resources/real_world_programs/%s/", exampleName);
-//
-//        // Compile Base Classes
-////        FilePreparator.compileClass("Main", directoryOfTheExample, directoryOfTheExample + "joda-money-2.0.3.jar");
-//        FilePreparator.compileClass("Main", directoryOfTheExample);
-//
-//        //execute example
-//        DSE dse = TestUtils.getDseInstance("Main",
-//                directoryOfTheExample);
-//
-//        Instant start = Instant.now();
-//        dse.executeAnalysis();
-//        Instant end = Instant.now();
-//        Duration duration = Duration.between(start, end);
-//
-//        //stop redirection of console log
-//        System.setOut(originalOut);
-//
-//        //printing results
-//        String output = filterOutPutStream();
-//        //System.out.println(output);
-//
-//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//        //                                                CHECKS
-//        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//        assertThat(output)
-//                .doesNotContain("DIVERGED")
-//                .doesNotContain("BUGGY");
-//
-//        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
-//
-//        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-//        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
-//
-//
-//        System.out.println(analyseDecisionTree(decisionTree));
-//        printDuration(duration);
-//    }
+    @Test
+    @Tag("own-tests")
+    public void examplejoda() throws IOException, InterruptedException {
+        //define example
+        String exampleName = "joda_money";
+
+        String directoryOfTheExample = String.format("src/test/resources/real_world_programs/%s/", exampleName);
+
+        // Compile Base Classes
+//        FilePreparator.compileClass("Main", directoryOfTheExample, directoryOfTheExample + "joda-money-2.0.3.jar");
+        FilePreparator.compileClass("Main", directoryOfTheExample);
+
+        //execute example
+        DSE dse = TestUtils.getDseInstance("Main",
+                directoryOfTheExample);
+
+        Instant start = Instant.now();
+        dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        //System.out.println(output);
+
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //                                                CHECKS
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        assertThat(output)
+                .doesNotContain("DIVERGED")
+                .doesNotContain("BUGGY");
+
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
+
+
+        System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
+    }
 }
 
 

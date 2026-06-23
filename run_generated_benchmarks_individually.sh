@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_DIR="${SCRIPT_DIR}/src/test/resources/generated-examples-log-2"
+LOG_DIR="${SCRIPT_DIR}/src/test/resources/generated-examples-log-3"
 mkdir -p "${LOG_DIR}"
 
 TESTS=(

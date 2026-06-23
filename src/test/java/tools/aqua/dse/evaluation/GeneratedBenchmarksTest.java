@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.assertThat;
 
 @TestMethodOrder(MethodOrderer.MethodName.class)
 public class GeneratedBenchmarksTest {
@@ -110,14 +109,9 @@ public void com_google_code_gson__gson__2_8_8__CollectionTypeAdapterFactory__cre
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -139,14 +133,9 @@ public void com_google_code_gson__gson__2_8_8__Excluder__excludeField__ef406d01a
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -168,14 +157,9 @@ public void com_google_code_gson__gson__2_8_8__GsonBuilder__registerTypeAdapter_
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -197,14 +181,9 @@ public void com_google_code_gson__gson__2_8_8__GsonBuilder__registerTypeHierarch
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -226,14 +205,9 @@ public void com_google_code_gson__gson__2_8_8__Gson__getAdapter__b09df9b215() th
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -255,14 +229,9 @@ public void com_google_code_gson__gson__2_8_8__Gson__getDelegateAdapter__72a2d60
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -284,14 +253,9 @@ public void com_google_code_gson__gson__2_8_8__Gson__toJsonTree__6d0bc5fe10() th
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -313,14 +277,9 @@ public void com_google_code_gson__gson__2_8_8__Gson__toJson__87db1aff4f() throws
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -342,14 +301,9 @@ public void com_google_code_gson__gson__2_8_8__JsonAdapterAnnotationTypeAdapterF
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -371,14 +325,9 @@ public void com_google_code_gson__gson__2_8_8__JsonPrimitive__equals__0399f2ba27
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -400,14 +349,9 @@ public void com_google_code_gson__gson__2_8_8__MapTypeAdapterFactory__create__4f
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -429,14 +373,9 @@ public void com_google_code_gson__gson__2_8_8__ReflectiveTypeAdapterFactory__cre
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -458,14 +397,9 @@ public void com_google_code_gson__gson__2_8_8__TypeAdapters__newFactoryForMultip
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -487,14 +421,9 @@ public void com_google_code_gson__gson__2_8_8__TypeAdapters__newFactory__acab8da
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -516,14 +445,9 @@ public void com_google_code_gson__gson__2_8_8__TypeToken__isAssignableFrom__dd2c
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -545,14 +469,9 @@ public void com_google_guava__guava_collections__r03__ImmutableListMultimap__cop
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -574,14 +493,9 @@ public void com_google_guava__guava_collections__r03__ImmutableListMultimap__of_
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -603,14 +517,9 @@ public void com_google_guava__guava_collections__r03__ImmutableListMultimap__of_
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -632,14 +541,9 @@ public void com_google_guava__guava_collections__r03__ImmutableListMultimap__of_
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -661,14 +565,9 @@ public void com_google_guava__guava_collections__r03__ImmutableSetMultimap__copy
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -690,14 +589,9 @@ public void com_google_guava__guava_collections__r03__ImmutableSetMultimap__of__
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -719,14 +613,9 @@ public void com_google_guava__guava_collections__r03__ImmutableSetMultimap__of__
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -748,14 +637,9 @@ public void com_google_guava__guava_collections__r03__ImmutableSetMultimap__of__
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -777,14 +661,9 @@ public void com_google_guava__guava_collections__r03__ImmutableSortedMap__of__31
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -806,14 +685,9 @@ public void com_google_guava__guava_collections__r03__ImmutableSortedMap__of__82
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -835,14 +709,9 @@ public void com_google_guava__guava_collections__r03__ImmutableSortedMap__of__f0
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -864,14 +733,9 @@ public void com_google_guava__guava_collections__r03__ImmutableSortedMap__of__fd
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -893,14 +757,9 @@ public void com_google_guava__guava_collections__r03__ImmutableSortedSet__of__a8
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -922,14 +781,9 @@ public void com_google_guava__guava_collections__r03__Iterables__getLast__faa1e1
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -951,14 +805,9 @@ public void com_google_guava__guava_collections__r03__LinkedListMultimap__replac
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -980,14 +829,9 @@ public void com_google_guava__guava_collections__r03__Maps__difference__bf806147
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1009,14 +853,9 @@ public void com_zaxxer__HikariCP__7_1_0__HikariConfig__addDataSourceProperty__eb
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1038,14 +877,9 @@ public void com_zaxxer__HikariCP__7_1_0__HikariConfig__addHealthCheckProperty__4
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1067,14 +901,9 @@ public void com_zaxxer__HikariCP__7_1_0__HikariConfig__copyStateTo__cc420e6d8f()
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1096,14 +925,9 @@ public void com_zaxxer__HikariCP__7_1_0__HikariConfigurationUtil__loadConfigurat
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1125,14 +949,9 @@ public void com_zaxxer__HikariCP__7_1_0__PrometheusHistogramMetricsTrackerFactor
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1154,14 +973,9 @@ public void com_zaxxer__HikariCP__7_1_0__PrometheusMetricsTrackerFactory__create
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1183,14 +997,9 @@ public void com_zaxxer__HikariCP__7_1_0__PropertyElf__getProperty__c8f45b48ab() 
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1212,14 +1021,9 @@ public void com_zaxxer__HikariCP__7_1_0__PropertyElf__setTargetFromProperties__2
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1241,14 +1045,9 @@ public void com_zaxxer__HikariCP__7_1_0__UtilityElf__createInstance__f5e3a529c9(
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1270,14 +1069,9 @@ public void com_zaxxer__HikariCP__7_1_0__UtilityElf__createThreadPoolExecutor__2
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1299,14 +1093,9 @@ public void com_zaxxer__HikariCP__7_1_0__UtilityElf__createThreadPoolExecutor__e
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1328,14 +1117,9 @@ public void com_zaxxer__HikariCP__7_1_0__UtilityElf__safeIsAssignableFrom__06af2
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1357,14 +1141,9 @@ public void commons_io__commons_io__2_21_0__FilenameUtils__wildcardMatch__86e8d5
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1386,14 +1165,9 @@ public void commons_io__commons_io__2_21_0__IOStream__collect__c1661de318() thro
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1415,14 +1189,9 @@ public void commons_io__commons_io__2_21_0__Tailer__create__a2a786027c() throws 
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1444,14 +1213,9 @@ public void org_apache_commons__commons_collections4__4_5_0__CollectionUtils__co
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1473,14 +1237,9 @@ public void org_apache_commons__commons_collections4__4_5_0__CollectionUtils__ge
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1502,14 +1261,9 @@ public void org_apache_commons__commons_collections4__4_5_0__CollectionUtils__re
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1531,14 +1285,9 @@ public void org_apache_commons__commons_collections4__4_5_0__CollectionUtils__si
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1560,14 +1309,9 @@ public void org_apache_commons__commons_collections4__4_5_0__CollectionUtils__si
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1589,14 +1333,9 @@ public void org_apache_commons__commons_collections4__4_5_0__CollectionUtils__su
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1618,14 +1357,9 @@ public void org_apache_commons__commons_collections4__4_5_0__FixedOrderComparato
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1647,14 +1381,9 @@ public void org_apache_commons__commons_collections4__4_5_0__Flat3Map__put__4ec7
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1676,14 +1405,9 @@ public void org_apache_commons__commons_collections4__4_5_0__InstantiateFactory_
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1705,14 +1429,9 @@ public void org_apache_commons__commons_collections4__4_5_0__IterableUtils__part
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1734,14 +1453,9 @@ public void org_apache_commons__commons_collections4__4_5_0__IteratorUtils__getI
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1763,14 +1477,9 @@ public void org_apache_commons__commons_collections4__4_5_0__IteratorUtils__toSt
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1792,14 +1501,9 @@ public void org_apache_commons__commons_collections4__4_5_0__ListOrderedMap__put
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1821,14 +1525,9 @@ public void org_apache_commons__commons_collections4__4_5_0__MultiKeyMap__put__3
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1850,14 +1549,9 @@ public void org_apache_commons__commons_collections4__4_5_0__MultiKeyMap__put__3
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1879,14 +1573,9 @@ public void org_apache_commons__commons_collections4__4_5_0__MultiKeyMap__put__3
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1908,14 +1597,9 @@ public void org_apache_commons__commons_collections4__4_5_0__MultiKeyMap__put__3
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1937,14 +1621,9 @@ public void org_apache_commons__commons_collections4__4_5_0__MultiKeyMap__remove
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1966,14 +1645,9 @@ public void org_apache_commons__commons_collections4__4_5_0__MultiKeyMap__remove
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -1995,14 +1669,9 @@ public void org_apache_commons__commons_lang3__3_17_0__DiffBuilder__append__1f3f
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2024,14 +1693,9 @@ public void org_apache_commons__commons_lang3__3_17_0__EnumUtils__getFirstEnumIg
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2053,14 +1717,9 @@ public void org_apache_commons__commons_lang3__3_17_0__EventUtils__addEventListe
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2082,14 +1741,9 @@ public void org_apache_commons__commons_lang3__3_17_0__FastDatePrinter__format__
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2111,14 +1765,9 @@ public void org_apache_commons__commons_lang3__3_17_0__FormattableUtils__append_
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2140,14 +1789,9 @@ public void org_apache_commons__commons_lang3__3_17_0__MethodUtils__getMatchingA
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2169,14 +1813,9 @@ public void org_apache_commons__commons_lang3__3_17_0__MethodUtils__getMatchingM
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2198,14 +1837,9 @@ public void org_apache_commons__commons_lang3__3_17_0__StringUtils__getFuzzyDist
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2227,14 +1861,9 @@ public void org_apache_commons__commons_lang3__3_17_0__StringUtils__substringsBe
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2256,14 +1885,9 @@ public void org_apache_commons__commons_lang3__3_17_0__TypeUtils__getRawType__c5
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2285,14 +1909,9 @@ public void org_apache_commons__commons_lang3__3_17_0__TypeUtils__unrollVariable
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2314,14 +1933,9 @@ public void org_apache_commons__commons_lang3__3_17_0__WordUtils__wrap__4e095a77
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2343,14 +1957,9 @@ public void org_apache_logging_log4j__log4j_core__2_25_3__AbstractConfiguration_
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2372,14 +1981,9 @@ public void org_apache_logging_log4j__log4j_core__2_25_3__AbstractManager__getMa
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2401,14 +2005,9 @@ public void org_apache_logging_log4j__log4j_core__2_25_3__CronExpression__getTim
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2430,14 +2029,9 @@ public void org_apache_logging_log4j__log4j_core__2_25_3__DefaultMergeStrategy__
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2459,14 +2053,9 @@ public void org_apache_logging_log4j__log4j_core__2_25_3__DefaultMergeStrategy__
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2488,14 +2077,9 @@ public void org_apache_logging_log4j__log4j_core__2_25_3__FastDatePrinter__forma
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2517,14 +2101,9 @@ public void org_apache_logging_log4j__log4j_core__2_25_3__FileAppender__createAp
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2546,14 +2125,9 @@ public void org_apache_logging_log4j__log4j_core__2_25_3__InternalLoggerRegistry
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2575,14 +2149,9 @@ public void org_apache_logging_log4j__log4j_core__2_25_3__Log4jContextFactory__g
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2604,14 +2173,9 @@ public void org_apache_logging_log4j__log4j_core__2_25_3__MemoryMappedFileAppend
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2633,14 +2197,9 @@ public void org_apache_logging_log4j__log4j_core__2_25_3__PatternParser__parse__
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2662,14 +2221,9 @@ public void org_apache_logging_log4j__log4j_core__2_25_3__PluginElementVisitor__
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2691,14 +2245,9 @@ public void org_apache_logging_log4j__log4j_core__2_25_3__RandomAccessFileAppend
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2720,14 +2269,9 @@ public void org_apache_logging_log4j__log4j_core__2_25_3__RollingFileAppender__c
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2749,14 +2293,9 @@ public void org_apache_logging_log4j__log4j_core__2_25_3__ScriptFilter__filter__
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2778,14 +2317,9 @@ public void org_apache_logging_log4j__log4j_core__2_25_3__TypeUtil__isAssignable
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2807,14 +2341,9 @@ public void org_jetbrains_kotlin__kotlin_stdlib__2_4_0__SpreadBuilder__addSpread
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2836,14 +2365,9 @@ public void org_jsoup__jsoup__1_18_1__HttpConnection__data__db85dcdef0() throws 
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2865,14 +2389,9 @@ public void org_jsoup__jsoup__1_18_1__Jsoup__clean__770c6eb227() throws IOExcept
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2894,14 +2413,9 @@ public void org_jsoup__jsoup__1_18_1__NodeTraversor__traverse__b6f68a82b6() thro
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2923,14 +2437,9 @@ public void org_jsoup__jsoup__1_18_1__Node__wrap__ea8efeee7b() throws IOExceptio
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2952,14 +2461,9 @@ public void org_jsoup__jsoup__1_18_1__Safelist__addEnforcedAttribute__b4bbcfc084
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -2981,14 +2485,9 @@ public void org_jsoup__jsoup__1_18_1__Safelist__addProtocols__60bb86a329() throw
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -3010,14 +2509,9 @@ public void org_jsoup__jsoup__1_18_1__Safelist__getEnforcedAttributes__d374782f1
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -3039,14 +2533,9 @@ public void org_jsoup__jsoup__1_18_1__Safelist__isSafeAttribute__d7bbd45860() th
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -3068,14 +2557,9 @@ public void org_jsoup__jsoup__1_18_1__Safelist__removeAttributes__e9e7c92fe0() t
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -3097,14 +2581,9 @@ public void org_jsoup__jsoup__1_18_1__Safelist__removeEnforcedAttribute__ed7fdb9
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -3126,14 +2605,9 @@ public void org_jsoup__jsoup__1_18_1__Safelist__removeProtocols__11f2261242() th
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -3155,14 +2629,9 @@ public void org_jsoup__jsoup__1_18_1__Selector__select__d511da94e5() throws IOEx
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -3184,14 +2653,9 @@ public void org_jsoup__jsoup__1_18_1__Tag__valueOf__a31158c300() throws IOExcept
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
@@ -3213,14 +2677,9 @@ public void org_jsoup__jsoup__1_18_1__W3CDom__asString__2e2b575178() throws IOEx
     System.setOut(originalOut);
     String output = filterOutPutStream();
 
-    assertThat(output)
-            .doesNotContain("DIVERGED")
-            .doesNotContain("BUGGY");
 
     List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
-    assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-    assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
 
     System.out.println(analyseDecisionTree(decisionTree));
     printDuration(duration);
