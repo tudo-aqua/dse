@@ -30,6 +30,19 @@ if [[ -z "${JOBS}" || ! "${JOBS}" =~ ^[0-9]+$ ]] || (( JOBS < 1 )); then
   JOBS=6
 fi
 
+# TTY detection — disables all ANSI tricks when output is redirected to a file
+if [ -t 1 ]; then
+  IS_TTY=1
+  C_PASS=$'\e[32m'
+  C_FAIL=$'\e[31m'
+  C_RESET=$'\e[0m'
+else
+  IS_TTY=0
+  C_PASS=''
+  C_FAIL=''
+  C_RESET=''
+fi
+
 TESTS=()
 while IFS= read -r line; do
   TESTS+=("${line}")
@@ -99,6 +112,9 @@ run_single_test() {
   mkdir -p "${work_subdir}"
   mkdir -p "${LOG_DIR}/reports/${method}"
 
+  # Mark as running (file contains start timestamp)
+  printf "%d" "${SECONDS}" > "${RUNNING_DIR}/${method}"
+
   local test_start=${SECONDS}
   set +e
   (
@@ -115,19 +131,99 @@ run_single_test() {
   set -e
   local test_elapsed=$((SECONDS - test_start))
 
+  rm -f "${RUNNING_DIR}/${method}"
+
+  # Clear the in-place status line before printing a result (TTY only)
+  local pfx=""
+  [ "${IS_TTY}" = "1" ] && pfx=$'\r\e[2K'
+
+  local width=${#TOTAL}
   if [ ${exit_code} -eq 0 ]; then
     printf "PASS\t%d\n" "${test_elapsed}" > "${RESULTS_DIR}/${method}"
-    printf "PASS %-90s (%s)\n" "${method}" "$(format_duration ${test_elapsed})"
+    local done
+    done=$(ls -1 "${RESULTS_DIR}" | wc -l | tr -d ' ')
+    printf '%s[%*d/%d] %sPASS%s %-80s (%s)\n' \
+      "${pfx}" "${width}" "${done}" "${TOTAL}" \
+      "${C_PASS}" "${C_RESET}" "${method}" "$(format_duration ${test_elapsed})"
   else
     local reason
     reason=$(classify_failure "${log_file}")
     printf "FAIL\t%d\t%s\n" "${test_elapsed}" "${reason}" > "${RESULTS_DIR}/${method}"
-    printf "FAIL %-90s (%s, exit %d) — %s\n" "${method}" "$(format_duration ${test_elapsed})" "${exit_code}" "${reason}"
+    touch "${FAILED_DIR}/${method}"
+    local done
+    done=$(ls -1 "${RESULTS_DIR}" | wc -l | tr -d ' ')
+    printf '%s[%*d/%d] %sFAIL%s %-80s (%s, exit %d) — %s\n' \
+      "${pfx}" "${width}" "${done}" "${TOTAL}" \
+      "${C_FAIL}" "${C_RESET}" "${method}" \
+      "$(format_duration ${test_elapsed})" "${exit_code}" "${reason}"
   fi
 }
 
-export -f run_single_test classify_failure format_duration
-export LOG_DIR SCRIPT_DIR TEST_CLASS
+# Redraws the in-place progress bar using \r (no scroll region needed)
+print_status_line() {
+  [ "${IS_TTY}" = "1" ] || return 0
+  set +e
+
+  local cols
+  cols=$(tput cols 2>/dev/null || echo 80)
+
+  local done failed running elapsed
+  done=$(ls -1 "${RESULTS_DIR}" 2>/dev/null | wc -l | tr -d ' ')
+  failed=$(ls -1 "${FAILED_DIR}" 2>/dev/null | wc -l | tr -d ' ')
+  running=$(ls -1 "${RUNNING_DIR}" 2>/dev/null | wc -l | tr -d ' ')
+  elapsed=$((SECONDS - RUN_START))
+
+  # ETA based on average completion time so far
+  local eta_str
+  if (( done > 0 && elapsed > 0 )); then
+    local avg=$(( elapsed / done ))
+    local remaining=$(( TOTAL - done ))
+    local eta_secs=$(( avg * remaining / JOBS ))
+    eta_str="ETA ~$(format_duration ${eta_secs})"
+  else
+    eta_str="ETA ..."
+  fi
+
+  # Percentage
+  local pct=0
+  if (( TOTAL > 0 )); then pct=$(( done * 100 / TOTAL )); fi
+
+  # Progress bar width adapts to terminal width
+  local bar_width=30
+  if (( cols < 80 ));  then bar_width=20; fi
+  if (( cols > 120 )); then bar_width=40; fi
+  local filled=0
+  if (( TOTAL > 0 )); then filled=$(( done * bar_width / TOTAL )); fi
+  local bar="" i
+  for ((i=0; i<filled; i++));         do bar+="█"; done
+  for ((i=filled; i<bar_width; i++)); do bar+="░"; done
+
+  # Color-coded fail count
+  local fail_str=""
+  if (( failed > 0 )); then
+    fail_str=" | ${C_FAIL}${failed} failed${C_RESET}"
+  fi
+
+  local content
+  content=$(printf '[%s] %d/%d (%d%%)%s | running %d | %s' \
+    "${bar}" "${done}" "${TOTAL}" "${pct}" "${fail_str}" "${running}" "${eta_str}")
+
+  # \r to start of line, \e[2K to clear, write without newline so line stays in place
+  printf '\r\e[2K%s' "${content}"
+  set -e
+}
+
+status_updater() {
+  set +e
+  while true; do
+    sleep 1
+    [ -f "${LOG_DIR}/_stop" ] && break
+    print_status_line
+  done
+}
+
+export -f run_single_test classify_failure format_duration print_status_line
+export LOG_DIR SCRIPT_DIR TEST_CLASS C_PASS C_FAIL C_RESET IS_TTY
 
 TOTAL=${#TESTS[@]}
 
@@ -140,17 +236,45 @@ mvn -f "${SCRIPT_DIR}/pom.xml" -DskipTests test-compile -q
 echo "Compilation done. Starting tests..."
 echo "---"
 
+# Always start with clean helper dirs so counters are correct
 RESULTS_DIR="${LOG_DIR}/_results"
+FAILED_DIR="${LOG_DIR}/_failed"
+RUNNING_DIR="${LOG_DIR}/_running"
 WORK_DIR="${LOG_DIR}/_work"
-mkdir -p "${RESULTS_DIR}" "${WORK_DIR}" "${LOG_DIR}/reports"
+rm -rf "${RESULTS_DIR}" "${FAILED_DIR}" "${RUNNING_DIR}"
+mkdir -p "${RESULTS_DIR}" "${FAILED_DIR}" "${RUNNING_DIR}" "${WORK_DIR}" "${LOG_DIR}/reports"
 
-export RESULTS_DIR WORK_DIR
+export RESULTS_DIR FAILED_DIR RUNNING_DIR WORK_DIR TOTAL JOBS
 
-run_start=${SECONDS}
+RUN_START=${SECONDS}
+export RUN_START
+
+STATUS_PID=""
+
+cleanup() {
+  if [ -n "${STATUS_PID}" ]; then
+    kill "${STATUS_PID}" 2>/dev/null || true
+    wait "${STATUS_PID}" 2>/dev/null || true
+  fi
+  # Move to a fresh line so the shell prompt appears cleanly after the status line
+  [ "${IS_TTY}" = "1" ] && printf '\n'
+}
+trap cleanup EXIT
+
+if [ "${IS_TTY}" = "1" ]; then
+  status_updater &
+  STATUS_PID=$!
+fi
 
 printf '%s\n' "${TESTS[@]}" | xargs -P "${JOBS}" -n1 bash -c 'run_single_test "$1"' --
 
-total_elapsed=$((SECONDS - run_start))
+touch "${LOG_DIR}/_stop"
+if [ -n "${STATUS_PID}" ]; then
+  wait "${STATUS_PID}" 2>/dev/null || true
+  STATUS_PID=""
+fi
+
+total_elapsed=$((SECONDS - RUN_START))
 
 PASSED=0
 FAILED=0
@@ -168,6 +292,9 @@ for method in "${TESTS[@]}"; do
 done
 
 echo "---"
-echo "Results: ${PASSED} passed, ${FAILED} failed (of ${TOTAL} total)"
+printf "Results: %s%d passed%s, %s%d failed%s (of %d total)\n" \
+  "${C_PASS}" "${PASSED}" "${C_RESET}" \
+  "${C_FAIL}" "${FAILED}" "${C_RESET}" \
+  "${TOTAL}"
 echo "Total time: $(format_duration ${total_elapsed})"
 echo "Logs written to: ${LOG_DIR}"
