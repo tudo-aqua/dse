@@ -81,7 +81,7 @@ classify_failure() {
         *TimeoutException*|*"timed out after"*)  reason="TIMEOUT" ;;
         *AssertionError*DIVERGED*|*AssertionFailedError*DIVERGED*) reason="DIVERGED" ;;
         *AssertionError*BUGGY*|*AssertionFailedError*BUGGY*)       reason="BUGGY" ;;
-        *) reason="ERROR: $(printf "%s" "${after_arrow}" | cut -c1-80)" ;;
+        *) reason="ERROR: $(printf "%s" "${after_arrow}" | cut -c1-200)" ;;
       esac
     else
       reason="UNKNOWN"
