@@ -3,10 +3,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [ $# -ne 2 ]; then
-  echo "Usage: $0 <test-java-file> <log-dir>"
+if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+  echo "Usage: $0 <test-java-file> <log-dir> [parallel-jobs]"
   echo "  <test-java-file>  Path to the Java test class (relative or absolute)"
   echo "  <log-dir>         Directory where per-test log files will be written"
+  echo "  [parallel-jobs]   Number of tests to run in parallel (default: 6)"
   exit 1
 fi
 
@@ -23,6 +24,11 @@ if [[ "${LOG_DIR}" != /* ]]; then
   LOG_DIR="${SCRIPT_DIR}/${LOG_DIR}"
 fi
 mkdir -p "${LOG_DIR}"
+
+JOBS="${3:-}"
+if [[ -z "${JOBS}" || ! "${JOBS}" =~ ^[0-9]+$ ]] || (( JOBS < 1 )); then
+  JOBS=6
+fi
 
 TESTS=()
 while IFS= read -r line; do
@@ -86,44 +92,80 @@ format_duration() {
   fi
 }
 
-TOTAL=${#TESTS[@]}
-PASSED=0
-FAILED=0
-INDEX=0
+run_single_test() {
+  local method="$1"
+  local log_file="${LOG_DIR}/${method}.txt"
+  local work_subdir="${WORK_DIR}/${method}"
+  mkdir -p "${work_subdir}"
+  mkdir -p "${LOG_DIR}/reports/${method}"
 
-echo "Running ${TOTAL} tests of ${TEST_CLASS} individually. Logs -> ${LOG_DIR}"
+  local test_start=${SECONDS}
+  set +e
+  (
+    cd "${work_subdir}"
+    mvn -f "${SCRIPT_DIR}/pom.xml" \
+      -DargLine="-Xss128m" \
+      -DfailIfNoTests=false \
+      -Dsurefire.failIfNoSpecifiedTests=false \
+      -Dsurefire.reportsDirectory="${LOG_DIR}/reports/${method}" \
+      -Dtest="${TEST_CLASS}#${method}" \
+      surefire:test
+  ) > "${log_file}" 2>&1
+  local exit_code=$?
+  set -e
+  local test_elapsed=$((SECONDS - test_start))
+
+  if [ ${exit_code} -eq 0 ]; then
+    printf "PASS\t%d\n" "${test_elapsed}" > "${RESULTS_DIR}/${method}"
+    printf "PASS %-90s (%s)\n" "${method}" "$(format_duration ${test_elapsed})"
+  else
+    local reason
+    reason=$(classify_failure "${log_file}")
+    printf "FAIL\t%d\t%s\n" "${test_elapsed}" "${reason}" > "${RESULTS_DIR}/${method}"
+    printf "FAIL %-90s (%s, exit %d) — %s\n" "${method}" "$(format_duration ${test_elapsed})" "${exit_code}" "${reason}"
+  fi
+}
+
+export -f run_single_test classify_failure format_duration
+export LOG_DIR SCRIPT_DIR TEST_CLASS
+
+TOTAL=${#TESTS[@]}
+
+echo "Running ${TOTAL} tests of ${TEST_CLASS} with ${JOBS} parallel jobs. Logs -> ${LOG_DIR}"
 echo "Started at: $(date '+%Y-%m-%d %H:%M:%S')"
+echo "Pre-compiling..."
+
+mvn -f "${SCRIPT_DIR}/pom.xml" -DskipTests test-compile -q
+
+echo "Compilation done. Starting tests..."
 echo "---"
+
+RESULTS_DIR="${LOG_DIR}/_results"
+WORK_DIR="${LOG_DIR}/_work"
+mkdir -p "${RESULTS_DIR}" "${WORK_DIR}" "${LOG_DIR}/reports"
+
+export RESULTS_DIR WORK_DIR
 
 run_start=${SECONDS}
 
+printf '%s\n' "${TESTS[@]}" | xargs -P "${JOBS}" -n1 bash -c 'run_single_test "$1"' --
+
+total_elapsed=$((SECONDS - run_start))
+
+PASSED=0
+FAILED=0
 for method in "${TESTS[@]}"; do
-  INDEX=$((INDEX + 1))
-  log_file="${LOG_DIR}/${method}.txt"
-  printf "[%${#TOTAL}d/%d] %-90s " "${INDEX}" "${TOTAL}" "${method}"
-
-  test_start=${SECONDS}
-  set +e
-  mvn -f "${SCRIPT_DIR}/pom.xml" \
-    -DargLine="-Xss128m" \
-    -DfailIfNoTests=false \
-    -Dsurefire.failIfNoSpecifiedTests=false \
-    -Dtest="${TEST_CLASS}#${method}" \
-    test > "${log_file}" 2>&1
-  exit_code=$?
-  set -e
-  test_elapsed=$((SECONDS - test_start))
-
-  if [ ${exit_code} -eq 0 ]; then
-    echo "PASS ($(format_duration ${test_elapsed}))"
-    PASSED=$((PASSED + 1))
+  if [ -f "${RESULTS_DIR}/${method}" ]; then
+    status=$(cut -f1 "${RESULTS_DIR}/${method}")
+    if [ "${status}" = "PASS" ]; then
+      PASSED=$((PASSED + 1))
+    else
+      FAILED=$((FAILED + 1))
+    fi
   else
-    echo "FAIL (exit ${exit_code}, $(format_duration ${test_elapsed})) — $(classify_failure "${log_file}")"
     FAILED=$((FAILED + 1))
   fi
 done
-
-total_elapsed=$((SECONDS - run_start))
 
 echo "---"
 echo "Results: ${PASSED} passed, ${FAILED} failed (of ${TOTAL} total)"
