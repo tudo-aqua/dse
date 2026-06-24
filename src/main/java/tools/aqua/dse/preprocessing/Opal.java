@@ -44,6 +44,11 @@ public class Opal {
                 + " project classes, " + this.project.libraryClassFilesCount() + " library classes");
     }
 
+    private static boolean isExcludedFactoryClass(ClassType t) {
+        String n = t.toJVMTypeName();
+        return n.equals("LFactories;") || (n.startsWith("LFactories$") && n.endsWith("Factory;"));
+    }
+
     public List<KlassIdentifier> extractKlassesFromClassPath() {
         //todo: Is there a simpler way to get all classes?
         ClassHierarchy classHierarchy = this.project.classHierarchy();
@@ -54,7 +59,7 @@ public class Opal {
             ClassType type = ((ClassFile) x).thisType();
 
             String subTypeName = type.toJVMTypeName();
-            if(!subTypeName.equals("LMain;")) {
+            if(!subTypeName.equals("LMain;") && !isExcludedFactoryClass(type)) {
                 classNames.add(new KlassIdentifier(type.toJava().replace(".", "/"), type.toJVMTypeName()));
             }
             return null;
@@ -115,8 +120,8 @@ public class Opal {
             ClassHierarchy ch = this.project.classHierarchy();
 
             String subTypeName = subType.toJVMTypeName();
-            //filter 1: subtype is not allowed to be from java/* and subtype is not allowed to be Main
-            if(!subType.packageName().startsWith("java/") && !subTypeName.equals("LMain;")) { //todo: delete Main (just for testing purposes)
+            //filter 1: subtype is not allowed to be from java/* and subtype is not allowed to be Main or a Factory helper
+            if(!subType.packageName().startsWith("java/") && !subTypeName.equals("LMain;") && !isExcludedFactoryClass(subType)) { //todo: delete Main (just for testing purposes)
 
                 // Add null relation
                 result.append(String.format("\n  (and (= x!0 \"null\")  (= x!1 \"%s\"))", subTypeName));
@@ -125,8 +130,8 @@ public class Opal {
                 ch.allSupertypes(subType, true).foreach(superType -> {
                     String superTypeName = superType.toJVMTypeName();
 
-                    // filter 2: Supertype is not allowed to be Object or Main
-                    if (!superTypeName.equals("LMain;")) {
+                    // filter 2: Supertype is not allowed to be Object, Main, or a Factory helper
+                    if (!superTypeName.equals("LMain;") && !isExcludedFactoryClass(superType)) {
                         result.append(String.format("\n  (and (= x!0 \"%s\")  (= x!1 \"%s\"))", subTypeName, superTypeName));
                         relationCount[0]++;
                     }
@@ -189,8 +194,7 @@ public class Opal {
         DeclaredMethods methods = (DeclaredMethods) this.project.get(DeclaredMethodsKey$.MODULE$);
 
         for (ClassType type : types) {
-            // Hinweis: classFile wird im Originalcode zwar abgerufen, aber nicht genutzt.
-            // Falls du es nicht brauchst, kann die Zeile entfallen.
+            if (isExcludedFactoryClass(type)) continue;
 
             methods.declaredMethods().filter(m ->
                     m.declaringClassType().equals(type) &&
@@ -354,6 +358,9 @@ public class Opal {
         result.add("null|NULL");
         types.foreach(tpe -> {
             if (tpe.packageName().contains("jdk")) {
+                return null;
+            }
+            if (isExcludedFactoryClass(tpe)) {
                 return null;
             }
             if (p.classFile(tpe).isEmpty()) {
