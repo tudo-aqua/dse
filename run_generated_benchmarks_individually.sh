@@ -2,125 +2,53 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_DIR="${SCRIPT_DIR}/src/test/resources/generated-examples-log-3"
+
+if [ $# -ne 2 ]; then
+  echo "Usage: $0 <test-java-file> <log-dir>"
+  echo "  <test-java-file>  Path to the Java test class (relative or absolute)"
+  echo "  <log-dir>         Directory where per-test log files will be written"
+  exit 1
+fi
+
+TEST_FILE="$1"
+if [ ! -f "${TEST_FILE}" ]; then
+  echo "Error: test file not found: ${TEST_FILE}"
+  exit 1
+fi
+
+TEST_CLASS="$(basename "${TEST_FILE}" .java)"
+
+LOG_DIR="$2"
+if [[ "${LOG_DIR}" != /* ]]; then
+  LOG_DIR="${SCRIPT_DIR}/${LOG_DIR}"
+fi
 mkdir -p "${LOG_DIR}"
 
-TESTS=(
-  com_google_code_gson__gson__2_8_8__CollectionTypeAdapterFactory__create__1da5ad1ada
-  com_google_code_gson__gson__2_8_8__Excluder__excludeField__ef406d01a3
-  com_google_code_gson__gson__2_8_8__GsonBuilder__registerTypeAdapter__ffd9eeaeeb
-  com_google_code_gson__gson__2_8_8__GsonBuilder__registerTypeHierarchyAdapter__5161328557
-  com_google_code_gson__gson__2_8_8__Gson__getAdapter__b09df9b215
-  com_google_code_gson__gson__2_8_8__Gson__getDelegateAdapter__72a2d60894
-  com_google_code_gson__gson__2_8_8__Gson__toJsonTree__6d0bc5fe10
-  com_google_code_gson__gson__2_8_8__Gson__toJson__87db1aff4f
-  com_google_code_gson__gson__2_8_8__JsonAdapterAnnotationTypeAdapterFactory__create__6e9a63c29c
-  com_google_code_gson__gson__2_8_8__JsonPrimitive__equals__0399f2ba27
-  com_google_code_gson__gson__2_8_8__MapTypeAdapterFactory__create__4f18c84209
-  com_google_code_gson__gson__2_8_8__ReflectiveTypeAdapterFactory__create__b0c0eb2c78
-  com_google_code_gson__gson__2_8_8__TypeAdapters__newFactoryForMultipleTypes__66802c1ca1
-  com_google_code_gson__gson__2_8_8__TypeAdapters__newFactory__acab8da5b1
-  com_google_code_gson__gson__2_8_8__TypeToken__isAssignableFrom__dd2ce09e99
-  com_google_guava__guava_collections__r03__ImmutableListMultimap__copyOf__59c71e5079
-  com_google_guava__guava_collections__r03__ImmutableListMultimap__of__6111a0a458
-  com_google_guava__guava_collections__r03__ImmutableListMultimap__of__9a424f6fb2
-  com_google_guava__guava_collections__r03__ImmutableListMultimap__of__c7af95c101
-  com_google_guava__guava_collections__r03__ImmutableSetMultimap__copyOf__6091ec3276
-  com_google_guava__guava_collections__r03__ImmutableSetMultimap__of__0c7721450b
-  com_google_guava__guava_collections__r03__ImmutableSetMultimap__of__122d39d00e
-  com_google_guava__guava_collections__r03__ImmutableSetMultimap__of__5b01c50dc7
-  com_google_guava__guava_collections__r03__ImmutableSortedMap__of__31b9084183
-  com_google_guava__guava_collections__r03__ImmutableSortedMap__of__8270247ed9
-  com_google_guava__guava_collections__r03__ImmutableSortedMap__of__f0670aef3d
-  com_google_guava__guava_collections__r03__ImmutableSortedMap__of__fd1d0ee3be
-  com_google_guava__guava_collections__r03__ImmutableSortedSet__of__a8aa8a4d89
-  com_google_guava__guava_collections__r03__Iterables__getLast__faa1e1d1aa
-  com_google_guava__guava_collections__r03__LinkedListMultimap__replaceValues__13136ae702
-  com_google_guava__guava_collections__r03__Maps__difference__bf8061474b
-  com_zaxxer__HikariCP__7_1_0__HikariConfig__addDataSourceProperty__ebba7b8524
-  com_zaxxer__HikariCP__7_1_0__HikariConfig__addHealthCheckProperty__46af83e80d
-  com_zaxxer__HikariCP__7_1_0__HikariConfig__copyStateTo__cc420e6d8f
-  com_zaxxer__HikariCP__7_1_0__HikariConfigurationUtil__loadConfiguration__a941e0a63c
-  com_zaxxer__HikariCP__7_1_0__PrometheusHistogramMetricsTrackerFactory__create__f0f482d634
-  com_zaxxer__HikariCP__7_1_0__PrometheusMetricsTrackerFactory__create__218f828871
-  com_zaxxer__HikariCP__7_1_0__PropertyElf__getProperty__c8f45b48ab
-  com_zaxxer__HikariCP__7_1_0__PropertyElf__setTargetFromProperties__22789ad5e5
-  com_zaxxer__HikariCP__7_1_0__UtilityElf__createInstance__f5e3a529c9
-  com_zaxxer__HikariCP__7_1_0__UtilityElf__createThreadPoolExecutor__268c4fd2fd
-  com_zaxxer__HikariCP__7_1_0__UtilityElf__createThreadPoolExecutor__e288df4273
-  com_zaxxer__HikariCP__7_1_0__UtilityElf__safeIsAssignableFrom__06af2b29cd
-  commons_io__commons_io__2_21_0__FilenameUtils__wildcardMatch__86e8d5d5ba
-  commons_io__commons_io__2_21_0__IOStream__collect__c1661de318
-  commons_io__commons_io__2_21_0__Tailer__create__a2a786027c
-  org_apache_commons__commons_collections4__4_5_0__CollectionUtils__collate__afc9583334
-  org_apache_commons__commons_collections4__4_5_0__CollectionUtils__get__f0c6b7357b
-  org_apache_commons__commons_collections4__4_5_0__CollectionUtils__removeAll__839febd704
-  org_apache_commons__commons_collections4__4_5_0__CollectionUtils__sizeIsEmpty__968d9cd703
-  org_apache_commons__commons_collections4__4_5_0__CollectionUtils__size__7ede5d54e0
-  org_apache_commons__commons_collections4__4_5_0__CollectionUtils__subtract__68a5cb7f61
-  org_apache_commons__commons_collections4__4_5_0__FixedOrderComparator__compare__d92d442a01
-  org_apache_commons__commons_collections4__4_5_0__Flat3Map__put__4ec7f60313
-  org_apache_commons__commons_collections4__4_5_0__InstantiateFactory__instantiateFactory__49cdbbbff3
-  org_apache_commons__commons_collections4__4_5_0__IterableUtils__partition__9d8a276bdf
-  org_apache_commons__commons_collections4__4_5_0__IteratorUtils__getIterator__bb37e0006c
-  org_apache_commons__commons_collections4__4_5_0__IteratorUtils__toString__ef5a3d9ed3
-  org_apache_commons__commons_collections4__4_5_0__ListOrderedMap__put__0ce4882e48
-  org_apache_commons__commons_collections4__4_5_0__MultiKeyMap__put__32f1ee0830
-  org_apache_commons__commons_collections4__4_5_0__MultiKeyMap__put__3515a0f1f8
-  org_apache_commons__commons_collections4__4_5_0__MultiKeyMap__put__39a571c0fa
-  org_apache_commons__commons_collections4__4_5_0__MultiKeyMap__put__3ccbb01d63
-  org_apache_commons__commons_collections4__4_5_0__MultiKeyMap__removeAll__74423dd0d7
-  org_apache_commons__commons_collections4__4_5_0__MultiKeyMap__removeAll__c30e7951c0
-  org_apache_commons__commons_lang3__3_17_0__DiffBuilder__append__1f3fb5326c
-  org_apache_commons__commons_lang3__3_17_0__EnumUtils__getFirstEnumIgnoreCase__3ec101a0da
-  org_apache_commons__commons_lang3__3_17_0__EventUtils__addEventListener__78c5d35d94
-  org_apache_commons__commons_lang3__3_17_0__FastDatePrinter__format__8444af2003
-  org_apache_commons__commons_lang3__3_17_0__FormattableUtils__append__9d864be05a
-  org_apache_commons__commons_lang3__3_17_0__MethodUtils__getMatchingAccessibleMethod__3d6354460e
-  org_apache_commons__commons_lang3__3_17_0__MethodUtils__getMatchingMethod__551cdf6430
-  org_apache_commons__commons_lang3__3_17_0__StringUtils__getFuzzyDistance__e10d6db185
-  org_apache_commons__commons_lang3__3_17_0__StringUtils__substringsBetween__7391c9f03d
-  org_apache_commons__commons_lang3__3_17_0__TypeUtils__getRawType__c52898b404
-  org_apache_commons__commons_lang3__3_17_0__TypeUtils__unrollVariables__f85aefcd3c
-  org_apache_commons__commons_lang3__3_17_0__WordUtils__wrap__4e095a7753
-  org_apache_logging_log4j__log4j_core__2_25_3__AbstractConfiguration__stop__ab1f0fe9de
-  org_apache_logging_log4j__log4j_core__2_25_3__AbstractManager__getManager__95185578a0
-  org_apache_logging_log4j__log4j_core__2_25_3__CronExpression__getTimeAfter__778e77128c
-  org_apache_logging_log4j__log4j_core__2_25_3__DefaultMergeStrategy__mergConfigurations__5abb6618d4
-  org_apache_logging_log4j__log4j_core__2_25_3__DefaultMergeStrategy__mergeRootProperties__ff43a6772f
-  org_apache_logging_log4j__log4j_core__2_25_3__FastDatePrinter__format__d877525caf
-  org_apache_logging_log4j__log4j_core__2_25_3__FileAppender__createAppender__99d12991cf
-  org_apache_logging_log4j__log4j_core__2_25_3__InternalLoggerRegistry__computeIfAbsent__2a2ed62ebb
-  org_apache_logging_log4j__log4j_core__2_25_3__Log4jContextFactory__getContext__e3c4d4bb63
-  org_apache_logging_log4j__log4j_core__2_25_3__MemoryMappedFileAppender__createAppender__4afce0c24b
-  org_apache_logging_log4j__log4j_core__2_25_3__PatternParser__parse__c37f744278
-  org_apache_logging_log4j__log4j_core__2_25_3__PluginElementVisitor__visit__0053290fa6
-  org_apache_logging_log4j__log4j_core__2_25_3__RandomAccessFileAppender__createAppender__fee243a1dc
-  org_apache_logging_log4j__log4j_core__2_25_3__RollingFileAppender__createAppender__ae5e1e3dc6
-  org_apache_logging_log4j__log4j_core__2_25_3__ScriptFilter__filter__c9502397a5
-  org_apache_logging_log4j__log4j_core__2_25_3__TypeUtil__isAssignable__012f3b0580
-  org_jetbrains_kotlin__kotlin_stdlib__2_4_0__SpreadBuilder__addSpread__65db37481d
-  org_jsoup__jsoup__1_18_1__HttpConnection__data__db85dcdef0
-  org_jsoup__jsoup__1_18_1__Jsoup__clean__770c6eb227
-  org_jsoup__jsoup__1_18_1__NodeTraversor__traverse__b6f68a82b6
-  org_jsoup__jsoup__1_18_1__Node__wrap__ea8efeee7b
-  org_jsoup__jsoup__1_18_1__Safelist__addEnforcedAttribute__b4bbcfc084
-  org_jsoup__jsoup__1_18_1__Safelist__addProtocols__60bb86a329
-  org_jsoup__jsoup__1_18_1__Safelist__getEnforcedAttributes__d374782f14
-  org_jsoup__jsoup__1_18_1__Safelist__isSafeAttribute__d7bbd45860
-  org_jsoup__jsoup__1_18_1__Safelist__removeAttributes__e9e7c92fe0
-  org_jsoup__jsoup__1_18_1__Safelist__removeEnforcedAttribute__ed7fdb91a1
-  org_jsoup__jsoup__1_18_1__Safelist__removeProtocols__11f2261242
-  org_jsoup__jsoup__1_18_1__Selector__select__d511da94e5
-  org_jsoup__jsoup__1_18_1__Tag__valueOf__a31158c300
-  org_jsoup__jsoup__1_18_1__W3CDom__asString__2e2b575178
-)
+TESTS=()
+while IFS= read -r line; do
+  TESTS+=("${line}")
+done < <(awk '
+  /@Test([^A-Za-z_]|$)/ { want=1; next }
+  want {
+    if (match($0, /void[[:space:]]+[A-Za-z_][A-Za-z0-9_]*/)) {
+      name = substr($0, RSTART + 5, RLENGTH - 5)
+      gsub(/^[[:space:]]+/, "", name)
+      print name
+      want = 0
+    } else if (/[{};]/) { want = 0 }
+  }
+' "${TEST_FILE}")
+
+if [ ${#TESTS[@]} -eq 0 ]; then
+  echo "Error: no @Test methods found in ${TEST_FILE}"
+  exit 1
+fi
 
 TOTAL=${#TESTS[@]}
 PASSED=0
 FAILED=0
 
-echo "Running ${TOTAL} tests individually. Logs -> ${LOG_DIR}"
+echo "Running ${TOTAL} tests of ${TEST_CLASS} individually. Logs -> ${LOG_DIR}"
 echo "---"
 
 for method in "${TESTS[@]}"; do
@@ -132,7 +60,7 @@ for method in "${TESTS[@]}"; do
     -DargLine="-Xss128m" \
     -DfailIfNoTests=false \
     -Dsurefire.failIfNoSpecifiedTests=false \
-    -Dtest="GeneratedBenchmarksTest#${method}" \
+    -Dtest="${TEST_CLASS}#${method}" \
     test > "${log_file}" 2>&1
   exit_code=$?
   set -e
