@@ -17,6 +17,7 @@ target/*
 !/src/main/resources/constructor/SummaryMain.class
 /src/test/resources/generated-examples
 /src/test/resources/generated-examples-ICSE2027a
+/src/test/resources/generated-examples-ICSE2027b
 /src/test/resources/generated-examples-log*
 ConstructurBluePrint.txt
 ConstructurDeclarations.txt

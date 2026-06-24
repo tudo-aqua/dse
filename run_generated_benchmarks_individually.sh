@@ -44,17 +44,37 @@ if [ ${#TESTS[@]} -eq 0 ]; then
   exit 1
 fi
 
+format_duration() {
+  local secs=$1
+  local h=$((secs / 3600))
+  local m=$(((secs % 3600) / 60))
+  local s=$((secs % 60))
+  if [ ${h} -gt 0 ]; then
+    printf "%dh %02dm %02ds" ${h} ${m} ${s}
+  elif [ ${m} -gt 0 ]; then
+    printf "%dm %02ds" ${m} ${s}
+  else
+    printf "%ds" ${s}
+  fi
+}
+
 TOTAL=${#TESTS[@]}
 PASSED=0
 FAILED=0
+INDEX=0
 
 echo "Running ${TOTAL} tests of ${TEST_CLASS} individually. Logs -> ${LOG_DIR}"
+echo "Started at: $(date '+%Y-%m-%d %H:%M:%S')"
 echo "---"
 
-for method in "${TESTS[@]}"; do
-  log_file="${LOG_DIR}/${method}.txt"
-  printf "%-90s " "${method}"
+run_start=${SECONDS}
 
+for method in "${TESTS[@]}"; do
+  INDEX=$((INDEX + 1))
+  log_file="${LOG_DIR}/${method}.txt"
+  printf "[%${#TOTAL}d/%d] %-90s " "${INDEX}" "${TOTAL}" "${method}"
+
+  test_start=${SECONDS}
   set +e
   mvn -f "${SCRIPT_DIR}/pom.xml" \
     -DargLine="-Xss128m" \
@@ -64,16 +84,20 @@ for method in "${TESTS[@]}"; do
     test > "${log_file}" 2>&1
   exit_code=$?
   set -e
+  test_elapsed=$((SECONDS - test_start))
 
   if [ ${exit_code} -eq 0 ]; then
-    echo "PASS"
+    echo "PASS ($(format_duration ${test_elapsed}))"
     PASSED=$((PASSED + 1))
   else
-    echo "FAIL (exit ${exit_code})"
+    echo "FAIL (exit ${exit_code}, $(format_duration ${test_elapsed}))"
     FAILED=$((FAILED + 1))
   fi
 done
 
+total_elapsed=$((SECONDS - run_start))
+
 echo "---"
 echo "Results: ${PASSED} passed, ${FAILED} failed (of ${TOTAL} total)"
+echo "Total time: $(format_duration ${total_elapsed})"
 echo "Logs written to: ${LOG_DIR}"
