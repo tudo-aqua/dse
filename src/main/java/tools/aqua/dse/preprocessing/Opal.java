@@ -357,7 +357,11 @@ public class Opal {
         List<String> result = new ArrayList<>();
         result.add("null|NULL");
         types.foreach(tpe -> {
-            if (tpe.packageName().contains("jdk")) {
+            if (tpe.packageName().startsWith("jdk") ||
+                    tpe.packageName().startsWith("java") ||
+                    tpe.packageName().startsWith("tools/aqua") ||
+                    tpe.packageName().startsWith("sun")) {
+                System.out.println("[Opal] generatedAllConstructors: skipping " + tpe.packageName());
                 return null;
             }
             if (isExcludedFactoryClass(tpe)) {
