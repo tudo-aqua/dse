@@ -44,6 +44,34 @@ if [ ${#TESTS[@]} -eq 0 ]; then
   exit 1
 fi
 
+classify_failure() {
+  local log="$1"
+  local reason=""
+  set +e
+  if grep -q "COMPILATION ERROR" "${log}" 2>/dev/null; then
+    reason="COMPILE_ERROR"
+  elif grep -q "No tests were executed" "${log}" 2>/dev/null; then
+    reason="NO_TESTS"
+  else
+    local surefire_line
+    surefire_line=$(grep -E "^\[ERROR\][[:space:]]+[A-Za-z].*»" "${log}" 2>/dev/null | head -1)
+    if [ -n "${surefire_line}" ]; then
+      local after_arrow
+      after_arrow=$(printf "%s" "${surefire_line}" | sed 's/.*» //')
+      case "${after_arrow}" in
+        *TimeoutException*|*timed out after*)  reason="TIMEOUT" ;;
+        *AssertionError*DIVERGED*|*AssertionFailedError*DIVERGED*) reason="DIVERGED" ;;
+        *AssertionError*BUGGY*|*AssertionFailedError*BUGGY*)       reason="BUGGY" ;;
+        *) reason="ERROR: $(printf "%s" "${after_arrow}" | cut -c1-80)" ;;
+      esac
+    else
+      reason="UNKNOWN"
+    fi
+  fi
+  set -e
+  printf "%s" "${reason}"
+}
+
 format_duration() {
   local secs=$1
   local h=$((secs / 3600))
@@ -90,7 +118,7 @@ for method in "${TESTS[@]}"; do
     echo "PASS ($(format_duration ${test_elapsed}))"
     PASSED=$((PASSED + 1))
   else
-    echo "FAIL (exit ${exit_code}, $(format_duration ${test_elapsed}))"
+    echo "FAIL (exit ${exit_code}, $(format_duration ${test_elapsed})) — $(classify_failure "${log_file}")"
     FAILED=$((FAILED + 1))
   fi
 done
