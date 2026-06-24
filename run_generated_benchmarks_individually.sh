@@ -59,7 +59,7 @@ classify_failure() {
       local after_arrow
       after_arrow=$(printf "%s" "${surefire_line}" | sed 's/.*» //')
       case "${after_arrow}" in
-        *TimeoutException*|*timed out after*)  reason="TIMEOUT" ;;
+        *TimeoutException*|*"timed out after"*)  reason="TIMEOUT" ;;
         *AssertionError*DIVERGED*|*AssertionFailedError*DIVERGED*) reason="DIVERGED" ;;
         *AssertionError*BUGGY*|*AssertionFailedError*BUGGY*)       reason="BUGGY" ;;
         *) reason="ERROR: $(printf "%s" "${after_arrow}" | cut -c1-80)" ;;
