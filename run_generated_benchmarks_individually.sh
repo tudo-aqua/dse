@@ -71,24 +71,65 @@ classify_failure() {
     reason="COMPILE_ERROR"
   elif grep -q "No tests were executed" "${log}" 2>/dev/null; then
     reason="NO_TESTS"
+  elif grep -q "== dse.timeout reached after" "${log}" 2>/dev/null; then
+    reason="TIMEOUT"
   else
-    local surefire_line
-    surefire_line=$(grep -E "^\[ERROR\][[:space:]]+[A-Za-z].*»" "${log}" 2>/dev/null | head -1)
-    if [ -n "${surefire_line}" ]; then
-      local after_arrow
-      after_arrow=$(printf "%s" "${surefire_line}" | sed 's/.*» //')
-      case "${after_arrow}" in
-        *TimeoutException*|*"timed out after"*)  reason="TIMEOUT" ;;
-        *AssertionError*DIVERGED*|*AssertionFailedError*DIVERGED*) reason="DIVERGED" ;;
-        *AssertionError*BUGGY*|*AssertionFailedError*BUGGY*)       reason="BUGGY" ;;
-        *) reason="ERROR: $(printf "%s" "${after_arrow}" | cut -c1-200)" ;;
-      esac
+    local has_div=0 has_bug=0
+    grep -q "DIVERGED" "${log}" 2>/dev/null && has_div=1
+    grep -q "BUGGY"    "${log}" 2>/dev/null && has_bug=1
+    if   [ ${has_div} -eq 1 ] && [ ${has_bug} -eq 1 ]; then reason="DIVERGED+BUGGY"
+    elif [ ${has_div} -eq 1 ];                          then reason="DIVERGED"
+    elif [ ${has_bug} -eq 1 ];                          then reason="BUGGY"
     else
-      reason="UNKNOWN"
+      local surefire_line
+      surefire_line=$(grep -E "^\[ERROR\][[:space:]]+[A-Za-z].*»" "${log}" 2>/dev/null | head -1)
+      if [ -n "${surefire_line}" ]; then
+        local after_arrow
+        after_arrow=$(printf "%s" "${surefire_line}" | sed 's/.*» //')
+        case "${after_arrow}" in
+          *TimeoutException*|*"timed out after"*) reason="TIMEOUT" ;;
+          *) reason="ERROR: $(printf "%s" "${after_arrow}" | cut -c1-200)" ;;
+        esac
+      else
+        reason="UNKNOWN"
+      fi
     fi
   fi
   set -e
   printf "%s" "${reason}"
+}
+
+extract_stats() {
+  local log="$1"
+  awk '
+    /^\{#PATHS=/ { last = $0 }
+    END {
+      if (last == "") exit
+      sub(/\r$/, "", last)
+      sub(/^\{/, "", last)
+      sub(/\}.*$/, "", last)
+      n = split(last, parts, /,[[:space:]]*/)
+      for (i = 1; i <= n; i++) {
+        if (split(parts[i], kv, "=") == 2) {
+          k = kv[1]; v = kv[2]
+          gsub(/^[[:space:]]+|[[:space:]]+$/, "", k)
+          gsub(/^[[:space:]]+|[[:space:]]+$/, "", v)
+          vals[k] = v
+        }
+      }
+      nkeys = split("#EXECUTED_PATHS ERROR OK UNSAT SKIPPED", keys, " ")
+      out = ""
+      for (i = 1; i <= nkeys; i++) {
+        k = keys[i]
+        if (k in vals) {
+          disp = k; sub(/^#/, "", disp)
+          out = out disp "=" vals[k] " "
+        }
+      }
+      sub(/ $/, "", out)
+      if (out != "") print out
+    }
+  ' "${log}" 2>/dev/null
 }
 
 format_duration() {
@@ -133,29 +174,34 @@ run_single_test() {
 
   rm -f "${RUNNING_DIR}/${method}"
 
+  local stats
+  stats=$(extract_stats "${log_file}")
+  local stats_suffix=""
+  [ -n "${stats}" ] && stats_suffix=" | ${stats}"
+
   # Clear the in-place status line before printing a result (TTY only)
   local pfx=""
   [ "${IS_TTY}" = "1" ] && pfx=$'\r\e[2K'
 
   local width=${#TOTAL}
   if [ ${exit_code} -eq 0 ]; then
-    printf "PASS\t%d\n" "${test_elapsed}" > "${RESULTS_DIR}/${method}"
+    printf "PASS\t%d\t%s\n" "${test_elapsed}" "${stats}" > "${RESULTS_DIR}/${method}"
     local done
     done=$(ls -1 "${RESULTS_DIR}" | wc -l | tr -d ' ')
-    printf '%s[%*d/%d] %sPASS%s %-80s (%s)\n' \
+    printf '%s[%*d/%d] %sPASS%s %-80s (%s)%s\n' \
       "${pfx}" "${width}" "${done}" "${TOTAL}" \
-      "${C_PASS}" "${C_RESET}" "${method}" "$(format_duration ${test_elapsed})"
+      "${C_PASS}" "${C_RESET}" "${method}" "$(format_duration ${test_elapsed})" "${stats_suffix}"
   else
     local reason
     reason=$(classify_failure "${log_file}")
-    printf "FAIL\t%d\t%s\n" "${test_elapsed}" "${reason}" > "${RESULTS_DIR}/${method}"
+    printf "FAIL\t%d\t%s\t%s\n" "${test_elapsed}" "${reason}" "${stats}" > "${RESULTS_DIR}/${method}"
     touch "${FAILED_DIR}/${method}"
     local done
     done=$(ls -1 "${RESULTS_DIR}" | wc -l | tr -d ' ')
-    printf '%s[%*d/%d] %sFAIL%s %-80s (%s, exit %d) — %s\n' \
+    printf '%s[%*d/%d] %sFAIL%s %-80s (%s, exit %d) — %s%s\n' \
       "${pfx}" "${width}" "${done}" "${TOTAL}" \
       "${C_FAIL}" "${C_RESET}" "${method}" \
-      "$(format_duration ${test_elapsed})" "${exit_code}" "${reason}"
+      "$(format_duration ${test_elapsed})" "${exit_code}" "${reason}" "${stats_suffix}"
   fi
 }
 
@@ -222,7 +268,7 @@ status_updater() {
   done
 }
 
-export -f run_single_test classify_failure format_duration print_status_line
+export -f run_single_test classify_failure extract_stats format_duration print_status_line
 export LOG_DIR SCRIPT_DIR TEST_CLASS C_PASS C_FAIL C_RESET IS_TTY
 
 TOTAL=${#TESTS[@]}
