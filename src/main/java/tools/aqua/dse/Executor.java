@@ -73,6 +73,7 @@ public class Executor {
             constructors,
 //            generateConstructorCount(chosenConstructors),
 //            generateConstructorIds(chosenConstructors),
+            "-Dconcolic.max.object.annotation.depth=" + config.getMaxObjectAnnotationDepth(),
             this.executorArgs
         };
         System.out.println(String.join(" ", cmd));

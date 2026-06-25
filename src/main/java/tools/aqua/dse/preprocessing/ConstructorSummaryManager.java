@@ -275,6 +275,7 @@ public class ConstructorSummaryManager {
         props.setProperty("dse.dp.incremental", "false");
         props.setProperty("dse.terminate.on", "completion");
         props.setProperty("dse.explore", "BFS");
+        props.setProperty("concolic.max.object.annotation.depth", "0");
 
         Config config = Config.fromProperties(props);
         DSE dse = new DSE(config);

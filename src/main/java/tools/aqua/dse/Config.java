@@ -90,6 +90,7 @@ public class Config {
 
     private boolean constructorSummary = false;
     private boolean constructorBlueprintCache = false;
+    private int maxObjectAnnotationDepth = 0;
 
     private SmtProblemManager smtProblemManager;
 
@@ -189,6 +190,8 @@ public class Config {
 
     public boolean isWitness() { return witness; }
 
+    public int getMaxObjectAnnotationDepth() { return maxObjectAnnotationDepth; }
+
 
     public double getFraction() {
         return fraction;
@@ -266,6 +269,10 @@ public class Config {
 
         if (props.containsKey("dse.constructor.blueprint.cache")) {
             this.constructorBlueprintCache = Boolean.parseBoolean(props.getProperty("dse.constructor.blueprint.cache"));
+        }
+
+        if (props.containsKey("concolic.max.object.annotation.depth")) {
+            this.maxObjectAnnotationDepth = Integer.parseInt(props.getProperty("concolic.max.object.annotation.depth"));
         }
 
         if (props.containsKey("iflow.fraction")) {
