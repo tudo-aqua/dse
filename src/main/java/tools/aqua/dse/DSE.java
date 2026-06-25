@@ -50,7 +50,14 @@ public class DSE {
 
         List<List<String>> flows = new LinkedList<>();
 
+        long timeoutMs = config.getTimeoutSeconds() * 1000L;
+        long deadline = timeoutMs > 0 ? System.currentTimeMillis() + timeoutMs : Long.MAX_VALUE;
+
         while (explorer.hasNextValuation()) {
+            if (System.currentTimeMillis() >= deadline) {
+                System.out.println("== dse.timeout reached after " + config.getTimeoutSeconds() + "s, aborting exploration.");
+                break;
+            }
             Valuation val = explorer.getNextValuation();
 //            SolverContext solverContext = config.getSolverContext();
 
@@ -104,7 +111,14 @@ public class DSE {
 
         List<List<String>> flows = new LinkedList<>();
 
+        long timeoutMs = config.getTimeoutSeconds() * 1000L;
+        long deadline = timeoutMs > 0 ? System.currentTimeMillis() + timeoutMs : Long.MAX_VALUE;
+
         while (explorer.hasNextValuation()) {
+            if (System.currentTimeMillis() >= deadline) {
+                System.out.println("== dse.timeout reached after " + config.getTimeoutSeconds() + "s, aborting exploration.");
+                break;
+            }
             Valuation val = explorer.getNextValuation();
 
             //todo: Always working??? Are there situations where there are already __object_constructors????

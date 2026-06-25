@@ -96,6 +96,8 @@ public class Config {
 
     private boolean baselineEvaluation;
 
+    private long timeoutSeconds = 0;
+
     private Config(Properties properties) {
         this.properties = properties;
     }
@@ -275,6 +277,9 @@ public class Config {
             this.maxObjectAnnotationDepth = Integer.parseInt(props.getProperty("concolic.max.object.annotation.depth"));
         }
 
+        if (props.containsKey("dse.timeout")) {
+            this.timeoutSeconds = Long.parseLong(props.getProperty("dse.timeout"));
+        }
         if (props.containsKey("iflow.fraction")) {
             this.fraction = Double.parseDouble(props.getProperty("iflow.fraction"));
         }
@@ -367,5 +372,9 @@ public class Config {
 
     public boolean isBaselineEvaluation() {
         return baselineEvaluation;
+    }
+
+    public long getTimeoutSeconds() {
+        return timeoutSeconds;
     }
 }
