@@ -237,7 +237,9 @@ public class ConstructorSummaryManager {
             traces.addAll(this.performDseOnConstructor("<>"+signature));
         }
 
-        traces.removeIf(t -> t == null || t.getTraceState() instanceof PathResult.AbortResult);
+        traces.removeIf(t -> t == null
+                || t.getTraceState() instanceof PathResult.AbortResult
+                || (t.getSummaries().isEmpty() && t.getDecisions().isEmpty()));
 
         //Collect objects
         List<String> objectsInAllTraces = traces.stream()
@@ -320,7 +322,8 @@ public class ConstructorSummaryManager {
                 Stream.concat(
                         summaryTrace.getSummaries().stream(),
                         decisionStrings.stream()
-                ).collect(Collectors.joining(" "))
+                ).filter(s -> s != null && !s.isEmpty())
+                        .collect(Collectors.joining(" "))
         );
 
         erg = addObjectPrefixToPrimitives(erg, "__object_0");
