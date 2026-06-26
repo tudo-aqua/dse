@@ -131,7 +131,7 @@ public class Opal {
                     String superTypeName = superType.toJVMTypeName();
 
                     // filter 2: Supertype is not allowed to be Object, Main, or a Factory helper
-                    if (!superTypeName.equals("LMain;") && !isExcludedFactoryClass(superType)) {
+                    if (!superTypeName.equals("LMain;") && !superTypeName.equals("Ljava/lang/Object;") && !isExcludedFactoryClass(superType)) {
                         result.append(String.format("\n  (and (= x!0 \"%s\")  (= x!1 \"%s\"))", subTypeName, superTypeName));
                         relationCount[0]++;
                     }
@@ -195,6 +195,7 @@ public class Opal {
 
         for (ClassType type : types) {
             if (isExcludedFactoryClass(type)) continue;
+            if (type.toJVMTypeName().equals("Ljava/lang/Object;")) continue;
 
             methods.declaredMethods().filter(m ->
                     m.declaringClassType().equals(type) &&
@@ -357,6 +358,10 @@ public class Opal {
         List<String> result = new ArrayList<>();
         result.add("null|NULL");
         types.foreach(tpe -> {
+            if (tpe.toJVMTypeName().equals("Ljava/lang/Object;")) {
+                result.add("Ljava/lang/Object;|()V|");
+                return null;
+            }
             if (tpe.packageName().startsWith("jdk") ||
                     tpe.packageName().startsWith("java") ||
                     tpe.packageName().startsWith("tools/aqua") ||
