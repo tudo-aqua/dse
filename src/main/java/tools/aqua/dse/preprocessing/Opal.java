@@ -34,35 +34,34 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Bindeglied zwischen dem OPAL-Framework und dem DSE-Preprocessing.
+ * Bridge between the OPAL framework and the DSE preprocessing pipeline.
  *
- * <p>Die Klasse lädt beim Erzeugen das Bytecode-Projekt unter {@code classPath} zusammen mit der
- * Java-Standardbibliothek ({@code JavaBase}) in ein OPAL-{@link Project}. Daraus werden drei
- * statische SMT-Artefakte erzeugt:
+ * <p>On construction the class loads the bytecode project at {@code classPath} together with the
+ * Java standard library ({@code JavaBase}) into an OPAL {@link Project}. From this, three static
+ * SMT artefacts are produced:
  *
  * <ol>
- *   <li>Konstruktor-Signaturen für alle Subtypen, die an {@code Verifier.nondetObject}-Callsites
- *       erreichbar sind ({@link #generateSignaturesOfPossibleConstructorCallsFromNondetObject}).</li>
- *   <li>SMT-Definition {@code obj.extends} der Vererbungshierarchie
+ *   <li>Constructor signatures for all subtypes reachable at {@code Verifier.nondetObject}
+ *       call-sites ({@link #generateSignaturesOfPossibleConstructorCallsFromNondetObject}).</li>
+ *   <li>SMT definition {@code obj.extends} of the inheritance hierarchy
  *       ({@link #generateExtendsSummary(Set)}).</li>
- *   <li>SMT-Definition {@code obj.method.of} der Polymorphie-Tabelle
+ *   <li>SMT definition {@code obj.method.of} of the polymorphism table
  *       ({@link #generatePolymorphismSummary(Set)}).</li>
  * </ol>
  *
- * <p>Die für die Summaries relevante Typmenge wird über
- * {@link #reachableTypesFromConstructors(int)} konstruktor-getrieben berechnet und schließt
- * sowohl Project- als auch Library-Klassen ein.
+ * <p>The type set relevant for the summaries is computed constructor-driven via
+ * {@link #reachableTypesFromConstructors(int)} and includes both project and library classes.
  */
 public class Opal {
     private final Project project;
 
     /**
-     * Lädt das Bytecode-Projekt unter {@code classPath} und die Java-Standardbibliothek in ein
-     * OPAL-{@link Project}.
+     * Loads the bytecode project at {@code classPath} together with the Java standard library into
+     * an OPAL {@link Project}.
      *
-     * <p>RTA-Callgraph und Klassenhierarchie werden lazy beim ersten Zugriff von OPAL aufgebaut.
+     * <p>The RTA call graph and class hierarchy are built lazily by OPAL on first access.
      *
-     * @param classPath Pfad zum Verzeichnis oder JAR, das die Project-Klassen enthält.
+     * @param classPath path to the directory or JAR containing the project classes.
      */
     public Opal(String classPath) {
         System.out.println("[Opal] Loading project from: " + classPath);
@@ -76,11 +75,11 @@ public class Opal {
     }
 
     /**
-     * Prüft, ob {@code t} eine interne Factory-Hilfsklasse ist, die von Summaries ausgeschlossen
-     * werden soll ({@code LFactories;} oder {@code LFactories$*Factory;}).
+     * Returns {@code true} if {@code t} is an internal factory helper class that should be
+     * excluded from all summaries ({@code LFactories;} or {@code LFactories$*Factory;}).
      *
-     * @param t zu prüfender Typ.
-     * @return {@code true}, wenn der Typ übersprungen werden soll.
+     * @param t type to check.
+     * @return {@code true} if the type should be skipped.
      */
     private static boolean isExcludedFactoryClass(ClassType t) {
         String n = t.toJVMTypeName();
@@ -88,13 +87,12 @@ public class Opal {
     }
 
     /**
-     * Liefert eine sortierte Liste aller Project-Klassen (ohne {@code Main} und Factory-Hilfsklassen).
+     * Returns a sorted list of all project classes, excluding {@code Main} and factory helpers.
      *
-     * <p>Wird u.a. von der Legacy-Überladung {@link #generatePolymorphismSummary(List)} verwendet.
-     * Für die konstruktor-getriebene Analyse steht {@link #reachableTypesFromConstructors(int)}
-     * zur Verfügung.
+     * <p>Used among others by the legacy overload {@link #generatePolymorphismSummary(List)}.
+     * For the constructor-driven analysis use {@link #reachableTypesFromConstructors(int)} instead.
      *
-     * @return sortierte Liste von {@link KlassIdentifier}-Einträgen.
+     * @return sorted list of {@link KlassIdentifier} entries.
      */
     public List<KlassIdentifier> extractKlassesFromClassPath() {
         //todo: Is there a simpler way to get all classes?
@@ -125,14 +123,13 @@ public class Opal {
 
 
     /**
-     * Erzeugt die SMT-Definition {@code obj.extends} eingeschränkt auf die übergebene erreichbare
-     * Typmenge.
+     * Generates the SMT definition {@code obj.extends} restricted to the given reachable type set.
      *
-     * <p>Jeder Typ in {@code reachable} erhält eine {@code null}-Kante sowie Kanten zu all seinen
-     * transitiven Supertypen, sofern diese ebenfalls in {@code reachable} enthalten sind.
-     * {@code java.lang.Object}, {@code Main} und Factory-Hilfsklassen werden ausgeschlossen.
+     * <p>Each type in {@code reachable} receives a {@code null} edge as well as edges to all its
+     * transitive supertypes, provided those supertypes are also contained in {@code reachable}.
+     * {@code java.lang.Object}, {@code Main}, and factory helpers are excluded.
      *
-     * <p>Beispiel-Ausgabe (x!0 = Subtyp, x!1 = Supertyp):
+     * <p>Example output (x!0 = subtype, x!1 = supertype):
      * <pre>{@code
      * (define-fun obj.extends ((x!0 String) (x!1 String)) Bool
      * (ite (or
@@ -145,9 +142,9 @@ public class Opal {
      * )
      * }</pre>
      *
-     * @param reachable Typmenge, auf die die Ausgabe beschränkt wird (z.B. aus
+     * @param reachable type set to restrict the output to (e.g. from
      *                  {@link #reachableTypesFromConstructors(int)}).
-     * @return SMT-LibS-String der {@code obj.extends}-Definition.
+     * @return SMT-LibS string of the {@code obj.extends} definition.
      */
     public String generateExtendsSummary(Set<ClassType> reachable) {
         StringBuilder result = new StringBuilder();
@@ -196,12 +193,12 @@ public class Opal {
     }
 
     /**
-     * Erzeugt die SMT-Definition {@code obj.extends} auf Basis aller Project-Klassen.
+     * Generates the SMT definition {@code obj.extends} based on all project classes.
      *
-     * @return SMT-LibS-String der {@code obj.extends}-Definition.
-     * @deprecated Verwendet ungefiltert alle Project-Klassen. Stattdessen
-     *             {@link #generateExtendsSummary(Set)} mit der über
-     *             {@link #reachableTypesFromConstructors(int)} berechneten Typmenge verwenden.
+     * @return SMT-LibS string of the {@code obj.extends} definition.
+     * @deprecated Uses all project classes without filtering. Use
+     *             {@link #generateExtendsSummary(Set)} with the type set computed by
+     *             {@link #reachableTypesFromConstructors(int)} instead.
      */
     @Deprecated
     public String generateExtendsSummary() {
@@ -291,13 +288,13 @@ public class Opal {
     }
 
     /**
-     * Sammelt für jeden Typ in {@code types} alle deklarierten (nicht geerbten, nicht
-     * initialisierenden) Methoden und liefert sie als {@link PolymorphyInformation}-Liste.
+     * Collects all declared (non-inherited, non-initializer) methods for each type in {@code types}
+     * and returns them as a list of {@link PolymorphyInformation}.
      *
-     * <p>{@code java.lang.Object} und Factory-Hilfsklassen werden übersprungen.
+     * <p>{@code java.lang.Object} and factory helpers are skipped.
      *
-     * @param types Array von Typen, für die Methodendeklarationen gesammelt werden.
-     * @return Liste der gefundenen Polymorphie-Einträge.
+     * @param types array of types for which method declarations are collected.
+     * @return list of polymorphism entries found.
      */
     public List<PolymorphyInformation> collectPolymorphyInformation(ClassType[] types) {
         List<PolymorphyInformation> polymorphicInfos = new ArrayList<>();
@@ -328,35 +325,34 @@ public class Opal {
 
 
     /**
-     * Identifikator eines Branch-Knotens im Entscheidungsbaum des Polymorphie-Dispatches.
+     * Identifier of a branch node in the polymorphism dispatch decision tree.
      *
-     * @param branchId    laufende ID dieses Branches innerhalb aller polymorphen Methoden.
-     * @param branchCount Gesamtanzahl der Branches (= Anzahl distinker polymorphen Methoden).
+     * @param branchId    running ID of this branch among all polymorphic methods.
+     * @param branchCount total number of branches (= number of distinct polymorphic methods).
      */
     public record BranchData(int branchId,
                              int branchCount) {}
 
     /**
-     * Eindeutiger Schlüssel einer polymorphen Methodendefinition bestehend aus Name,
-     * JVM-Deskriptor und deklarierender Klasse.
+     * Unique key of a polymorphic method definition consisting of name, JVM descriptor, and
+     * declaring class.
      *
-     * @param methodName       einfacher Methodenname.
-     * @param methodDescriptor JVM-Methodendeskriptor, z.B. {@code (I)V}.
-     * @param declaringClass   JVM-Typname der deklarierenden Klasse, z.B. {@code LA;}.
+     * @param methodName       simple method name.
+     * @param methodDescriptor JVM method descriptor, e.g. {@code (I)V}.
+     * @param declaringClass   JVM type name of the declaring class, e.g. {@code LA;}.
      */
     public record PolymorphicMethodDefinition(String methodName,
                                        String methodDescriptor,
                                        String declaringClass) {}
 
     /**
-     * Erzeugt eine Map von polymorphen Methodendefinitionen auf ihre Branch-Daten.
+     * Builds a map from polymorphic method definitions to their branch data.
      *
-     * <p>Jede distinkte {@link PolymorphicMethodDefinition} in {@code rawInfos} erhält eine
-     * eindeutige {@link BranchData#branchId()} sowie die Gesamtanzahl aller Branches als
-     * {@link BranchData#branchCount()}.
+     * <p>Each distinct {@link PolymorphicMethodDefinition} in {@code rawInfos} receives a unique
+     * {@link BranchData#branchId()} and the total branch count as {@link BranchData#branchCount()}.
      *
-     * @param rawInfos Rohdaten aus {@link #collectPolymorphyInformation(ClassType[])}.
-     * @return Map von Methodendefinition auf Branch-Metadaten.
+     * @param rawInfos raw data from {@link #collectPolymorphyInformation(ClassType[])}.
+     * @return map from method definition to branch metadata.
      */
     public Map<PolymorphicMethodDefinition, BranchData> createBranchInformationMap(List<PolymorphyInformation> rawInfos) {
         Map<PolymorphicMethodDefinition, Integer> countsMap = rawInfos.stream()
@@ -377,11 +373,11 @@ public class Opal {
     }
 
     /**
-     * Delegiert an {@link #collectPolymorphyInformation(ClassType[])} nach Konvertierung der
-     * {@link KlassIdentifier}-Liste in ein {@code ClassType[]}-Array.
+     * Delegates to {@link #collectPolymorphyInformation(ClassType[])} after converting the
+     * {@link KlassIdentifier} list to a {@code ClassType[]} array.
      *
-     * @param types Liste von Klassen-Identifikatoren.
-     * @return Liste der gefundenen Polymorphie-Einträge.
+     * @param types list of class identifiers.
+     * @return list of polymorphism entries found.
      */
     public List<PolymorphyInformation> collectPolymorphyInformation(List<KlassIdentifier> types) {
         ClassType[] classType = types.stream()
@@ -393,11 +389,11 @@ public class Opal {
     }
     
     /**
-     * Erzeugt die SMT-Definition {@code obj.method.of} eingeschränkt auf die übergebene
-     * erreichbare Typmenge.
+     * Generates the SMT definition {@code obj.method.of} restricted to the given reachable type
+     * set.
      *
-     * <p>Beispiel-Ausgabe (x!0 = aufrufende Klasse, x!1 = Methodenname,
-     * x!2 = JVM-Deskriptor, x!3 = definierende Klasse):
+     * <p>Example output (x!0 = accessing class, x!1 = method name, x!2 = JVM descriptor,
+     * x!3 = declaring class):
      * <pre>{@code
      * (define-fun obj.method.of ((x!0 String) (x!1 String) (x!2 String) (x!3 String)) Bool
      * (ite (or
@@ -408,9 +404,9 @@ public class Opal {
      * )
      * }</pre>
      *
-     * @param reachable Typmenge, auf die die Ausgabe beschränkt wird (z.B. aus
+     * @param reachable type set to restrict the output to (e.g. from
      *                  {@link #reachableTypesFromConstructors(int)}).
-     * @return SMT-LibS-String der {@code obj.method.of}-Definition.
+     * @return SMT-LibS string of the {@code obj.method.of} definition.
      */
     public String generatePolymorphismSummary(Set<ClassType> reachable) {
         ClassType[] types = reachable.toArray(new ClassType[0]);
@@ -418,20 +414,20 @@ public class Opal {
     }
 
     /**
-     * Erzeugt die SMT-Definition {@code obj.method.of} auf Basis einer {@link KlassIdentifier}-Liste.
+     * Generates the SMT definition {@code obj.method.of} from a {@link KlassIdentifier} list.
      *
-     * @param types Liste von Klassen-Identifikatoren.
-     * @return SMT-LibS-String der {@code obj.method.of}-Definition.
+     * @param types list of class identifiers.
+     * @return SMT-LibS string of the {@code obj.method.of} definition.
      */
     public String generatePolymorphismSummary(List<KlassIdentifier> types) {
         return generatePolymorphismSummaryInternal(collectPolymorphyInformation(types));
     }
 
     /**
-     * Gemeinsame Render-Logik für alle {@code generatePolymorphismSummary}-Überladungen.
+     * Shared rendering logic for all {@code generatePolymorphismSummary} overloads.
      *
-     * @param infos aufbereitete Polymorphie-Einträge.
-     * @return SMT-LibS-String der {@code obj.method.of}-Definition.
+     * @param infos prepared polymorphism entries.
+     * @return SMT-LibS string of the {@code obj.method.of} definition.
      */
     private String generatePolymorphismSummaryInternal(List<PolymorphyInformation> infos) {
         StringBuilder result = new StringBuilder();
@@ -472,17 +468,17 @@ public class Opal {
 
 
     /**
-     * Erzeugt alle Konstruktor-Signatur-Strings für die angegebenen Typen bis zur Nesting-Tiefe
+     * Generates all constructor signature strings for the given types up to nesting depth
      * {@code depth}.
      *
-     * <p>Format einer Signatur: {@code Klasse|Deskriptor|{P1}{P2}...{Pn}}.
-     * Primitive Parameter werden als leere Klammern {@code {}} kodiert. Referenz-Parameter werden
-     * rekursiv expandiert. {@code null|NULL} steht für den Nullwert.
+     * <p>Signature format: {@code Class|Descriptor|{P1}{P2}...{Pn}}.
+     * Primitive parameters are encoded as empty braces {@code {}}. Reference parameters are
+     * expanded recursively. {@code null|NULL} represents the null value.
      *
-     * <p>{@code java.lang.Object} wird als Sonderfall behandelt: es wird genau der
-     * Default-Konstruktor {@code Ljava/lang/Object;|()V|} eingetragen.
+     * <p>{@code java.lang.Object} is handled as a special case: exactly the default constructor
+     * entry {@code Ljava/lang/Object;|()V|} is added.
      *
-     * <p>Beispiel-Ausgabe für Typen {@code {B, C}}, Tiefe 1–3:
+     * <p>Example output for types {@code {B, C}}, depths 1–3:
      * <pre>{@code
      * -- Depth 1 --
      * LB;|()V|
@@ -500,10 +496,10 @@ public class Opal {
      * LC;|(LA;)V|{LC;|(LA;)V|{LC;|(LA;)V|{null|NULL}}}
      * }</pre>
      *
-     * @param p     OPAL-Projekt für den Zugriff auf Klassendateien und Klassenhierarchie.
-     * @param types Menge der zu betrachtenden Typen (typischerweise Subtypen eines Seed-Typs).
-     * @param depth maximale Nesting-Tiefe für Referenz-Parameter.
-     * @return Liste der generierten Konstruktor-Signatur-Strings inkl. {@code null|NULL}.
+     * @param p     OPAL project for access to class files and the class hierarchy.
+     * @param types set of types to consider (typically subtypes of a seed type).
+     * @param depth maximum nesting depth for reference parameters.
+     * @return list of generated constructor signature strings including {@code null|NULL}.
      */
     private static List<String> generatedAllConstructors(Project p, scala.collection.Set<ClassType> types, int depth) {
         System.out.println("[Opal] generatedAllConstructors: " + types.size() + " types, depth=" + depth);
@@ -549,22 +545,22 @@ public class Opal {
             Integer.parseInt(System.getProperty("dse.opal.maxConstructorSignatures", "1000000"));
 
     /**
-     * Expandiert die Parameter eines Konstruktors zu einem Kreuzprodukt von Signatur-Suffixen.
+     * Expands the parameters of a constructor into a Cartesian product of signature suffixes.
      *
-     * <p>Für jeden Parameter wird, abhängig von {@code depth} und Parametertyp, entweder
-     * {@code {null|NULL}} (bei depth == 1 und Referenztyp), das Kreuzprodukt rekursiv erzeugter
-     * Parameter-Signaturen (bei depth &gt; 1 und Referenztyp) oder {@code {}} (Primitiv) angehängt.
-     * Bei depth &gt; 1 und rein primitiven Parametern wird eine leere Liste zurückgegeben, um
-     * redundante Tiefenexpansionen zu vermeiden.
+     * <p>For each parameter, depending on {@code depth} and parameter type, either
+     * {@code {null|NULL}} (depth == 1 and reference type), the Cartesian product of recursively
+     * generated parameter signatures (depth &gt; 1 and reference type), or {@code {}} (primitive)
+     * is appended. At depth &gt; 1 with purely primitive parameters an empty list is returned to
+     * avoid redundant deep expansions.
      *
-     * <p>Überschreitet das Kreuzprodukt {@link #MAX_CONSTRUCTOR_SIGNATURES}, wird eine
-     * {@link IllegalStateException} geworfen.
+     * <p>If the Cartesian product exceeds {@link #MAX_CONSTRUCTOR_SIGNATURES}, an
+     * {@link IllegalStateException} is thrown.
      *
-     * @param p           OPAL-Projekt.
-     * @param constructor der zu expandierende Konstruktor.
-     * @param base        bereits aufgebautes Präfix der Form {@code Klasse|Deskriptor|}.
-     * @param depth       verbleibende Nesting-Tiefe.
-     * @return Liste von vollständigen Signatur-Strings mit expandierten Parametern.
+     * @param p           OPAL project.
+     * @param constructor the constructor to expand.
+     * @param base        already built prefix of the form {@code Class|Descriptor|}.
+     * @param depth       remaining nesting depth.
+     * @return list of complete signature strings with expanded parameters.
      */
     private static List<String> generateParametersString(Project p, Method constructor, String base, int depth) {
         if(depth > 1 && !constructor.descriptor().parameterTypes().exists(Type::isClassType))
@@ -606,16 +602,15 @@ public class Opal {
 
 
     /**
-     * Berechnet alle Konstruktor-Signaturen für eine konkrete Nesting-Tiefe {@code depth}.
+     * Computes all constructor signatures for a concrete nesting depth {@code depth}.
      *
-     * <p>Dazu wird über den RTA-Callgraph jede Callsite von
-     * {@code Verifier.nondetObject(Class, ObjectFactory)} gesucht. Per TAC-Dataflow-Analyse wird
-     * das {@code Class<?>}-Literal des ersten Arguments aufgelöst; anschließend werden alle
-     * Subtypen des aufgelösten Typs ermittelt und via {@link #generatedAllConstructors} zu
-     * Signaturen expandiert.
+     * <p>Every call-site of {@code Verifier.nondetObject(Class, ObjectFactory)} is located via the
+     * RTA call graph. TAC dataflow analysis resolves the {@code Class<?>} literal of the first
+     * argument; all subtypes of the resolved type are then expanded into signatures via
+     * {@link #generatedAllConstructors}.
      *
-     * @param depth Nesting-Tiefe für die Konstruktor-Expansion (muss &gt;= 1 sein).
-     * @return Liste der generierten Konstruktor-Signatur-Strings für diese Tiefe.
+     * @param depth nesting depth for constructor expansion (must be &gt;= 1).
+     * @return list of generated constructor signature strings for this depth.
      */
     private List<String> possibleObjectsFromNondetObjectWithDepth(int depth) {
         System.out.println("[Opal] possibleObjectsFromNondetObjectWithDepth: depth=" + depth);
@@ -736,15 +731,14 @@ public class Opal {
     }
 
     /**
-     * Aggregiert Konstruktor-Signaturen über alle Tiefen von 1 bis einschließlich {@code depth}.
+     * Aggregates constructor signatures across all depths from 1 up to and including {@code depth}.
      *
-     * <p>Ruft für jede Tiefe {@code i} (1 ≤ i ≤ depth) einmal
-     * {@link #possibleObjectsFromNondetObjectWithDepth(int)} auf und vereinigt die Ergebnisse.
-     * Duplikate werden vom Aufrufer ({@link tools.aqua.dse.preprocessing.ConstructorSummaryManager})
-     * per {@code distinct()} entfernt.
+     * <p>Calls {@link #possibleObjectsFromNondetObjectWithDepth(int)} once for each depth
+     * {@code i} (1 &le; i &le; depth) and merges the results. Duplicates are removed by the caller
+     * ({@link tools.aqua.dse.preprocessing.ConstructorSummaryManager}) via {@code distinct()}.
      *
-     * @param depth maximale Nesting-Tiefe.
-     * @return kombinierte Liste aller Konstruktor-Signatur-Strings.
+     * @param depth maximum nesting depth.
+     * @return combined list of all constructor signature strings.
      */
     public List<String> generateSignaturesOfPossibleConstructorCallsFromNondetObject(int depth) {
         System.out.println("[Opal] generateSignaturesOfPossibleConstructorCallsFromNondetObject: depth=" + depth);
@@ -758,12 +752,12 @@ public class Opal {
     }
 
     /**
-     * Rohdatum einer polymorphen Methodenverwendung.
+     * Raw datum of a polymorphic method use.
      *
-     * @param accessingClass   JVM-Typname der Klasse, in der die Methode verwendet wird (x!0).
-     * @param methodName       einfacher Methodenname (x!1).
-     * @param methodDescriptor JVM-Methodendeskriptor, z.B. {@code ()V} (x!2).
-     * @param declaringClass   JVM-Typname der Klasse, die die Methode deklariert (x!3).
+     * @param accessingClass   JVM type name of the class in which the method is used (x!0).
+     * @param methodName       simple method name (x!1).
+     * @param methodDescriptor JVM method descriptor, e.g. {@code ()V} (x!2).
+     * @param declaringClass   JVM type name of the class that declares the method (x!3).
      */
     public record PolymorphyInformation(
             String accessingClass,
@@ -777,16 +771,15 @@ public class Opal {
     // --------------------------------------------------
 
     /**
-     * Berechnet die transitive Sub- und Supertyp-Hülle aller Konstruktor-Seed-Typen.
+     * Computes the transitive sub- and supertype closure of all constructor seed types.
      *
-     * <p>Zuerst werden via {@link #collectConstructorSeedTypes(int)} alle Typen gesammelt, die
-     * an {@code nondetObject}-Callsites direkt oder als Konstruktor-Parameter erreichbar sind.
-     * Danach wird die Hülle durch {@code allSubtypes} und {@code allSupertypes} (je inkl.
-     * Selbst-Referenz) über die vollständige Opal-Klassenhierarchie expandiert — d.h. sowohl
-     * Project- als auch Library-Klassen werden berücksichtigt.
+     * <p>First, {@link #collectConstructorSeedTypes(int)} gathers all types reachable directly at
+     * {@code nondetObject} call-sites or as constructor parameters. The closure is then expanded
+     * via {@code allSubtypes} and {@code allSupertypes} (both inclusive) over the full OPAL class
+     * hierarchy — i.e. both project and library classes are included.
      *
-     * @param depth maximale Nesting-Tiefe für die Seed-Berechnung.
-     * @return Menge aller von Konstruktor-Seeds aus erreichbarer Typen.
+     * @param depth maximum nesting depth for seed collection.
+     * @return set of all types reachable from the constructor seeds.
      */
     public Set<ClassType> reachableTypesFromConstructors(int depth) {
         Set<ClassType> seeds = collectConstructorSeedTypes(depth);
@@ -801,16 +794,16 @@ public class Opal {
     }
 
     /**
-     * Sammelt alle Typen, die als direkte Subtypen an {@code nondetObject}-Callsites oder
-     * als Konstruktor-Parameter bis Tiefe {@code depth} erreichbar sind.
+     * Collects all types reachable as direct subtypes at {@code nondetObject} call-sites or as
+     * constructor parameters up to depth {@code depth}.
      *
-     * <p>Die Implementierung verwendet dieselbe TAC-Dataflow-Analyse wie
-     * {@link #possibleObjectsFromNondetObjectWithDepth(int)}, erzeugt aber nur eine
-     * {@code ClassType}-Menge statt Konstruktor-Strings. Der Cycle-Schutz wird durch das
-     * {@code visited}-Set in {@link #collectSeedTypesRecursive} sichergestellt.
+     * <p>Uses the same TAC dataflow analysis as
+     * {@link #possibleObjectsFromNondetObjectWithDepth(int)}, but builds only a
+     * {@code ClassType} set instead of constructor strings. Cycle protection is provided by the
+     * {@code visited} set in {@link #collectSeedTypesRecursive}.
      *
-     * @param depth maximale Nesting-Tiefe für Konstruktor-Parameter.
-     * @return Menge aller Seed-Typen.
+     * @param depth maximum nesting depth for constructor parameters.
+     * @return set of all seed types.
      */
     private Set<ClassType> collectConstructorSeedTypes(int depth) {
         Set<ClassType> seeds = new HashSet<>();
@@ -861,18 +854,17 @@ public class Opal {
     }
 
     /**
-     * Rekursionshelfer für {@link #collectConstructorSeedTypes(int)}.
+     * Recursive helper for {@link #collectConstructorSeedTypes(int)}.
      *
-     * <p>Fügt alle Subtypen von {@code paramType} (inkl. sich selbst) zu {@code seeds} hinzu.
-     * Bei {@code depth > 1} werden für jeden konkreten, nicht ausgeschlossenen Subtyp dessen
-     * öffentliche Konstruktoren inspiziert und deren Referenz-Parameter rekursiv mit
-     * {@code depth - 1} weiterverfolgt. Bereits besuchte Typen werden via {@code visited}
-     * übersprungen, um Zyklen zu verhindern.
+     * <p>Adds all subtypes of {@code paramType} (including itself) to {@code seeds}.
+     * At {@code depth > 1}, the public constructors of each concrete, non-excluded subtype are
+     * inspected and their reference parameters are followed recursively with {@code depth - 1}.
+     * Already visited types are skipped via {@code visited} to prevent cycles.
      *
-     * @param paramType Typ, dessen Subtyp-Baum zu {@code seeds} hinzugefügt werden soll.
-     * @param depth     verbleibende Tiefe.
-     * @param seeds     akkumulierende Ergebnismenge (In-/Out-Parameter).
-     * @param visited   bereits verarbeitete Typen zum Cycle-Schutz (In-/Out-Parameter).
+     * @param paramType type whose subtype tree should be added to {@code seeds}.
+     * @param depth     remaining depth.
+     * @param seeds     accumulating result set (in/out parameter).
+     * @param visited   already processed types for cycle protection (in/out parameter).
      */
     private void collectSeedTypesRecursive(ClassType paramType, int depth, Set<ClassType> seeds, Set<ClassType> visited) {
         if (!visited.add(paramType)) return;
