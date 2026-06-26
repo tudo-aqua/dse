@@ -231,6 +231,8 @@ public class ConstructorSummaryManager {
         System.out.println("count: "+signaturesConstructorCalls.size());
         System.out.println(signaturesConstructorCalls);
         List<String> filteredSignaturesConstructorCalls = signaturesConstructorCalls.stream().distinct().toList();
+        System.out.println("[ConstructorSummaryManager] constructor signatures to summarize: "
+                + filteredSignaturesConstructorCalls);
 
         List<Trace> traces = new ArrayList<>();
         for (String signature : filteredSignaturesConstructorCalls) {
@@ -277,7 +279,7 @@ public class ConstructorSummaryManager {
         props.setProperty("dse.dp.incremental", "false");
         props.setProperty("dse.terminate.on", "completion");
         props.setProperty("dse.explore", "BFS");
-        props.setProperty("concolic.max.object.annotation.depth", "0");
+        props.setProperty("concolic.max.object.annotation.depth", "3");
 
         Config config = Config.fromProperties(props);
         DSE dse = new DSE(config);

@@ -59,7 +59,7 @@ public class TestUtils {
         props.setProperty("dse.dp.incremental", "false");
         props.setProperty("dse.terminate.on", "completion");
         props.setProperty("dse.explore", "BFS");
-        props.setProperty("concolic.max.object.annotation.depth", "0");
+        props.setProperty("concolic.max.object.annotation.depth", "3");
         props.setProperty("dse.timeout", "900");
         if (BLUEPRINT_CACHE_ENABLED) {
             props.setProperty("dse.constructor.blueprint.cache", "true");
@@ -79,7 +79,7 @@ public class TestUtils {
         props.setProperty("dse.dp.incremental", "false");
         props.setProperty("dse.terminate.on", "completion");
         props.setProperty("dse.explore", "BFS");
-        props.setProperty("concolic.max.object.annotation.depth", "0");
+        props.setProperty("concolic.max.object.annotation.depth", "3");
         props.setProperty("dse.timeout", "900");
         if (BLUEPRINT_CACHE_ENABLED) {
             props.setProperty("dse.constructor.blueprint.cache", "true");
