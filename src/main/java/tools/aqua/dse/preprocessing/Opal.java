@@ -510,19 +510,24 @@ public class Opal {
                 result.add("Ljava/lang/Object;|()V|");
                 return null;
             }
-            if (tpe.packageName().startsWith("jdk") ||
-                    tpe.packageName().startsWith("java") ||
-                    tpe.packageName().startsWith("tools/aqua") ||
-                    tpe.packageName().startsWith("sun")) {
-                System.out.println("[Opal] generatedAllConstructors: skipping " + tpe.packageName());
+//            if (tpe.packageName().startsWith("jdk") ||
+//                    tpe.packageName().startsWith("java") ||
+//                    tpe.packageName().startsWith("tools/aqua") ||
+//                    tpe.packageName().startsWith("sun")) {
+//                System.out.println("[Opal] generatedAllConstructors: skipping " + tpe.packageName());
+//                return null;
+//            }
+            if (isExcludedFactoryClass(tpe)) {
                 return null;
             }
-            if (isExcludedFactoryClass(tpe)) {
+            if (!p.isProjectType(tpe)) {
+                System.out.println("[Opal] generatedAllConstructors: skipping non-project type "
+                        + tpe.toJVMTypeName());
                 return null;
             }
             if (p.classFile(tpe).isEmpty()) {
                 System.out.println("[Opal] generatedAllConstructors: skipping " + tpe.toJVMTypeName()
-                        + " (not in project class files)");
+                        + " (no class file)");
                 return null;
             }
             ClassFile cf = (ClassFile) p.classFile(tpe).get();
