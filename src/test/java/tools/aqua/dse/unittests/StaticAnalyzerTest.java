@@ -160,7 +160,7 @@ public class StaticAnalyzerTest {
 
     @Test
     public void test2() {
-        StaticManager staticManager = new StaticManager("src/test/resources/example");
+        StaticManager staticManager = new StaticManager("src/test/resources/example", 1);
         System.out.println(staticManager.generateStaticSmtLibCode());
     }
 

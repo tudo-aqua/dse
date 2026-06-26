@@ -19,7 +19,7 @@ public class SmtProblemManager {
 
     public SmtProblemManager(String classPath, int depth, boolean useCache) {
         long start = System.currentTimeMillis();
-        this.staticManager = new StaticManager(classPath);
+        this.staticManager = new StaticManager(classPath, depth);
         constructorSummaryManager = new ConstructorSummaryManager(classPath, depth, useCache);
         long end = System.currentTimeMillis();
         System.out.println("set-up-time: " + (end - start) + "ms");

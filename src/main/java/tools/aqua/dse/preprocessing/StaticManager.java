@@ -4,19 +4,18 @@ import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.smtlibUtility.SMTProblem;
 import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParser;
 import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParserException;
+import org.opalj.br.ClassType;
 import tools.aqua.dse.Config;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class StaticManager {
     private final Opal opal;
-    /**
-     * Identifiers of all classes in the class path.
-     */
-    private final List<KlassIdentifier> klassIdentifiers;
+    private final Set<ClassType> reachableTypes;
 
     private String staticSMTLibCode;
 
@@ -24,11 +23,11 @@ public class StaticManager {
     private final Map<Opal.PolymorphicMethodDefinition, Opal.BranchData> branchInformationMap;
 
 
-    public StaticManager(String classPath) {
+    public StaticManager(String classPath, int depth) {
         this.opal = new Opal(classPath);
-        this.klassIdentifiers = this.opal.extractKlassesFromClassPath();
+        this.reachableTypes = this.opal.reachableTypesFromConstructors(depth);
         this.staticSMTLibCode = generateStaticSmtLibCode();
-        this.polymorphicInformation = this.opal.collectPolymorphyInformation(klassIdentifiers);
+        this.polymorphicInformation = this.opal.collectPolymorphyInformation(reachableTypes.toArray(new ClassType[0]));
         this.branchInformationMap = this.opal.createBranchInformationMap(polymorphicInformation);
     }
 
@@ -47,8 +46,8 @@ public class StaticManager {
 
     public String generateStaticSmtLibCode() {
         return generateNullConstant() + "\n" +
-               this.opal.generateExtendsSummary() + "\n" +
-               this.opal.generatePolymorphismSummary(this.klassIdentifiers) + "\n";
+               this.opal.generateExtendsSummary(this.reachableTypes) + "\n" +
+               this.opal.generatePolymorphismSummary(this.reachableTypes) + "\n";
     }
 
     private String generateNullConstant() {
