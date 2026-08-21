@@ -1,5 +1,6 @@
 package tools.aqua.dse.preprocessing;
 
+import org.apache.commons.io.IOUtils;
 import org.opalj.br.*;
 import org.opalj.br.analyses.DeclaredMethods;
 import org.opalj.br.analyses.DeclaredMethodsKey$;
@@ -22,8 +23,10 @@ import org.opalj.tac.fpcf.properties.TACAI;
 import org.opalj.tac.fpcf.properties.TACAI$;
 import org.opalj.value.ValueInformation;
 
-import java.io.File;
+import java.io.*;
 import java.lang.Deprecated;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -63,12 +66,23 @@ public class Opal {
      *
      * @param classPath path to the directory or JAR containing the project classes.
      */
-    public Opal(String classPath) {
-        System.out.println("[Opal] Loading project from: " + classPath);
+    public Opal(String classPath){
+        File tmpFile;
+        try {
+            Path tmpPath = Files.createTempFile("java.base", ".jmods");
+            tmpFile = tmpPath.toFile();
+            //tmpFile.deleteOnExit();
+            OutputStream outStream= new FileOutputStream(tmpFile);
+            InputStream inStream = Opal.class.getClassLoader().getResourceAsStream("jmods/java.base.jmod");
+            IOUtils.copy(inStream, outStream);
+            System.out.println("tmpFile: " + tmpFile.getAbsolutePath());
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot read java.base.jmods due to IOException: " + e.toString());
+        }
         this.project = Project.apply(
                 new File(classPath),
 //                new File("/Users/mlazar/Library/Java/JavaVirtualMachines/openjdk-25.0.2/Contents/Home/jmods/java.base.jmod") //todo: more general
-                org.opalj.bytecode.package$.MODULE$.JavaBase()
+                tmpFile
         );
         System.out.println("[Opal] Loaded " + this.project.projectClassFilesCount()
                 + " project classes, " + this.project.libraryClassFilesCount() + " library classes");
