@@ -161,6 +161,7 @@ public class Opal {
      * @return SMT-LibS string of the {@code obj.extends} definition.
      */
     public String generateExtendsSummary(Set<ClassType> reachable) {
+        if(reachable.isEmpty()) {return "";}
         StringBuilder result = new StringBuilder();
         int[] relationCount = {0};
 

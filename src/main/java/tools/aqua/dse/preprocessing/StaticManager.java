@@ -45,9 +45,13 @@ public class StaticManager {
 
 
     public String generateStaticSmtLibCode() {
-        return generateNullConstant() + "\n" +
-               this.opal.generateExtendsSummary(this.reachableTypes) + "\n" +
-               this.opal.generatePolymorphismSummary(this.reachableTypes) + "\n";
+        String staticCode = generateNullConstant();
+        if(!this.reachableTypes.isEmpty()) {
+            staticCode += this.opal.generateExtendsSummary(this.reachableTypes) + "\n";
+            staticCode +=this.opal.generatePolymorphismSummary(this.reachableTypes) + "\n";
+        }
+        return staticCode;
+
     }
 
     private String generateNullConstant() {
