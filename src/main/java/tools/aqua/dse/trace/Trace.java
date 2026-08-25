@@ -19,10 +19,15 @@ import tools.aqua.dse.paths.PathResult;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public class Trace {
 
     private final List<Decision> decisions;
+
+    private final List<String> summaries;
+
+    private final List<String> declarations; //todo: change to Set to avoid duplicates
 
     private final List<WitnessAssumption> witness;
 
@@ -30,15 +35,30 @@ public class Trace {
 
     private final PathResult traceState;
 
+    private final int objectCount;
+
+    private final Set<String> objectIdentifiers;
+
     public Trace(List<Decision> decisions, PathResult state) {
-        this(decisions, null, null, state);
+        this(decisions, null, null, null, null, state, 0, null);
     }
 
-    public Trace(List<Decision> decisions, List<WitnessAssumption> witness, List<String> flows, PathResult state) {
+    public Trace(List<Decision> decisions,
+                 List<String> summaries,
+                 List<String> declaration,
+                 List<WitnessAssumption> witness,
+                 List<String> flows,
+                 PathResult state,
+                 int objectCount,
+                 Set<String> objectIdentifiers) {
         this.decisions = decisions;
+        this.summaries = summaries;
+        this.declarations = declaration;
         this.witness = witness;
         this.flows = flows;
         this.traceState = state;
+        this.objectCount = objectCount;
+        this.objectIdentifiers = objectIdentifiers;
     }
 
     public List<Decision> getDecisions() {
@@ -66,6 +86,22 @@ public class Trace {
             System.out.println(d);
         }
         System.out.println(traceState);
+    }
+
+    public int getObjectCount() {
+        return objectCount;
+    }
+
+    public List<String> getDeclarations() {
+        return declarations;
+    }
+
+    public Set<String> getObjectIdentifiers() {
+        return objectIdentifiers;
+    }
+
+    public List<String> getSummaries() {
+        return summaries;
     }
 
     @Override

@@ -18,18 +18,26 @@
 
 package tools.aqua.dse.tree;
 
+import gov.nasa.jpf.constraints.api.*;
 import gov.nasa.jpf.constraints.api.ConstraintSolver.Result;
-import gov.nasa.jpf.constraints.api.Expression;
-import gov.nasa.jpf.constraints.api.SolverContext;
-import gov.nasa.jpf.constraints.api.Valuation;
+import gov.nasa.jpf.constraints.smtlibUtility.smtconverter.SMTLibExportVisitor;
+import gov.nasa.jpf.constraints.smtlibUtility.smtconverter.SMTLibExportWrapper;
+import gov.nasa.jpf.constraints.solvers.dontknow.DontKnowSolver;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import tools.aqua.dse.Config;
 import tools.aqua.dse.paths.PathResult;
-import tools.aqua.dse.paths.PathState;
+import tools.aqua.dse.preprocessing.SmtProblemManager;
 import tools.aqua.dse.trace.Decision;
+import tools.aqua.dse.trace.Trace;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
+import static gov.nasa.jpf.constraints.util.CharsetIO.toNormalizedStringUTF8;
+import static gov.nasa.jpf.constraints.util.CharsetIO.wrapInUTF8PrintStream;
 
 public class ConstraintsTree {
 
@@ -77,7 +85,7 @@ public class ConstraintsTree {
     this.replayValues = config.getReplayValues();
     this.incremental = config.isIncremental();
     this.termination = config.getTermination();
-    this.incremental = config.isIncremental();
+
 
     switch (config.getStrategy()) {
       case BFS:
@@ -349,10 +357,23 @@ public class ConstraintsTree {
         assertExpression(clause);
       }
     } else {
-      solverCtx.pop();
-      solverCtx.push();
+//      solverCtx.pop();
+//      solverCtx.push();
       List<Expression<Boolean>> path = pathConstraint(to, root);
-      //System.out.println("solving: " + Arrays.toString( path.toArray() ));
+      System.out.println("current decision path: " + Arrays.toString( path.toArray() ));
+
+      //Add object-specific constraints
+      solverCtx.push();
+        if (!config.isConstructorSummary() && !config.isBaselineEvaluation() && config.getSmtProblemManager() != null) {
+          String staticSmtLibCode = config.getSmtProblemManager().getStaticManager().generateStaticSmtLibCode();
+          String dynamicSmtLibCode = config.getSmtProblemManager().getConstructorSummaryManager().generateFullConstructorSMTLIbCode(path);
+
+          System.out.println("SMT-Problem-Start");
+          System.out.printf("\u001B[38;5;208m %s %s \u001B[0m%n", staticSmtLibCode, dynamicSmtLibCode);
+          System.out.println("SMT-Problem-End");
+          SmtProblemManager.addSmtProblemAsString(
+                  dynamicSmtLibCode, solverCtx);
+        }
       solverCtx.add(path);
     }
   }
@@ -450,24 +471,40 @@ public class ConstraintsTree {
         if ((nextOpen.parent() == null && root != nextOpen)
             || (nextOpen.parent() != null
                 && nextOpen.parent().getChild(nextOpen.childId()) != nextOpen)
-            || nextOpen.isFinal()) {
+            || nextOpen.isFinal()
+            || (nextOpen.parent() != null && nextOpen.parent().isExhausted())) {
           nextOpen = null;
           continue;
         }
       }
 
+
+      //todo:
       // update context and current target
       updateContext(
           (currentTarget == null || currentTarget.parent() == null) ? root : currentTarget,
           nextOpen);
       currentTarget = nextOpen;
 
+
+
       // find model
       Valuation val = new Valuation();
       logger.finer("Finding new valuation");
+      System.out.println("\033[35mSolve SMT-problem");
       Result res = solverCtx.solve(val);
+      solverCtx.pop();
+
+
+      System.out.println("status: "+res);
+//      List<ValuationEntry<?>> sortedEntries = val.entries().stream()
+//              .sorted(Comparator.comparing(e -> e.getVariable().getName()))
+//              .collect(Collectors.toList());
+//      System.out.println("model: "+sortedEntries+"\033[0m");
+      System.out.println("model:\n"+val.toString().replaceAll(",", ",\n")+"\033[0m");
       currentValues = val;
       logger.finer("Found: " + res + " : " + val);
+
 
       // if node is unsat or dont/know -> next
       // if node is satisfiable -> simulate and execute!

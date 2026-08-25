@@ -15,7 +15,10 @@
 
 package tools.aqua.dse;
 
+import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Valuation;
+import gov.nasa.jpf.constraints.api.Variable;
+import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.STRawGroupDir;
@@ -29,9 +32,7 @@ import tools.aqua.dse.witness.WitnessNode;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class DSE {
 
@@ -47,14 +48,23 @@ public class DSE {
         Explorer explorer = new Explorer(config);
         Executor executor = new Executor(config);
 
-        List<String> flows = new LinkedList<>();
+        List<List<String>> flows = new LinkedList<>();
+
+        long timeoutMs = config.getTimeoutSeconds() * 1000L;
+        long deadline = timeoutMs > 0 ? System.currentTimeMillis() + timeoutMs : Long.MAX_VALUE;
 
         while (explorer.hasNextValuation()) {
+            if (System.currentTimeMillis() >= deadline) {
+                System.out.println("== dse.timeout reached after " + config.getTimeoutSeconds() + "s, aborting exploration.");
+                break;
+            }
             Valuation val = explorer.getNextValuation();
-            Trace trace = executor.execute(val);
+//            SolverContext solverContext = config.getSolverContext();
+
+            Trace trace = executor.execute(val, config);
             if (trace != null) {
                 trace.print();
-                flows.addAll(trace.getFlows());
+                flows.add(new LinkedList<>(trace.getFlows()));
             } else {
                 System.out.println("== no trace obtained.");
             }
@@ -64,24 +74,83 @@ public class DSE {
             checkAndSaveWitness(trace);
         }
 
-        System.out.println(explorer.getAnalysis());
+        System.out.println("\u001b[32mdecision tree of the analysed program:");
+        System.out.println(explorer.getAnalysis()+"\u001b[0m");
 
-        InformationFlowAnalysis ia = new InformationFlowAnalysis(config);
-        for (String f : flows) {
-            ia.addFlow(f);
-        }
-        //ia.listFlows();
-        ia.runChecks();
+//        InformationFlowAnalysis ia = new InformationFlowAnalysis(config);
+//
+//        int slotCount = (int) ((double) flows.size() * config.getFraction());
+//        System.out.println("Flows recorded for " + flows.size() + " paths. " +
+//                "Using " + slotCount + " (" + config.getFraction() +
+//                ") paths for information flow analysis." );
+//
+//        Random rand = config.getRandom();
+//
+//        Set<Integer> slots = new TreeSet<>();
+//        while (slots.size() < slotCount) {
+//            slots.add(rand.nextInt(flows.size()));
+//        }
+//
+//        for (Integer idx : slots) {
+//            List<String> fList = flows.get(idx);
+//            for (String f : fList) {
+//                ia.addFlow(f);
+//            }
+//        }
+//        //ia.listFlows();
+//        ia.runChecks();
 
         System.out.println("[END OF OUTPUT]");
-        System.exit(0);
+//        System.exit(0);
+    }
+
+    public List<Trace> executeConstructor(String constructor) {
+        Explorer explorer = new Explorer(config);
+        Executor executor = new Executor(config);
+        List<Trace> traces = new ArrayList<>();
+
+        List<List<String>> flows = new LinkedList<>();
+
+        long timeoutMs = config.getTimeoutSeconds() * 1000L;
+        long deadline = timeoutMs > 0 ? System.currentTimeMillis() + timeoutMs : Long.MAX_VALUE;
+
+        while (explorer.hasNextValuation()) {
+            if (System.currentTimeMillis() >= deadline) {
+                System.out.println("== dse.timeout reached after " + config.getTimeoutSeconds() + "s, aborting exploration.");
+                break;
+            }
+            Valuation val = explorer.getNextValuation();
+
+            //todo: Always working??? Are there situations where there are already __object_constructors????
+            Variable<String> constrVar = Variable.create(BuiltinTypes.STRING, "__object_constructor_0");
+            val.setValue(constrVar, constructor);
+
+            Trace trace = executor.execute(val, config);
+            traces.add(trace);
+
+            if (trace != null) {
+                trace.print();
+                flows.add(new LinkedList<>(trace.getFlows()));
+            } else {
+                System.out.println("== no trace obtained.");
+            }
+            explorer.addTrace(trace);
+
+            // check if we should save a witness
+            checkAndSaveWitness(trace);
+        }
+
+        System.out.println("\u001b[32m"+explorer.getAnalysis()+"\u001b[0m");
+
+        System.out.println("[END OF OUTPUT]");
+
+        return traces;
     }
 
     /*
      *
      *
      */
-
     private void checkAndSaveWitness(Trace trace) {
         if (!config.isWitness() || savedWitness || trace == null ||
                 !(trace.getTraceState() instanceof PathResult.ErrorResult) ||

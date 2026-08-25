@@ -88,17 +88,17 @@ public class InformationFlowAnalysis {
         solverCtx.push();
 
         for (String v : taintchecks.keySet()) {
-            //System.out.println("---");
-            //System.out.println(new PropositionalCompound(getOrCreate(v, vars), LogicalOperator.EQUIV, ExpressionUtil.TRUE));
+            System.out.println("---");
+            System.out.println(new PropositionalCompound(getOrCreate(v, vars), LogicalOperator.EQUIV, ExpressionUtil.TRUE));
             solverCtx.add(new PropositionalCompound(getOrCreate(v, vars), LogicalOperator.EQUIV, ExpressionUtil.TRUE));
 
             Variable check = getOrCreate("check", vars);
             for (String val : taintchecks.get(v)) {
-                //System.out.println(new PropositionalCompound(getOrCreate(val, vars), LogicalOperator.EQUIV, check));
+                System.out.println(new PropositionalCompound(getOrCreate(val, vars), LogicalOperator.EQUIV, check));
                 solverCtx.add(new PropositionalCompound(getOrCreate(val, vars), LogicalOperator.EQUIV, check));
             }
 
-            //System.out.println(new PropositionalCompound(check, LogicalOperator.XOR, getOrCreate(v, vars)));
+            System.out.println(new PropositionalCompound(check, LogicalOperator.XOR, getOrCreate(v, vars)));
             solverCtx.add(new PropositionalCompound(check, LogicalOperator.XOR, getOrCreate(v, vars)));
 
             boolean violation = (solverCtx.isSatisfiable() == ConstraintSolver.Result.UNSAT);
@@ -122,7 +122,7 @@ public class InformationFlowAnalysis {
 
             for (Expression tv : taintVars) {
                 Expression flow = new PropositionalCompound(tv, LogicalOperator.IMPLY, key);
-                //System.out.println(flow);
+                System.out.println(flow);
                 flowConstraints.add(flow);
             }
         }

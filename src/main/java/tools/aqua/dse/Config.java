@@ -19,19 +19,20 @@ import gov.nasa.jpf.constraints.api.ConstraintSolver;
 import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.solvers.ConstraintSolverFactory;
-import gov.nasa.jpf.constraints.solvers.SolvingService;
 import org.apache.commons.cli.CommandLine;
 import tools.aqua.dse.bounds.BoundedSolverProvider;
+import tools.aqua.dse.objects.ClazzModel;
+import tools.aqua.dse.objects.LoggingSolverContext;
+import tools.aqua.dse.preprocessing.SmtProblemManager;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Config {
 
@@ -66,11 +67,17 @@ public class Config {
 
     private String executorArgs;
 
+    private List<String> classPaths = new ArrayList<>();
+
     private boolean b64encodeExecutorValue = false;
 
     private boolean incremental = false;
 
     private boolean witness = false;
+
+    private Random random = null;
+
+    private double fraction = 1.0;
 
     private ClassLoader sourceLoader = Config.class.getClassLoader();
 
@@ -79,9 +86,22 @@ public class Config {
 
     private final Properties properties;
 
+    private ClazzModel clazzModel = null;
+
+    private boolean constructorSummary = false;
+    private boolean constructorBlueprintCache = false;
+    private int maxObjectAnnotationDepth = 0;
+
+    private SmtProblemManager smtProblemManager;
+
+    private boolean baselineEvaluation;
+
+    private long timeoutSeconds = 0;
+
     private Config(Properties properties) {
         this.properties = properties;
     }
+
 
     /**
      * should dse explore open nodes
@@ -109,14 +129,30 @@ public class Config {
         return incremental;
     }
 
-    /**
-     * constraint solver context
-     *
-     * @return
-     */
-    public SolverContext getSolverContext() {
-        return this.solver.createContext();
+
+    public ClazzModel getClazzModel() {
+        return this.clazzModel;
     }
+
+
+    public SolverContext getSolverContext() {
+        System.out.println("Create SolverContext");
+        SolverContext ctx = new LoggingSolverContext(this.solver.createContext());
+        if(this.executorArgs != null) {
+            this.baselineEvaluation = this.executorArgs.contains("-Dconcolic.object.factories=true");
+        }
+
+        if (!this.constructorSummary && !this.baselineEvaluation) {
+            ctx.push();
+            this.initializeSmtProblemManager();
+            if(this.smtProblemManager != null) {
+                this.smtProblemManager.getStaticManager().setStaticSmtLibCode(ctx);
+            }
+        }
+
+        return ctx;
+    }
+
 
     /**
      * max depth of exploration exceeded at depth
@@ -159,9 +195,30 @@ public class Config {
 
     public boolean isWitness() { return witness; }
 
+    public int getMaxObjectAnnotationDepth() { return maxObjectAnnotationDepth; }
+
+
+    public double getFraction() {
+        return fraction;
+    }
+
+    public Random getRandom() {
+        return random;
+    }
+
     private void parseProperties(Properties props) {
         if (props.containsKey("dse.executor.args")) {
             this.executorArgs = props.getProperty("dse.executor.args");
+
+            Pattern pattern = Pattern.compile("-cp\\s+([^\\s]+)");
+            Matcher matcher = pattern.matcher(this.executorArgs);
+
+            if (matcher.find()) {
+                this.classPaths = Arrays.stream(matcher.group(1).split(":")).toList();
+            }
+            else {
+                throw new IllegalStateException("no classpath specified");
+            }
         }
         if (props.containsKey("dse.executor")) {
             this.executorCmd = props.getProperty("dse.executor");
@@ -210,6 +267,31 @@ public class Config {
 
             sourceLoader = new URLClassLoader(urls);
         }
+
+        if (props.containsKey("dse.constructor.summary")) {
+            this.constructorSummary = Boolean.parseBoolean(props.getProperty("dse.constructor.summary"));
+        }
+
+        if (props.containsKey("dse.constructor.blueprint.cache")) {
+            this.constructorBlueprintCache = Boolean.parseBoolean(props.getProperty("dse.constructor.blueprint.cache"));
+        }
+
+        if (props.containsKey("concolic.max.object.annotation.depth")) {
+            this.maxObjectAnnotationDepth = Integer.parseInt(props.getProperty("concolic.max.object.annotation.depth"));
+        }
+
+        if (props.containsKey("dse.timeout")) {
+            this.timeoutSeconds = Long.parseLong(props.getProperty("dse.timeout"));
+        }
+        if (props.containsKey("iflow.fraction")) {
+            this.fraction = Double.parseDouble(props.getProperty("iflow.fraction"));
+        }
+        long seed = (new Random()).nextLong();
+        if (props.containsKey("random.seed")) {
+            seed = Long.parseLong(props.getProperty("random.seed"));
+        }
+        System.out.println("Random seed: " + seed);
+        this.random = new Random(seed);
     }
 
     private int parseTermination(String property) {
@@ -244,6 +326,7 @@ public class Config {
     public static Config fromProperties(Properties props) {
         Config config = new Config(props);
         config.parseProperties(props);
+
         return config;
     }
 
@@ -268,4 +351,33 @@ public class Config {
         return Config.fromProperties(props);
     }
 
+    public void initializeSmtProblemManager() {
+        if (this.constructorSummary) {
+            throw new IllegalStateException("In ConstructorSummaryMode the SmtProblemManger cannot be created " +
+                    "because of recursion.");
+        }
+        if (this.smtProblemManager == null && this.classPaths.size() > 0) {
+            String path = this.classPaths.get(0);
+            System.out.println("config path: " + path);
+            int depth = 1; //todo: Which depth is needed
+            this.smtProblemManager = new SmtProblemManager(path, depth, this.constructorBlueprintCache);
+        }
+    }
+
+
+    public SmtProblemManager getSmtProblemManager() {
+        return this.smtProblemManager;
+    }
+
+    public boolean isConstructorSummary() {
+        return constructorSummary;
+    }
+
+    public boolean isBaselineEvaluation() {
+        return baselineEvaluation;
+    }
+
+    public long getTimeoutSeconds() {
+        return timeoutSeconds;
+    }
 }

@@ -25,6 +25,7 @@ class DecisionNode extends Node {
 
     private final Expression<Boolean>[] constraints;
     private final Node[] children;
+    private boolean exhausted = false;
 
     DecisionNode(DecisionNode parent, Decision d, int pos,
                  boolean explore, ExplorationStrategy strategy) {
@@ -73,10 +74,14 @@ class DecisionNode extends Node {
     }
 
     void useUnexploredConstraint(int idx) {
+        if (constraints[idx] == null) {
+            exhausted = true;
+        }
         constraints[idx] = getConstraint(idx);
     }
 
     int missingConstraints() {
+        if (exhausted) return 0;
         int i = 0;
         for (Expression<Boolean> e : constraints) {
             if (e == null) {
@@ -132,9 +137,16 @@ class DecisionNode extends Node {
 
     void print(StringBuilder out, int indent) {
         for (int i=0; i< children.length; i++) {
-            indent(out, indent);
-            out.append(i).append(" : ").append(constraints[i]).append("\n");
-            children[i].print(out, indent + 1);
+
+            if (!exhausted || constraints[i] != null) {
+                indent(out, indent);
+                out.append(i).append(" : ").append(constraints[i]).append("\n");
+                children[i].print(out, indent + 1);
+            }
         }
+    }
+
+    public boolean isExhausted() {
+        return exhausted;
     }
 }

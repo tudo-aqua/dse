@@ -1,0 +1,8 @@
+class LA; extends LGreeter;{ LA;|()V, LA;|(II)V, LA;|(IILSub;)V}
+class LB; extends LA;{ LB;|()V}
+class LC; extends LA;{ LC;|()V}
+class LGreeter;{}
+class LSub; {}
+class LSub1; extends LSub;{LSub1;|()V}
+class LSub2; extends LSub;{LSub2;|()V, LSub2;|(I)V}
+class Ljava/lang/Integer; {Ljava/lang/Integer;|(I)V}

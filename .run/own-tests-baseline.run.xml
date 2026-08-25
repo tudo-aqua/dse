@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="own-tests-baseline" type="JUnit" factoryName="JUnit">
+    <module name="dse" />
+    <option name="PACKAGE_NAME" value="" />
+    <option name="MAIN_CLASS_NAME" value="own-tests-baseline" />
+    <option name="METHOD_NAME" value="" />
+    <option name="TEST_OBJECT" value="tags" />
+    <tag value="own-tests-baseline" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
