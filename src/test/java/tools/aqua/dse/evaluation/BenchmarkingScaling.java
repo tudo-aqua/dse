@@ -1,9 +1,6 @@
 package tools.aqua.dse.evaluation;
 
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.testng.annotations.*;
 import tools.aqua.dse.DSE;
 
 import java.io.ByteArrayOutputStream;
@@ -12,17 +9,14 @@ import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+//@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class BenchmarkingScaling {
     // ----------------------------------------------------------------------------------------------------------
     //                                       intercepting the output
@@ -32,7 +26,7 @@ public class BenchmarkingScaling {
     private PrintStream originalOut;
 
 
-    @BeforeEach
+    @BeforeMethod()
     void setUpStreams() {
         //get console output
         this.originalOut = System.out;
@@ -45,7 +39,7 @@ public class BenchmarkingScaling {
 
     }
 
-    @AfterEach
+    @AfterMethod
     void restoreStreams() {
         System.setOut(originalOut);
     }
@@ -137,7 +131,7 @@ public class BenchmarkingScaling {
     private static final int NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS = 10;
 
 
-    @BeforeAll
+    @BeforeClass
     static void setUpTestFiles() throws IOException, InterruptedException {
         FilePreparator.setUpConstructorScalingTest(CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS);
         FilePreparator.setUpNonDetObjectTest(NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS);
@@ -233,8 +227,7 @@ public class BenchmarkingScaling {
     //                                           Execution of Tests
     //------------------------------------------------------------------------------------------------------------
 
-    @Test
-    @Order(1)
+    @Test(groups="tudo", priority=1)
     public void JVMStartUpExample() {
         System.out.println("Real Warm-up: Executing DSE once to load classes and trigger JIT...");
         try {
@@ -248,22 +241,21 @@ public class BenchmarkingScaling {
     }
 
 
-    static Stream<Arguments> testResourceProvider0() {
+    @DataProvider(name="testResourceProvider0")
+    static Iterator<String[]> testResourceProvider0() {
         return IntStream.range(1, EXAMPLES_TEST_NUMBER_OF_REPETITIONS + 1)
                 .boxed()
                 .flatMap(j ->
                         IntStream.range(1, 37)
-                                .mapToObj(i -> Arguments.of(
+                                .mapToObj(i -> new String[] {
                                         String.format("example%02d", i),
                                         String.format("RunGroup%02d", j),
-                                        String.format("/example%02d", i)
-                                ))
-                );
+                                        String.format("/example%02d", i)}
+                                )
+                ).iterator();
     }
 
-    @ParameterizedTest
-    @MethodSource("testResourceProvider0")
-    @Order(2)
+    @Test(dataProvider = "testResourceProvider0",groups = "tudo",priority = 2)
     public void exampleTest(String exampleName,
                             String currentRunGroup,
                             String subdirectory
@@ -278,9 +270,7 @@ public class BenchmarkingScaling {
                 false);
     }
 
-    @ParameterizedTest
-    @MethodSource("testResourceProvider0")
-    @Order(3)
+    @Test(dataProvider = "testResourceProvider0",groups = "tudo",priority = 3)
     public void exampleTestBaseline(String exampleName,
                             String currentRunGroup,
                             String subdirectory
@@ -295,23 +285,22 @@ public class BenchmarkingScaling {
                 true);
     }
 
-
-    static Stream<Arguments> testResourceProvider1() {
+    @DataProvider(name="testResourceProvider1")
+    static Iterator<String[]> testResourceProvider1() {
         return IntStream.range(1, CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS + 1)
                 .boxed()
                 .flatMap(j ->
                         IntStream.range(1, CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS + 1)
-                                .mapToObj(i -> Arguments.of(
+                                .mapToObj(i -> new String[] {
                                         String.format("RunGroup%03d", j),              // j = Aktuelle Wiederholung (Run)
                                         String.format("numberConstructors%03d", i),
                                         String.format("/factor%03d", i)                // i = Aktueller Faktor (Subdirectory)
-                                ))
-                );
+                                        }
+                                )
+                ).iterator();
     }
 
-    @ParameterizedTest
-    @MethodSource("testResourceProvider1")
-    @Order(4)
+    @Test(dataProvider = "testResourceProvider1",groups = "tudo",priority = 4)
     public void constructorScalingTest(String currentRunGroup,
                                        String exampleName,
                                        String subdirectory
@@ -326,9 +315,7 @@ public class BenchmarkingScaling {
                 false);
     }
 
-    @ParameterizedTest
-    @MethodSource("testResourceProvider1")
-    @Order(5)
+    @Test(dataProvider = "testResourceProvider1",groups = "tudo",priority = 5)
     public void constructorScalingBaselineTest(String currentRunGroup,
                                                String exampleName,
                                                String subdirectory
@@ -343,21 +330,21 @@ public class BenchmarkingScaling {
                 true);
     }
 
-    static Stream<Arguments> testResourceProvider4() {
+    @DataProvider(name="testResourceProvider4")
+    static Iterator<String[]> testResourceProvider4() {
         return IntStream.range(1, NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS + 1)
                 .boxed()
                 .flatMap(j ->
                         IntStream.range(1, NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS + 1)
-                                .mapToObj(i -> Arguments.of(
+                                .mapToObj(i -> new String[]{
                                         String.format("RunGroup%03d", j),
                                         String.format("calls%03d", i),
-                                        String.format("/factor%03d", i)
-                                ))
-                );
+                                        String.format("/factor%03d", i)}
+                                )
+                ).iterator();
     }
-    @ParameterizedTest
-    @MethodSource("testResourceProvider4")
-    @Order(6)
+
+    @Test(dataProvider = "testResourceProvider4",groups = "tudo",priority = 6)
     public void nonDetObjectScalingScalingTest(String currentRunGroup,
                                                String exampleName,
                                                String subdirectory
@@ -372,22 +359,22 @@ public class BenchmarkingScaling {
                 false);
     }
 
-    static Stream<Arguments> testResourceProvider5() {
+    @DataProvider(name="testResourceProvider5")
+    static Iterator<String[]> testResourceProvider5() {
         return IntStream.range(1, NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS + 1)
                 .boxed()
                 .flatMap(j ->
                         IntStream.range(1, NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS_BASELINE + 1)
-                                .mapToObj(i -> Arguments.of(
-                                        String.format("RunGroup%03d", j),
-                                        String.format("calls%03d", i),
-                                        String.format("/factor%03d", i)
-                                ))
-                );
+                                .mapToObj(i -> new String[]{
+                                                String.format("RunGroup%03d", j),
+                                                String.format("calls%03d", i),
+                                                String.format("/factor%03d", i)
+                                        }
+                                )
+                ).iterator();
     }
 
-    @ParameterizedTest
-    @MethodSource("testResourceProvider5")
-    @Order(7)
+    @Test(dataProvider = "testResourceProvider5",groups = "tudo",priority = 7)
     public void nonDetObjectScalingScalingBaselineTest(String currentRunGroup,
                                                        String exampleName,
                                                        String subdirectory

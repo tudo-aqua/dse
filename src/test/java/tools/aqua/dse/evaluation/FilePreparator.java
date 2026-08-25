@@ -1,5 +1,7 @@
 package tools.aqua.dse.evaluation;
 
+import org.assertj.core.api.Assertions;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -497,7 +499,7 @@ public class FilePreparator {
 
         // Check if the compilation was successful (exit code 0)
         if (exitCode != 0) {
-            org.junit.jupiter.api.Assertions.fail("Compilation failed with exit code " + exitCode);
+            Assertions.fail("Compilation failed with exit code " + exitCode);
         }
     }
 

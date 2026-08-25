@@ -1,6 +1,6 @@
 package tools.aqua.dse.unittests;
 
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.Test;
 import tools.aqua.dse.preprocessing.ConstructorSummaryManager;
 import tools.aqua.dse.preprocessing.Opal;
 import tools.aqua.dse.preprocessing.StaticManager;
@@ -153,18 +153,18 @@ public class StaticAnalyzerTest {
 //        System.out.println(staticAnalyzer.generateSmtCodeBluePrintForConstructorSelection(2));
 //
 //    }
-    @Test
+    @Test(groups = "tudo")
     public void test() {
         ConstructorSummaryManager constructorSummaryManager = new ConstructorSummaryManager("src/test/resources/example", 2);
     }
 
-    @Test
+    @Test(groups = "tudo")
     public void test2() {
         StaticManager staticManager = new StaticManager("src/test/resources/example", 1);
         System.out.println(staticManager.generateStaticSmtLibCode());
     }
 
-    @Test
+    @Test(groups = "tudo")
     public void testPolymorphy() {
         Opal opal = new Opal("src/test/resources/example");
         List<Opal.PolymorphyInformation> polymorphyInformations = opal.collectPolymorphyInformation(opal.extractKlassesFromClassPath());

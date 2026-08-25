@@ -67,7 +67,7 @@ public class TraceParserTest {
         System.out.println(d);
     }
 
-    @Test(enabled = false) //@Marvin: This does not work with JConstraints yet.
+    @Test(enabled = true) //@Marvin: This does not work with JConstraints yet.
     public void testTrace() throws IOException, SMTLIBParserException {
         List<String> log = new LinkedList<>();
         log.add("======================== END PATH [BEGIN].");

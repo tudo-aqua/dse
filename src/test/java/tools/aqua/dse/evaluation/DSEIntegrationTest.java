@@ -1,6 +1,9 @@
 package tools.aqua.dse.evaluation;
 
-import org.junit.jupiter.api.*;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 import tools.aqua.dse.DSE;
 
 import java.io.*;
@@ -18,7 +21,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@TestMethodOrder(MethodOrderer.MethodName.class)
+//@TestMethodOrder(MethodOrderer.MethodName.class)
 public class DSEIntegrationTest {
     private static final Path DECISION_TREE_OUTPUT = Paths.get("decision_trees.txt");
 
@@ -28,12 +31,12 @@ public class DSEIntegrationTest {
     private boolean debug = true;
     private boolean compile = true;
 
-    @BeforeAll
+    @BeforeClass
     static void resetDecisionTreeOutput() throws IOException {
         Files.deleteIfExists(DECISION_TREE_OUTPUT);
     }
 
-    @BeforeEach
+    @BeforeMethod
     void setUpStreams() {
         //get console output
         this.originalOut = System.out;
@@ -59,7 +62,7 @@ public class DSEIntegrationTest {
         }
     }
 
-    @AfterEach
+    @AfterMethod
     void restoreStreams() {
         System.setOut(originalOut);
     }
@@ -184,7 +187,7 @@ public class DSEIntegrationTest {
 //        System.out.printf("%d : %d : %d", minutes,  seconds, nanoSeconds);
     }
 
-    @Test
+    @Test(groups = "tudo")
     public void paperExample() throws IOException, InterruptedException {
         //define example
         String exampleName = "Main";
@@ -227,8 +230,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests", "tudo"})
     public void example01() throws IOException, InterruptedException {
         //define example
         String exampleName = "example01";
@@ -274,8 +276,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline","tudo"})
     public void example01BaseLine() throws IOException, InterruptedException {
         //define example
         String exampleName = "example01";
@@ -316,8 +317,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example02() throws IOException, InterruptedException {
         //define example
         String exampleName = "example02";
@@ -363,8 +363,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline", "tudo"})
     public void example02Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example02";
@@ -406,8 +405,49 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests-baseline", "tudo"})
+    public void example03Baseline() throws IOException, InterruptedException {
+        //define example
+        String exampleName = "example03";
+
+        String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
+
+        // Compile Base Classes
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
+                directoryOfTheExample);
+
+        //execute example
+        //printExample(exampleName, "src/test/resources/example/");
+        DSE dse = TestUtils.getDseBaseLineInstance("Main",
+                directoryOfTheExample);
+
+        Instant start = Instant.now();
+        dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        //System.out.println(output);
+
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //                                                CHECKS
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        assertThat(output)
+                .doesNotContain("DIVERGED")
+                .doesNotContain("BUGGY");
+
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+
+        System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
+    }
+
+    @Test(groups = {"own-tests","tudo"})
     public void example03() throws IOException, InterruptedException {
         //define example
         String exampleName = "example03";
@@ -453,53 +493,9 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
-    public void example03Baseline() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "example03";
-
-        String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
-
-        // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
-                directoryOfTheExample);
-
-        //execute example
-        //printExample(exampleName, "src/test/resources/example/");
-        DSE dse = TestUtils.getDseBaseLineInstance("Main",
-                directoryOfTheExample);
-
-        Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
 
 
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-
-
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests", "tudo"})
     public void example04() throws IOException, InterruptedException {
         //define example
         String exampleName = "example04";
@@ -545,8 +541,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"tudo", "own-tests-baseline"})
     public void example04Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example04";
@@ -588,8 +583,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests", "tudo"})
     public void example05() throws IOException, InterruptedException {
         //define example
         String exampleName = "example05";
@@ -635,8 +629,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline", "tudo"})
     public void example05Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example05";
@@ -678,8 +671,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups={"own-tests", "tudo"})
     public void example06() throws IOException, InterruptedException {
         //define example
         String exampleName = "example06";
@@ -724,8 +716,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline", "tudo"})
     public void example06Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example06";
@@ -767,8 +758,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups={"own-tests", "tudo"})
     public void example07() throws IOException, InterruptedException {
         //define example
         String exampleName = "example07";
@@ -814,8 +804,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline", "tudo"})
     public void example07Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example07";
@@ -857,8 +846,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example08() throws IOException, InterruptedException {
         //define example
         String exampleName = "example08";
@@ -904,8 +892,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline", "tudo"})
     public void example08Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example08";
@@ -947,8 +934,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example09() throws IOException, InterruptedException {
         //define example
         String exampleName = "example09";
@@ -994,8 +980,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline", "tudo"})
     public void example09Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example09";
@@ -1037,8 +1022,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests", "tudo"})
     public void example10() throws IOException, InterruptedException {
         //define example
         String exampleName = "example10";
@@ -1084,8 +1068,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups={"own-tests-baseline", "tudo"})
     public void example10Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example10";
@@ -1127,8 +1110,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups={"own-tests", "tudo"})
     public void example11() throws IOException, InterruptedException {
         //define example
         String exampleName = "example11";
@@ -1174,8 +1156,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline", "tudo"})
     public void example11Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example11";
@@ -1217,8 +1198,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests", "tudo"})
     public void example12() throws IOException, InterruptedException {
         //define example
         String exampleName = "example12";
@@ -1264,8 +1244,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups={"own-tests-baseline", "tudo"})
     public void example12Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example12";
@@ -1307,8 +1286,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example13() throws IOException, InterruptedException {
         //define example
         String exampleName = "example13";
@@ -1354,8 +1332,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline", "tudo"})
     public void example13Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example13";
@@ -1397,8 +1374,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example14() throws IOException, InterruptedException {
         //define example
         String exampleName = "example14";
@@ -1444,8 +1420,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline", "tudo"})
     public void example14Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example14";
@@ -1487,8 +1462,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests", "tudo"})
     public void example15() throws IOException, InterruptedException {
         //define example
         String exampleName = "example15";
@@ -1534,8 +1508,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline", "tudo"})
     public void example15Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example15";
@@ -1577,8 +1550,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests", "tudo"})
     public void example16() throws IOException, InterruptedException {
         //define example
         String exampleName = "example16";
@@ -1624,8 +1596,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline", "tudo"})
     public void example16Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example16";
@@ -1667,8 +1638,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests", "tudo"})
     public void example17() throws IOException, InterruptedException {
         //define example
         String exampleName = "example17";
@@ -1714,8 +1684,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline","tudo"})
     public void example17Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example17";
@@ -1757,8 +1726,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests", "tudo"})
     public void example18() throws IOException, InterruptedException {
         //define example
         String exampleName = "example18";
@@ -1804,8 +1772,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline", "tudo"})
     public void example18Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example18";
@@ -1847,8 +1814,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example19() throws IOException, InterruptedException {
         //define example
         String exampleName = "example19";
@@ -1893,8 +1859,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline","tudo"})
     public void example19Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example19";
@@ -1936,8 +1901,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests", "tudo"})
     public void example20() throws IOException, InterruptedException {
         //define example
         String exampleName = "example20";
@@ -1982,8 +1946,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline","tudo"})
     public void example20Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example20";
@@ -2025,8 +1988,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example21() throws IOException, InterruptedException {
         //define example
         String exampleName = "example21";
@@ -2072,8 +2034,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline", "tudo"})
     public void example21Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example21";
@@ -2115,8 +2076,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example22() throws IOException, InterruptedException {
         //define example
         String exampleName = "example22";
@@ -2162,8 +2122,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline","tudo"})
     public void example22Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example22";
@@ -2205,8 +2164,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests", "tudo"})
     public void example23() throws IOException, InterruptedException {
         //define example
         String exampleName = "example23";
@@ -2253,8 +2211,7 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline","tudo"})
     public void example23Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example23";
@@ -2296,8 +2253,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example24() throws IOException, InterruptedException {
         //define example
         String exampleName = "example24";
@@ -2342,8 +2298,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline","tudo"})
     public void example24Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example24";
@@ -2385,8 +2340,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example25() throws IOException, InterruptedException {
         //define example
         String exampleName = "example25";
@@ -2432,8 +2386,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline", "tudo"})
     public void example25Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example25";
@@ -2475,8 +2428,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example26() throws IOException, InterruptedException {
         //define example
         String exampleName = "example26";
@@ -2522,8 +2474,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline","tudo"})
     public void example26Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example26";
@@ -2565,8 +2516,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example27() throws IOException, InterruptedException {
         //define example
         String exampleName = "example27";
@@ -2612,8 +2562,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline","tudo"})
     public void example27Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example27";
@@ -2655,8 +2604,49 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests-baseline","tudo"})
+    public void example28Baseline() throws IOException, InterruptedException {
+        //define example
+        String exampleName = "example28";
+
+        String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
+
+        // Compile Base Classes
+        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
+                directoryOfTheExample);
+
+        //execute example
+        //printExample(exampleName, "src/test/resources/example/");
+        DSE dse = TestUtils.getDseBaseLineInstance("Main",
+                directoryOfTheExample);
+
+        Instant start = Instant.now();
+        dse.executeAnalysis();
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
+
+        //stop redirection of console log
+        System.setOut(originalOut);
+
+        //printing results
+        String output = filterOutPutStream();
+        //System.out.println(output);
+
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //                                                CHECKS
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        assertThat(output)
+                .doesNotContain("DIVERGED")
+                .doesNotContain("BUGGY");
+
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+
+
+        System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
+    }
+
+    @Test(groups = {"own-tests","tudo"})
     public void example28() throws IOException, InterruptedException {
         //define example
         String exampleName = "example28";
@@ -2702,51 +2692,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
-    public void example28Baseline() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "example28";
-
-        String directoryOfTheExample = String.format("src/test/resources/examples/%s/", exampleName);
-
-        // Compile Base Classes
-        FilePreparator.compileClasses(List.of("A", "B", "C", "Greeter", "Sub", "Sub1", "Sub2", "Factories", "Main"),
-                directoryOfTheExample);
-
-        //execute example
-        //printExample(exampleName, "src/test/resources/example/");
-        DSE dse = TestUtils.getDseBaseLineInstance("Main",
-                directoryOfTheExample);
-
-        Instant start = Instant.now();
-        dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-
-        //stop redirection of console log
-        System.setOut(originalOut);
-
-        //printing results
-        String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        assertThat(output)
-                .doesNotContain("DIVERGED")
-                .doesNotContain("BUGGY");
-
-        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
-
-
-        System.out.println(analyseDecisionTree(decisionTree));
-        printDuration(duration);
-    }
-
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example29() throws IOException, InterruptedException {
         //define example
         String exampleName = "example29";
@@ -2792,8 +2738,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline","tudo"})
     public void example29Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example29";
@@ -2835,8 +2780,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example30() throws IOException, InterruptedException {
         //define example
         String exampleName = "example30";
@@ -2882,8 +2826,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline","tudo"})
     public void example30Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example30";
@@ -2925,8 +2868,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example31() throws IOException, InterruptedException {
         //define example
         String exampleName = "example31";
@@ -2972,8 +2914,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline","tudo"})
     public void example31Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example31";
@@ -3015,7 +2956,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test@Tag("own-test")
+    @Test(groups = {"own-test","tudo"})
     public void example32() throws IOException, InterruptedException {
         //define example
         String exampleName = "example32";
@@ -3059,8 +3000,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline","tudo"})
     public void example32Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example32";
@@ -3102,8 +3042,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example33() throws IOException, InterruptedException {
         //define example
         String exampleName = "example33";
@@ -3149,8 +3088,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline","tudo"})
     public void example33Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example33";
@@ -3191,8 +3129,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example34() throws IOException, InterruptedException {
         //define example
         String exampleName = "example34";
@@ -3238,8 +3175,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline","tudo"})
     public void example34Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example34";
@@ -3281,8 +3217,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example35() throws IOException, InterruptedException {
         //define example
         String exampleName = "example35";
@@ -3328,8 +3263,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline","tudo"})
     public void example35Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example35";
@@ -3371,8 +3305,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example36() throws IOException, InterruptedException {
         //define example
         String exampleName = "example36";
@@ -3418,8 +3351,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("own-tests-baseline")
+    @Test(groups = {"own-tests-baseline","tudo"})
     public void example36Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "example36";
@@ -3461,8 +3393,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("svComp")
+    @Test(groups = {"svComp","tudo"})
     public void svComp01() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects01";
@@ -3507,8 +3438,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("svComp-baseline")
+    @Test(groups = {"svComp-baseline","tudo"})
     public void svComp01Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects01";
@@ -3550,8 +3480,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-    @Test
-    @Tag("svComp")
+    @Test(groups = {"svComp","tudo"})
     public void svComp02() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects02";
@@ -3595,9 +3524,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-
-    @Test
-    @Tag("svComp-baseline")
+    @Test(groups = {"svComp-baseline","tudo"})
     public void svComp02Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects02";
@@ -3639,9 +3566,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-
-    @Test
-    @Tag("svComp")
+    @Test(groups = {"svComp","tudo"})
     public void svComp03() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects03";
@@ -3686,8 +3611,9 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp-baseline")
+
+
+    @Test(groups = {"svComp-baseline","tudo"})
     public void svComp03Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects03";
@@ -3730,8 +3656,7 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp")
+    @Test(groups = {"svComp","tudo"})
     public void svComp04() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects04";
@@ -3776,8 +3701,7 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp-baseline")
+    @Test(groups = {"svComp-baseline","tudo"})
     public void svComp04Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects04";
@@ -3819,9 +3743,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-
-    @Test
-    @Tag("svComp")
+    @Test(groups = {"svComp","tudo"})
     public void svComp05() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects05";
@@ -3867,8 +3789,8 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp-baseline")
+
+    @Test(groups = {"svComp-baseline","tudo"})
     public void svComp05Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects05";
@@ -3910,9 +3832,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-
-    @Test
-    @Tag("svComp")
+    @Test(groups = {"svComp","tudo"})
     public void svComp06() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects06";
@@ -3957,8 +3877,7 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp-baseline")
+    @Test(groups = {"svComp-baseline","tudo"})
     public void svComp06Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects06";
@@ -4001,8 +3920,8 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp")
+
+    @Test(groups = {"svComp","tudo"})
     public void svComp07() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects07";
@@ -4047,8 +3966,7 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp-baseline")
+    @Test(groups = {"svComp-baseline","tudo"})
     public void svComp07Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects07";
@@ -4091,8 +4009,7 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp")
+    @Test(groups = {"svComp","tudo"})
     public void svComp08() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects08";
@@ -4137,8 +4054,7 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp-baseline")
+    @Test(groups = {"svComp-baseline","tudo"})
     public void svComp08Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects08";
@@ -4180,9 +4096,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-
-    @Test
-    @Tag("svComp")
+    @Test(groups = {"svComp","tudo"})
     public void svComp09() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects09";
@@ -4227,8 +4141,8 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp-baseline")
+
+    @Test(groups = {"svComp-baseline","tudo"})
     public void svComp09Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects09";
@@ -4271,8 +4185,7 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp")
+    @Test(groups = {"svComp","tudo"})
     public void svComp10() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects10";
@@ -4318,8 +4231,7 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp-baseline")
+    @Test(groups = {"svComp-baseline","tudo"})
     public void svComp10Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects10";
@@ -4362,8 +4274,7 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp")
+    @Test(groups = {"svComp","tudo"})
     public void svComp11() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects11";
@@ -4408,9 +4319,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-
-    @Test
-    @Tag("svComp-baseline")
+    @Test(groups={"svComp-baseline","tudo"})
     public void svComp11Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects11";
@@ -4453,8 +4362,8 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp")
+
+    @Test(groups = {"svComp","tudo"})
     public void svComp12() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects12";
@@ -4499,8 +4408,7 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp-baseline")
+    @Test(groups = {"svComp-baseline","tudo"})
     public void svComp12Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects12";
@@ -4543,8 +4451,7 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp")
+    @Test(groups = {"svComp","tudo"})
     public void svComp13() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects13";
@@ -4588,9 +4495,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-
-    @Test
-    @Tag("svComp-baseline")
+    @Test(groups = {"svComp-baseline","tudo"})
     public void svComp13Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects13";
@@ -4633,8 +4538,7 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp")
+    @Test(groups = {"svComp","tudo"})
     public void svComp14() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects14";
@@ -4679,8 +4583,7 @@ public class DSEIntegrationTest {
     }
 
 
-    @Test
-    @Tag("svComp-baseline")
+    @Test(groups = {"svComp-baseline","tudo"})
     public void svComp14Baseline() throws IOException, InterruptedException {
         //define example
         String exampleName = "objects14";
@@ -4722,9 +4625,7 @@ public class DSEIntegrationTest {
         printDuration(duration);
     }
 
-
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void example37() throws IOException, InterruptedException {
         //define example
         String exampleName = "example37";
@@ -4765,6 +4666,7 @@ public class DSEIntegrationTest {
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
     }
+
 
 
 //
@@ -4856,8 +4758,7 @@ public class DSEIntegrationTest {
 //    }
 //
 //
-    @Test
-    @Tag("own-tests")
+    @Test(groups = {"own-tests","tudo"})
     public void examplejoda() throws IOException, InterruptedException {
         //define example
         String exampleName = "joda_money";

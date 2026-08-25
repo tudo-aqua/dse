@@ -1,7 +1,7 @@
 package tools.aqua.dse;
 
 
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.Test;
 import tools.aqua.dse.objects.Clazz;
 import tools.aqua.dse.objects.ClazzModel;
 

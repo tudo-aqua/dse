@@ -138,13 +138,16 @@ public class Config {
     public SolverContext getSolverContext() {
         System.out.println("Create SolverContext");
         SolverContext ctx = new LoggingSolverContext(this.solver.createContext());
-
-        this.baselineEvaluation = this.executorArgs.contains("-Dconcolic.object.factories=true");
+        if(this.executorArgs != null) {
+            this.baselineEvaluation = this.executorArgs.contains("-Dconcolic.object.factories=true");
+        }
 
         if (!this.constructorSummary && !this.baselineEvaluation) {
             ctx.push();
             this.initializeSmtProblemManager();
-            this.smtProblemManager.getStaticManager().setStaticSmtLibCode(ctx);
+            if(this.smtProblemManager != null) {
+                this.smtProblemManager.getStaticManager().setStaticSmtLibCode(ctx);
+            }
         }
 
         return ctx;
@@ -353,7 +356,7 @@ public class Config {
             throw new IllegalStateException("In ConstructorSummaryMode the SmtProblemManger cannot be created " +
                     "because of recursion.");
         }
-        if (this.smtProblemManager == null ) {
+        if (this.smtProblemManager == null && this.classPaths.size() > 0) {
             String path = this.classPaths.get(0);
             System.out.println("config path: " + path);
             int depth = 1; //todo: Which depth is needed

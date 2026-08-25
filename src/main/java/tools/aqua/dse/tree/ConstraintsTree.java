@@ -364,7 +364,7 @@ public class ConstraintsTree {
 
       //Add object-specific constraints
       solverCtx.push();
-        if (!config.isConstructorSummary() && !config.isBaselineEvaluation()) {
+        if (!config.isConstructorSummary() && !config.isBaselineEvaluation() && config.getSmtProblemManager() != null) {
           String staticSmtLibCode = config.getSmtProblemManager().getStaticManager().generateStaticSmtLibCode();
           String dynamicSmtLibCode = config.getSmtProblemManager().getConstructorSummaryManager().generateFullConstructorSMTLIbCode(path);
 
