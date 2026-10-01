@@ -6,6 +6,10 @@ import org.opalj.br.analyses.DeclaredMethods;
 import org.opalj.br.analyses.DeclaredMethodsKey$;
 import org.opalj.br.analyses.Project;
 import org.opalj.br.analyses.Project$;
+import org.opalj.log.ConsoleOPALLogger;
+import org.opalj.log.GlobalLogContext$;
+import org.opalj.log.OPALLogger$;
+import org.opalj.log.Warn$;
 import org.opalj.br.reader.Java17Framework$;
 import org.opalj.br.fpcf.ContextProviderKey$;
 import org.opalj.br.fpcf.analyses.ContextProvider;
@@ -58,6 +62,13 @@ import java.util.stream.Stream;
  * {@link #reachableTypesFromConstructors(int)} and includes both project and library classes.
  */
 public class Opal {
+    static {
+        // OPAL logs on info level also from finalizers ("[info][project] finalized (LogContext(...))"), i.e., from
+        // another thread at arbitrary times. These lines get interleaved with DSE's output, e.g. with the printed
+        // decision tree that the tests and benchmarks parse. Only warnings and errors are relevant here.
+        OPALLogger$.MODULE$.updateLogger(GlobalLogContext$.MODULE$, new ConsoleOPALLogger(true, Warn$.MODULE$));
+    }
+
     private final Project project;
     private final File classPath;
     private final File javaBaseJmod;
