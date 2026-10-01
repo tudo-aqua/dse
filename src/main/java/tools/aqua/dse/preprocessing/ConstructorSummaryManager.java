@@ -234,32 +234,50 @@ public class ConstructorSummaryManager {
         System.out.println("[ConstructorSummaryManager] constructor signatures to summarize: "
                 + filteredSignaturesConstructorCalls);
 
-        List<Trace> traces = new ArrayList<>();
+        List<String> formulas = new ArrayList<>();
         for (String signature : filteredSignaturesConstructorCalls) {
-            traces.addAll(this.performDseOnConstructor("<>"+signature));
+            GeneratedSummary summary = this.summarizeSignature(signature);
+            this.objectsWithinAllTraces.addAll(summary.objects());
+            this.declarationsOfBluePrint.addAll(summary.declarations());
+            formulas.addAll(summary.formulas());
         }
+
+        return String.join("\n", formulas);
+    }
+
+    /**
+     * Computes the summary of a single constructor signature by running DSE on it. Used by the eager blueprint
+     * generation above and as the {@link SummaryStore.Generator} for incremental summaries.
+     *
+     * @param signature constructor signature without error marker, e.g. {@code LB;|(I)V|{}}.
+     * @return summary templated on {@code __object_0}.
+     */
+    public GeneratedSummary summarizeSignature(String signature) {
+        List<Trace> traces = new ArrayList<>(this.performDseOnConstructor("<>" + signature));
 
         traces.removeIf(t -> t == null
                 || t.getTraceState() instanceof PathResult.AbortResult
                 || (t.getSummaries().isEmpty() && t.getDecisions().isEmpty()));
 
         //Collect objects
-        List<String> objectsInAllTraces = traces.stream()
+        List<String> objects = traces.stream()
                 .map(Trace::getObjectIdentifiers)
                 .flatMap(Collection::stream)
                 .toList();
-        this.objectsWithinAllTraces.addAll(objectsInAllTraces);
-
 
         //Collect declarations
         String regex = "__(byte|char|short|int|long|float|double|string)_\\d";
-        this.declarationsOfBluePrint.addAll(traces.stream()
+        Set<String> declarations = traces.stream()
                 .map(Trace::getDeclarations)
                 .flatMap(List::stream)
                 .map(s -> s.replaceAll(regex, "__object_0" + "$0"))
-                .collect(Collectors.toSet()));
+                .collect(Collectors.toSet());
 
-        return this.generateSmtCodeFromConstructorSummaryTraces(traces);
+        List<String> formulas = traces.stream()
+                .map(this::generateSmtCodeFromSingleConstructorSummaryTrace)
+                .toList();
+
+        return new GeneratedSummary(signature, formulas, declarations, objects);
     }
 
     private List<Trace> performDseOnConstructor(String constructorSignature) {
@@ -289,12 +307,6 @@ public class ConstructorSummaryManager {
         return traces;
     }
 
-
-    private String generateSmtCodeFromConstructorSummaryTraces(List<Trace> summaryTraces) {
-            return summaryTraces.stream()
-                    .map(this::generateSmtCodeFromSingleConstructorSummaryTrace)
-                    .collect(Collectors.joining("\n"));
-    }
 
     private String generateSmtCodeFromSingleConstructorSummaryTrace(Trace summaryTrace) {
         List<Expression<Boolean>> decisions = summaryTrace.getDecisions().stream()
