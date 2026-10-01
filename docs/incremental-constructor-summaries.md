@@ -1,8 +1,8 @@
 # Proposal: Incremental (on-demand) constructor summaries
 
-Status: v3. Step 1 is implemented on the local branch `incremental-summaries`, based on `symbolic-objects` @ `b77a523`:
-the catalogue, the static exclusion, the summary store and the OPAL error inference (see §7). Nothing is wired into
-`ConstraintsTree` yet, so eager mode behaves as before.
+Status: v4. Steps 1 and 2 are implemented on the local branch `incremental-summaries`, based on `symbolic-objects` @
+`b77a523`. Incremental mode is switched on with `-Ddse.summaries.mode=incremental`; the default is still `eager`.
+It has not been run end to end with SPouT yet.
 
 ## 1. What happens today
 
@@ -198,12 +198,21 @@ assertion there would fail. Proposal: reserve one extra **"other error"** branch
 `¬(err = ε ∨ err = E1 ∨ … ∨ err = En)`, built by DSE. Then an unpredicted error still lands on a well-defined branch.
 The count stays static, and the run reports the analysis gap instead of crashing.
 
-### Next (step 2)
+### Step 2 (implemented)
 
-* `Config`: `dse.summaries.mode = eager | incremental`, `dse.summaries.batch`, `dse.errors.mode = declared | unknown`, `dse.errors.maxMethods`, `dse.errors.maxCallTargets`.
-* `ConstructorSummaryManager`: in incremental mode, build the `SummaryStore` (catalogue from OPAL, generator =
-  `summarizeSignature`), the `StaticTypeFacts` (from `StaticManager` and the error map), and summarize only `null|NULL`
-  up front.
-* `ConstraintsTree`: the refinement loop. Per object, assert `(or blueprint(relevantFor(φ, o)))`; then
-  `needed(φ) \ S` decides between "summarize next batch and retry" and "exact UNSAT".
-* `TraceParser`: static error list plus the "other" branch.
+| Where | What |
+|---|---|
+| `Config`, `DSEArguments` | `dse.summaries.mode = eager \| incremental`, `dse.summaries.batch` (default 1), `dse.errors.mode = declared \| unknown`, `dse.errors.maxMethods`, `dse.errors.maxCallTargets` |
+| `SmtProblemManager`, `ConstructorSummaryManager` | Incremental constructor: signature catalogue, static error list (sorted union over all signatures), `StaticTypeFacts` from `StaticManager`, and only the `null\|NULL` summary up front. `startQuery(φ)` determines the base objects, the relevant signatures per object and the ordered needed signatures. `generateIncrementalSMTLibCode` asserts per object only its relevant, already summarized signatures. `solve(ctx, φ, val)` is the refinement loop. |
+| `ConstraintsTree.findNext` | Uses `ConstructorSummaryManager.solve` in incremental mode (non-incremental solving only). Eager mode is unchanged. |
+| `TraceParser` | Incremental mode: `branchCount = n + 2`. Ids `0..n-1` are the static errors, `n` is "other error" with condition `¬(err = "" ∨ err = E0 ∨ …)` (a warning is printed), and `n+1` is no error. |
+| `Executor` | Unchanged; `getDeclarationsOfBluePrint()` returns the store's (growing) declarations in incremental mode. |
+| tests | `IncrementalSummariesTest`: the refinement loop with Z3 on Fig. 2 with given summaries (summarize until SAT, reuse, error branch, UNSAT without summaries, UNSAT only after all needed summaries). `StaticErrorDecisionTest`: error branch numbering and the "other" branch. `TestUtils`: `-Dtest.summaries.mode=incremental` runs the integration suites in incremental mode. |
+
+### Open (step 3 and later)
+
+* End-to-end runs on svComp / own-tests in both modes. These need SPouT and the executor.
+* Persistent per-signature summary cache (key: signature + classpath hash).
+* The error-analysis budget (`maxMethods`) is global per run. Constructors analyzed late may get only declared
+  exceptions once it is used up.
+* Possible fine-tuning: per-query caching of the exclusion check (currently O(signatures × objects × path) per query).

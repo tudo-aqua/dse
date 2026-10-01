@@ -14,6 +14,9 @@ public class TestUtils {
     public static final boolean BLUEPRINT_CACHE_ENABLED =
             Boolean.parseBoolean(System.getProperty("test.blueprint.cache", "true"));
 
+    /** constructor summaries for the integration tests: eager (default) or incremental */
+    public static final String SUMMARIES_MODE = System.getProperty("test.summaries.mode", "eager");
+
     public static void printExample(String exampleName,
                                     String directorOfExample
     ) {
@@ -64,6 +67,7 @@ public class TestUtils {
         if (BLUEPRINT_CACHE_ENABLED) {
             props.setProperty("dse.constructor.blueprint.cache", "true");
         }
+        props.setProperty("dse.summaries.mode", SUMMARIES_MODE);
 
         Config config = Config.fromProperties(props);
 

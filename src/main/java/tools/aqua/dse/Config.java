@@ -23,6 +23,8 @@ import org.apache.commons.cli.CommandLine;
 import tools.aqua.dse.bounds.BoundedSolverProvider;
 import tools.aqua.dse.objects.ClazzModel;
 import tools.aqua.dse.objects.LoggingSolverContext;
+import tools.aqua.dse.preprocessing.ConstructorErrorAnalysis;
+import tools.aqua.dse.preprocessing.ConstructorSummaryManager;
 import tools.aqua.dse.preprocessing.SmtProblemManager;
 
 import java.io.*;
@@ -90,6 +92,14 @@ public class Config {
 
     private boolean constructorSummary = false;
     private boolean constructorBlueprintCache = false;
+
+    /** compute constructor summaries on demand (true) or all up front (false, default) */
+    private boolean incrementalSummaries = false;
+    /** number of constructor signatures summarized per refinement step in incremental mode */
+    private int summaryBatchSize = 1;
+    private ConstructorErrorAnalysis.Mode errorAnalysisMode = ConstructorErrorAnalysis.Mode.DECLARED_AND_LANGUAGE;
+    private int errorAnalysisMaxMethods = ConstructorErrorAnalysis.DEFAULT_MAX_METHODS;
+    private int errorAnalysisMaxCallTargets = ConstructorErrorAnalysis.DEFAULT_MAX_CALL_TARGETS;
     private int maxObjectAnnotationDepth = 0;
 
     private SmtProblemManager smtProblemManager;
@@ -276,6 +286,39 @@ public class Config {
             this.constructorBlueprintCache = Boolean.parseBoolean(props.getProperty("dse.constructor.blueprint.cache"));
         }
 
+        if (props.containsKey("dse.summaries.mode")) {
+            String mode = props.getProperty("dse.summaries.mode").trim().toLowerCase();
+            switch (mode) {
+                case "eager": this.incrementalSummaries = false; break;
+                case "incremental": this.incrementalSummaries = true; break;
+                default: throw new IllegalArgumentException("dse.summaries.mode must be eager or incremental: " + mode);
+            }
+        }
+
+        if (props.containsKey("dse.summaries.batch")) {
+            this.summaryBatchSize = Integer.parseInt(props.getProperty("dse.summaries.batch").trim());
+            if (this.summaryBatchSize < 1) {
+                throw new IllegalArgumentException("dse.summaries.batch must be >= 1");
+            }
+        }
+
+        if (props.containsKey("dse.errors.mode")) {
+            String mode = props.getProperty("dse.errors.mode").trim().toLowerCase();
+            switch (mode) {
+                case "declared": this.errorAnalysisMode = ConstructorErrorAnalysis.Mode.DECLARED_AND_LANGUAGE; break;
+                case "unknown": this.errorAnalysisMode = ConstructorErrorAnalysis.Mode.WITH_UNKNOWN; break;
+                default: throw new IllegalArgumentException("dse.errors.mode must be declared or unknown: " + mode);
+            }
+        }
+
+        if (props.containsKey("dse.errors.maxMethods")) {
+            this.errorAnalysisMaxMethods = Integer.parseInt(props.getProperty("dse.errors.maxMethods").trim());
+        }
+
+        if (props.containsKey("dse.errors.maxCallTargets")) {
+            this.errorAnalysisMaxCallTargets = Integer.parseInt(props.getProperty("dse.errors.maxCallTargets").trim());
+        }
+
         if (props.containsKey("concolic.max.object.annotation.depth")) {
             this.maxObjectAnnotationDepth = Integer.parseInt(props.getProperty("concolic.max.object.annotation.depth"));
         }
@@ -360,7 +403,11 @@ public class Config {
             String path = this.classPaths.get(0);
             System.out.println("config path: " + path);
             int depth = 1; //todo: Which depth is needed
-            this.smtProblemManager = new SmtProblemManager(path, depth, this.constructorBlueprintCache);
+            this.smtProblemManager = this.incrementalSummaries
+                    ? new SmtProblemManager(path, depth, new ConstructorSummaryManager.IncrementalOptions(
+                            this.summaryBatchSize, this.errorAnalysisMode,
+                            this.errorAnalysisMaxCallTargets, this.errorAnalysisMaxMethods))
+                    : new SmtProblemManager(path, depth, this.constructorBlueprintCache);
         }
     }
 
@@ -371,6 +418,10 @@ public class Config {
 
     public boolean isConstructorSummary() {
         return constructorSummary;
+    }
+
+    public boolean isIncrementalSummaries() {
+        return incrementalSummaries;
     }
 
     public boolean isBaselineEvaluation() {

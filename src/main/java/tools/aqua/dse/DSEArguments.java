@@ -85,6 +85,11 @@ public class DSEArguments {
         printDSEOptionHelp("static.info", "static information on inheritance and constructors for objects (filename)");
         printDSEOptionHelp("random.seed", "random seed (long value)");
         printDSEOptionHelp("dse.timeout", "timeout in seconds (long value)");
+        printDSEOptionHelp("dse.summaries.mode", "constructor summaries: eager (default, all up front) / incremental (on demand)");
+        printDSEOptionHelp("dse.summaries.batch", "incremental: no. of signatures summarized per refinement step (default 1)");
+        printDSEOptionHelp("dse.errors.mode", "incremental: constructor error inference: declared (default, declared and\nlanguage exceptions) / unknown (imprecision means unknown errors)");
+        printDSEOptionHelp("dse.errors.maxMethods", "incremental: max. no. of methods analyzed for constructor errors");
+        printDSEOptionHelp("dse.errors.maxCallTargets", "incremental: max. no. of call targets followed per call site");
         System.out.println();
     }
 

@@ -31,6 +31,7 @@ import tools.aqua.dse.Config;
 import tools.aqua.dse.objects.Clazz;
 import tools.aqua.dse.objects.ClazzModel;
 import tools.aqua.dse.paths.PathResult;
+import tools.aqua.dse.preprocessing.ConstructorSummaryManager;
 import tools.aqua.dse.preprocessing.Opal;
 
 import java.io.IOException;
@@ -162,12 +163,18 @@ public class TraceParser {
 
             //Special Handling of branchCount & BranchId of (assert (= __object_0.err "{ERROR_TYPE}")) because
             // SPout has no information how many error per constructor can occur
-            Pattern errorPattern = Pattern.compile("\\(assert \\(= __object_\\d+\\.err \"(.*?)\"\\)\\)");
+            Pattern errorPattern = Pattern.compile("\\(assert \\(= (__object_\\d+)\\.err \"(.*?)\"\\)\\)");
             Matcher errorMatcher = errorPattern.matcher(constraint);
             if (errorMatcher.find()) {
-                String errorMessage = errorMatcher.group(1);
-                List<String> possibleErrorsWithInConstructors =
-                        config.getSmtProblemManager().getConstructorSummaryManager().getPossibleErrorsWithInConstructors();
+                String objectName = errorMatcher.group(1);
+                String errorMessage = errorMatcher.group(2);
+                ConstructorSummaryManager csm = config.getSmtProblemManager().getConstructorSummaryManager();
+                List<String> possibleErrorsWithInConstructors = csm.getPossibleErrorsWithInConstructors();
+
+                if (csm.hasStaticErrorList()) {
+                    return parseErrorDecisionWithStaticErrors(
+                            objectName, errorMessage, possibleErrorsWithInConstructors, decl, smt);
+                }
 
                 //todo: error index für leer
                 int currentBranchCount = possibleErrorsWithInConstructors.size()+1;
@@ -182,6 +189,37 @@ public class TraceParser {
 
         return new Decision( ExpressionUtil.and(smt.assertions), branches, branchId);
 
+    }
+
+    /**
+     * Decision on {@code o.err} with a static list {@code E_0 ... E_{n-1}} of possible constructor errors (computed
+     * by the static error inference in incremental mode). Branches: {@code 0..n-1} for {@code o.err = E_i}, {@code n}
+     * for "some other error" (an error the static analysis did not predict), {@code n+1} for no error. The condition
+     * of the "other" branch is {@code not (o.err = "" or o.err = E_0 or ...)}, so that the branch has a well-defined
+     * meaning independently of which unpredicted error was observed first.
+     */
+    static Decision parseErrorDecisionWithStaticErrors(String objectName,
+                                                               String errorMessage,
+                                                               List<String> errors,
+                                                               String decl,
+                                                               SMTProblem smt) throws IOException, SMTLIBParserException {
+        int branchCount = errors.size() + 2;
+        if (errorMessage.isEmpty()) {
+            return new Decision(ExpressionUtil.and(smt.assertions), branchCount, branchCount - 1);
+        }
+        int index = errors.indexOf(errorMessage);
+        if (index >= 0) {
+            return new Decision(ExpressionUtil.and(smt.assertions), branchCount, index);
+        }
+
+        System.out.println("WARNING: constructor error " + errorMessage + " of " + objectName
+                + " was not predicted by the static error analysis; using the \"other error\" branch");
+        StringBuilder known = new StringBuilder(String.format("(= %s.err \"\")", objectName));
+        for (String error : errors) {
+            known.append(String.format(" (= %s.err \"%s\")", objectName, error));
+        }
+        SMTProblem other = SMTLIBParser.parseSMTProgram(decl + "(assert (not (or " + known + ")))");
+        return new Decision(ExpressionUtil.and(other.assertions), branchCount, errors.size());
     }
 
     private static Expression<Boolean> parseExtends(String constraint,

@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class SummaryRelevanceTest {
 
-    private static final String DECLARATIONS = String.join("",
+    static final String DECLARATIONS = String.join("",
             "(declare-fun null () Int)",
             "(declare-fun obj.extends (String String) Bool)",
             "(declare-fun obj.method.of (String String String String) Bool)",
@@ -37,44 +37,48 @@ public class SummaryRelevanceTest {
             "(declare-fun __object_1.err () String)");
 
     // decisions as recorded along the path of Fig. 2
-    private static final String BOUND_A = "(obj.extends __object_0.cls \"LA;\")";
-    private static final String NO_ERROR = "(= __object_0.err \"\")";
-    private static final String ASSERTION = "(= __object_0.err \"java/lang/AssertionError\")";
-    private static final String INSTANCEOF_B = "(and (not (= __object_0 null)) (obj.extends __object_0.cls \"LB;\"))";
-    private static final String NOT_INSTANCEOF_B = "(not " + INSTANCEOF_B + ")";
-    private static final String FOO_IS_D = "(obj.method.of __object_0.cls \"foo\" \"()V\" \"LD;\")";
-    private static final String X_POSITIVE = "(bvsgt __object_0.x #x00000000)";
+    static final String BOUND_A = "(obj.extends __object_0.cls \"LA;\")";
+    static final String NO_ERROR = "(= __object_0.err \"\")";
+    static final String ASSERTION = "(= __object_0.err \"java/lang/AssertionError\")";
+    static final String INSTANCEOF_B = "(and (not (= __object_0 null)) (obj.extends __object_0.cls \"LB;\"))";
+    static final String NOT_INSTANCEOF_B = "(not " + INSTANCEOF_B + ")";
+    static final String FOO_IS_D = "(obj.method.of __object_0.cls \"foo\" \"()V\" \"LD;\")";
+    static final String X_POSITIVE = "(bvsgt __object_0.x #x00000000)";
 
-    private static final List<String> SIGNATURES = List.of(
+    static final List<String> SIGNATURES = List.of(
             "null|NULL", "LA;|()V|", "LB;|()V|", "LB;|(I)V|{}", "LC;|()V|", "LD;|(I)V|{}");
 
-    private static final Map<String, ConstructorErrors> ERRORS = Map.of(
+    static final Map<String, ConstructorErrors> ERRORS = Map.of(
             "LA;|()V", ConstructorErrors.NONE,
             "LB;|()V", new ConstructorErrors(Set.of("java/lang/AssertionError"), true),
             "LB;|(I)V", ConstructorErrors.NONE,
             "LC;|()V", ConstructorErrors.NONE,
             "LD;|(I)V", ConstructorErrors.NONE);
 
-    private static StaticTypeFacts facts(Map<String, ConstructorErrors> errors) {
-        // same shape as Opal.extendsRelation: null edges, reflexive, transitive supertypes (Object excluded)
-        List<String[]> ext = new ArrayList<>();
+    /** {@code obj.extends} in the shape of Opal.extendsRelation: null edges, reflexive, transitive (no Object). */
+    static final List<String[]> EXTENDS = new ArrayList<>();
+    static {
         Map<String, List<String>> supers = Map.of(
                 "LA;", List.of("LA;"),
                 "LB;", List.of("LB;", "LA;"),
                 "LC;", List.of("LC;", "LB;", "LA;"),
                 "LD;", List.of("LD;", "LB;", "LA;"));
         supers.forEach((sub, sups) -> {
-            ext.add(new String[] {"null", sub});
-            sups.forEach(sup -> ext.add(new String[] {sub, sup}));
+            EXTENDS.add(new String[] {"null", sub});
+            sups.forEach(sup -> EXTENDS.add(new String[] {sub, sup}));
         });
-        List<Opal.PolymorphyInformation> methods = List.of(
-                new Opal.PolymorphyInformation("LB;", "foo", "()V", "LB;"),
-                new Opal.PolymorphyInformation("LC;", "foo", "()V", "LB;"),
-                new Opal.PolymorphyInformation("LD;", "foo", "()V", "LD;"));
-        return new StaticTypeFacts(ext, methods, errors);
     }
 
-    private static List<Expression<Boolean>> path(String... decisions) throws Exception {
+    static final List<Opal.PolymorphyInformation> METHODS = List.of(
+            new Opal.PolymorphyInformation("LB;", "foo", "()V", "LB;"),
+            new Opal.PolymorphyInformation("LC;", "foo", "()V", "LB;"),
+            new Opal.PolymorphyInformation("LD;", "foo", "()V", "LD;"));
+
+    static StaticTypeFacts facts(Map<String, ConstructorErrors> errors) {
+        return new StaticTypeFacts(EXTENDS, METHODS, errors);
+    }
+
+    static List<Expression<Boolean>> path(String... decisions) throws Exception {
         List<Expression<Boolean>> result = new ArrayList<>();
         for (String d : decisions) {
             result.addAll(SMTLIBParser.parseSMTProgram(DECLARATIONS + "(assert " + d + ")").assertions);

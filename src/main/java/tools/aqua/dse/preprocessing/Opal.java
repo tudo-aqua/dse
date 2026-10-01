@@ -243,6 +243,13 @@ public class Opal {
      */
     public String generateExtendsSummary(Set<ClassType> reachable) {
         if(reachable.isEmpty()) {return "";}
+        List<String[]> relation = extendsRelation(reachable);
+        System.out.println("[Opal] generateExtendsSummary: " + relation.size() + " extends relations");
+        return renderExtendsSummary(relation);
+    }
+
+    /** Renders the {@code obj.extends} relation (pairs {@code {sub, super}}) as SMT-LIB definition. */
+    public static String renderExtendsSummary(List<String[]> relation) {
         StringBuilder result = new StringBuilder();
 
         result.append(
@@ -253,7 +260,6 @@ public class Opal {
                 (ite (or"""
         );
 
-        List<String[]> relation = extendsRelation(reachable);
         for (String[] pair : relation) {
             result.append(String.format("\n  (and (= x!0 \"%s\")  (= x!1 \"%s\"))", pair[0], pair[1]));
         }
@@ -265,8 +271,6 @@ public class Opal {
                 )))
                 """
         );
-
-        System.out.println("[Opal] generateExtendsSummary: " + relation.size() + " extends relations");
         return result.toString();
     }
 
@@ -543,7 +547,7 @@ public class Opal {
      * @param infos prepared polymorphism entries.
      * @return SMT-LibS string of the {@code obj.method.of} definition.
      */
-    private String generatePolymorphismSummaryInternal(List<PolymorphyInformation> infos) {
+    static String generatePolymorphismSummaryInternal(List<PolymorphyInformation> infos) {
         StringBuilder result = new StringBuilder();
 
         result.append("""

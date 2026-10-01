@@ -25,6 +25,18 @@ public class SmtProblemManager {
         System.out.println("set-up-time: " + (end - start) + "ms");
     }
 
+    /**
+     * Incremental mode: constructor summaries are computed on demand (see
+     * {@link ConstructorSummaryManager#startQuery(java.util.List)}).
+     */
+    public SmtProblemManager(String classPath, int depth, ConstructorSummaryManager.IncrementalOptions options) {
+        long start = System.currentTimeMillis();
+        this.staticManager = new StaticManager(classPath, depth);
+        constructorSummaryManager = new ConstructorSummaryManager(classPath, depth, staticManager, options);
+        long end = System.currentTimeMillis();
+        System.out.println("set-up-time: " + (end - start) + "ms");
+    }
+
     public StaticManager getStaticManager() {
         return staticManager;
     }

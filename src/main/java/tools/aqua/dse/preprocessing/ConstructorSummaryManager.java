@@ -1,6 +1,9 @@
 package tools.aqua.dse.preprocessing;
 
+import gov.nasa.jpf.constraints.api.ConstraintSolver;
 import gov.nasa.jpf.constraints.api.Expression;
+import gov.nasa.jpf.constraints.api.SolverContext;
+import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.smtlibUtility.smtconverter.SMTLibExportGenContext;
 import gov.nasa.jpf.constraints.smtlibUtility.smtconverter.SMTLibExportVisitor;
@@ -30,9 +33,28 @@ public class ConstructorSummaryManager {
     private final int depth;
     private final Opal opal;
     private final Set<String> declarationsOfBluePrint = new HashSet<>();
+    /** eager mode: disjunction of all summaries; {@code null} in incremental mode */
     private final String bluePrintConstructorSummaries;
     private final List<String> possibleErrorsWithInConstructors = new ArrayList<>();
     private final List<String> objectsWithinAllTraces = new ArrayList<>();
+
+    /** incremental mode only (otherwise {@code null}) */
+    private final SummaryStore summaryStore;
+    private final SummaryRelevance relevance;
+    private final int batchSize;
+
+    /**
+     * Options for incremental summaries.
+     *
+     * @param batchSize      number of signatures summarized per refinement step.
+     * @param errorMode      mode of the static constructor error inference.
+     * @param maxCallTargets bound for the error inference, see {@link ConstructorErrorAnalysis}.
+     * @param maxMethods     bound for the error inference, see {@link ConstructorErrorAnalysis}.
+     */
+    public record IncrementalOptions(int batchSize,
+                                     ConstructorErrorAnalysis.Mode errorMode,
+                                     int maxCallTargets,
+                                     int maxMethods) {}
 
     public ConstructorSummaryManager(String classPath, int depth) {
         this(classPath, depth, false);
@@ -43,6 +65,9 @@ public class ConstructorSummaryManager {
         System.out.println("Opal class Path: "+classPath);
         this.opal = new Opal(classPath);
         this.depth = depth;
+        this.summaryStore = null;
+        this.relevance = null;
+        this.batchSize = 0;
         if (useCache && cacheExists()) {
             System.out.println("ConstructorBluePrint cache found — loading from disk");
             this.bluePrintConstructorSummaries = loadBluePrintFromCache();
@@ -59,6 +84,168 @@ public class ConstructorSummaryManager {
         extractErrorWithinConstructors();
     }
 
+
+    /**
+     * Incremental mode: only the signature catalogue, the static error list, and the static type facts are computed
+     * up front; of the summaries, only the one of {@code null|NULL} is computed. All other summaries are computed on
+     * demand, see {@link #startQuery(List)} and {@link #summarizeNextBatch(Query)}.
+     */
+    public ConstructorSummaryManager(String classPath, int depth, StaticManager staticManager,
+                                     IncrementalOptions options) {
+        this.classPath = classPath;
+        System.out.println("Opal class Path: "+classPath);
+        this.opal = new Opal(classPath);
+        this.depth = depth;
+        this.batchSize = options.batchSize();
+        this.bluePrintConstructorSummaries = null;
+
+        List<String> signatures = new ArrayList<>(List.of(ConstructorSignature.NULL_SIGNATURE));
+        this.opal.generateSignaturesOfPossibleConstructorCallsFromNondetObject(this.depth).stream()
+                .filter(sig -> !signatures.contains(sig))
+                .forEach(signatures::add);
+        System.out.println("[ConstructorSummaryManager] incremental mode, " + signatures.size() + " signatures");
+
+        Map<String, ConstructorErrors> errors = this.opal.inferConstructorErrors(signatures,
+                options.errorMode(), options.maxCallTargets(), options.maxMethods());
+        Set<String> allErrors = new TreeSet<>();
+        errors.values().forEach(e -> allErrors.addAll(e.types()));
+        this.possibleErrorsWithInConstructors.addAll(allErrors);
+        System.out.println("[ConstructorSummaryManager] static constructor errors: " + allErrors);
+
+        StaticTypeFacts facts = new StaticTypeFacts(staticManager.getExtendsRelation(),
+                staticManager.getPolymorphicInformation(), errors);
+        this.relevance = new SummaryRelevance(facts);
+        this.summaryStore = new SummaryStore(signatures, this::summarizeSignature);
+        this.summaryStore.ensureSummarized(List.of(ConstructorSignature.parse(ConstructorSignature.NULL_SIGNATURE)));
+    }
+
+    /** For tests: incremental mode with a given store and relevance check, without OPAL. */
+    ConstructorSummaryManager(SummaryStore store, SummaryRelevance relevance, List<String> errors, int batchSize) {
+        this.classPath = null;
+        this.opal = null;
+        this.depth = 0;
+        this.bluePrintConstructorSummaries = null;
+        this.summaryStore = store;
+        this.relevance = relevance;
+        this.batchSize = batchSize;
+        this.possibleErrorsWithInConstructors.addAll(errors);
+        this.summaryStore.ensureSummarized(List.of(ConstructorSignature.parse(ConstructorSignature.NULL_SIGNATURE)));
+    }
+
+    public boolean isIncremental() {
+        return this.summaryStore != null;
+    }
+
+    /**
+     * Refinement loop of incremental mode: solves {@code path} with the summaries computed so far (restricted per
+     * object to the signatures that are not statically excluded); on UNSAT, summarizes the next batch of needed
+     * signatures and solves again. UNSAT is only returned once every needed signature has been summarized, so it
+     * is exact. The context must already contain the static SMT code (class hierarchy, polymorphism); it is left
+     * unchanged.
+     */
+    public ConstraintSolver.Result solve(SolverContext solverCtx, List<Expression<Boolean>> path, Valuation val) {
+        Query query = startQuery(path);
+        int round = 0;
+        while (true) {
+            round++;
+            String dynamicSmtLibCode = generateIncrementalSMTLibCode(query);
+            System.out.println("SMT-Problem-Start");
+            System.out.printf("\u001B[38;5;208m %s \u001B[0m%n", dynamicSmtLibCode);
+            System.out.println("SMT-Problem-End");
+
+            solverCtx.push();
+            ConstraintSolver.Result res;
+            try {
+                SmtProblemManager.addSmtProblemAsString(dynamicSmtLibCode, solverCtx);
+                solverCtx.add(path);
+                System.out.println("\033[35mSolve SMT-problem (round " + round + ")");
+                res = solverCtx.solve(val);
+            } finally {
+                solverCtx.pop();
+            }
+
+            if (res != ConstraintSolver.Result.UNSAT || summarizeNextBatch(query) == 0) {
+                return res;
+            }
+        }
+    }
+
+    /**
+     * The constructor-summary part of one solver query in incremental mode (one open node of the constraints tree).
+     *
+     * @param objectIdentifiers all object identifiers of the path (as in eager mode, for distinctness constraints).
+     * @param baseIdentifiers   the top-level objects, each of which needs a constructor.
+     * @param relevant          per base object: the signatures not statically excluded for it, simplest first.
+     * @param needed            union of {@code relevant} in the order in which missing summaries are computed.
+     */
+    public record Query(List<String> objectIdentifiers,
+                        List<String> baseIdentifiers,
+                        Map<String, List<ConstructorSignature>> relevant,
+                        List<ConstructorSignature> needed) {}
+
+    public Query startQuery(List<Expression<Boolean>> path) {
+        List<String> objectIdentifiers = extractObjectIdentifiers(extractFreeVariables(path));
+        Pattern baseClassPattern = Pattern.compile("__object_\\d+$");
+        List<String> baseIdentifiers = objectIdentifiers.stream()
+                .filter(identifier -> baseClassPattern.matcher(identifier).find())
+                .toList();
+
+        Map<String, List<ConstructorSignature>> relevant = new LinkedHashMap<>();
+        for (String object : baseIdentifiers) {
+            relevant.put(object, this.relevance.relevantFor(path, object, this.summaryStore.catalogue()));
+        }
+        List<ConstructorSignature> needed =
+                this.relevance.needed(path, baseIdentifiers, this.summaryStore.catalogue());
+
+        System.out.println("[ConstructorSummaryManager] query: objects " + baseIdentifiers + ", "
+                + needed.size() + " of " + this.summaryStore.catalogue().size() + " signatures relevant, "
+                + this.summaryStore.unsummarized(needed).size() + " of them not summarized yet");
+        return new Query(objectIdentifiers, baseIdentifiers, relevant, needed);
+    }
+
+    /**
+     * SMT-LIB code for the query: declarations, and per base object the disjunction of the summaries computed so
+     * far among its relevant signatures ({@code (or false)} if there is none yet), and distinctness of objects.
+     */
+    public String generateIncrementalSMTLibCode(Query query) {
+        StringBuilder sb = new StringBuilder();
+        String declarationsTemplate = String.join("\n", this.summaryStore.declarations());
+        for (String object : query.baseIdentifiers()) {
+            sb.append(String.format("\n(declare-fun %s.init () String)", object));
+            sb.append(declarationsTemplate.replace("__object_0", object));
+        }
+        sb.append("\n(declare-fun null () Int)\n");
+        for (String object : query.baseIdentifiers()) {
+            String blueprint = this.summaryStore.blueprint(query.relevant().get(object));
+            sb.append(String.format("(assert (or %s))", blueprint.replace("__object_0", object) + "\n"));
+        }
+        sb.append(objectNotIdentityConstraints(query.objectIdentifiers()));
+        return sb.toString();
+    }
+
+    /**
+     * Computes the summaries of the next {@code batchSize} needed, not yet summarized signatures of the query.
+     *
+     * @return the number of newly computed summaries; 0 means that all needed summaries are known, i.e., the
+     *         solver result for the query is final.
+     */
+    public int summarizeNextBatch(Query query) {
+        List<ConstructorSignature> missing = this.summaryStore.unsummarized(query.needed());
+        List<ConstructorSignature> batch = missing.subList(0, Math.min(this.batchSize, missing.size()));
+        if (batch.isEmpty()) {
+            return 0;
+        }
+        System.out.println("[ConstructorSummaryManager] summarizing " + batch.stream()
+                .map(ConstructorSignature::signature).toList() + " (" + (missing.size() - batch.size())
+                + " needed signatures left, " + (this.summaryStore.summarizedCount() + batch.size())
+                + " summarized in total)");
+        return this.summaryStore.ensureSummarized(batch);
+    }
+
+    /** @return whether the list of constructor errors is static (incremental mode) and may be incomplete. */
+    public boolean hasStaticErrorList() {
+        return isIncremental();
+    }
 
     public String generateFullConstructorSMTLIbCode(List<Expression<Boolean>> path) {
         List<Variable<?>> freeVariables = extractFreeVariables(path);
@@ -79,6 +266,10 @@ public class ConstructorSummaryManager {
 
 
         return String.format("%s%n%s%n%s", declarations, summaries, objectNotIdentityConstraints);
+    }
+
+    private Collection<String> nestedObjects() {
+        return isIncremental() ? this.summaryStore.objects() : this.objectsWithinAllTraces;
     }
 
     private List<Variable<?>> extractFreeVariables(List<Expression<Boolean>> path) {
@@ -140,7 +331,7 @@ public class ConstructorSummaryManager {
                 .filter(name -> name.endsWith(".cls") || name.endsWith(".err"))
                 .map(name -> name.substring(0, name.length()-4))
                 .distinct()
-                .filter(name -> !this.objectsWithinAllTraces.contains(name))
+                .filter(name -> !nestedObjects().contains(name))
                 .toList();
     }
 
@@ -404,6 +595,6 @@ public class ConstructorSummaryManager {
     }
 
     public Set<String> getDeclarationsOfBluePrint() {
-        return declarationsOfBluePrint;
+        return isIncremental() ? this.summaryStore.declarations() : declarationsOfBluePrint;
     }
 }

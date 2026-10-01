@@ -26,6 +26,7 @@ import gov.nasa.jpf.constraints.solvers.dontknow.DontKnowSolver;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import tools.aqua.dse.Config;
 import tools.aqua.dse.paths.PathResult;
+import tools.aqua.dse.preprocessing.ConstructorSummaryManager;
 import tools.aqua.dse.preprocessing.SmtProblemManager;
 import tools.aqua.dse.trace.Decision;
 import tools.aqua.dse.trace.Trace;
@@ -378,6 +379,22 @@ public class ConstraintsTree {
     }
   }
 
+  /** incremental constructor summaries are used (only with non-incremental solving) */
+  private boolean useIncrementalSummaries() {
+    return !incremental
+        && !config.isConstructorSummary()
+        && !config.isBaselineEvaluation()
+        && config.getSmtProblemManager() != null
+        && config.getSmtProblemManager().getConstructorSummaryManager().isIncremental();
+  }
+
+  /** Refinement loop for incremental constructor summaries, see {@link ConstructorSummaryManager#solve}. */
+  private Result solveWithIncrementalSummaries(List<Expression<Boolean>> path, Valuation val) {
+    System.out.println("current decision path: " + Arrays.toString(path.toArray()));
+    logger.finer("Finding new valuation");
+    return config.getSmtProblemManager().getConstructorSummaryManager().solve(solverCtx, path, val);
+  }
+
   private void assertExpression(Expression<Boolean>... expr) {
     try {
       solverCtx.add(expr);
@@ -479,21 +496,25 @@ public class ConstraintsTree {
       }
 
 
-      //todo:
-      // update context and current target
-      updateContext(
-          (currentTarget == null || currentTarget.parent() == null) ? root : currentTarget,
-          nextOpen);
-      currentTarget = nextOpen;
-
-
-
       // find model
       Valuation val = new Valuation();
-      logger.finer("Finding new valuation");
-      System.out.println("\033[35mSolve SMT-problem");
-      Result res = solverCtx.solve(val);
-      solverCtx.pop();
+      Result res;
+      if (useIncrementalSummaries()) {
+        currentTarget = nextOpen;
+        res = solveWithIncrementalSummaries(pathConstraint(nextOpen, root), val);
+      } else {
+        //todo:
+        // update context and current target
+        updateContext(
+            (currentTarget == null || currentTarget.parent() == null) ? root : currentTarget,
+            nextOpen);
+        currentTarget = nextOpen;
+
+        logger.finer("Finding new valuation");
+        System.out.println("\033[35mSolve SMT-problem");
+        res = solverCtx.solve(val);
+        solverCtx.pop();
+      }
 
 
       System.out.println("status: "+res);

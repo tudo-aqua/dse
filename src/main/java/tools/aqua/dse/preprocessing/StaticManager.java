@@ -66,5 +66,10 @@ public class StaticManager {
     public List<Opal.PolymorphyInformation> getPolymorphicInformation() {
         return polymorphicInformation;
     }
+
+    /** The {@code obj.extends} relation exactly as asserted by {@link #generateStaticSmtLibCode()}. */
+    public List<String[]> getExtendsRelation() {
+        return this.reachableTypes.isEmpty() ? List.of() : this.opal.extendsRelation(this.reachableTypes);
+    }
 }
 
