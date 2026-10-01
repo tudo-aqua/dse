@@ -93,20 +93,33 @@ public class Opal {
                 + " project classes, " + this.project.libraryClassFilesCount() + " library classes");
     }
 
-    private static File extractBundledJavaBase() {
-        File tmpFile;
-        try {
-            Path tmpPath = Files.createTempFile("java.base", ".jmods");
-            tmpFile = tmpPath.toFile();
-            //tmpFile.deleteOnExit();
-            OutputStream outStream= new FileOutputStream(tmpFile);
-            InputStream inStream = Opal.class.getClassLoader().getResourceAsStream("jmods/java.base.jmod");
-            IOUtils.copy(inStream, outStream);
-            System.out.println("tmpFile: " + tmpFile.getAbsolutePath());
-        } catch (IOException e) {
-            throw new RuntimeException("Cannot read java.base.jmods due to IOException: " + e.toString());
+    /** The bundled java.base.jmod, extracted once per JVM. */
+    private static File bundledJavaBase;
+
+    /**
+     * Extracts the bundled {@code jmods/java.base.jmod} to a temporary file. The file must keep the extension
+     * {@code .jmod}: OPAL selects the reader by extension and silently ignores other files ("... is empty"),
+     * which leaves the project without any library classes.
+     */
+    private static synchronized File extractBundledJavaBase() {
+        if (bundledJavaBase != null && bundledJavaBase.length() > 0) {
+            return bundledJavaBase;
         }
-        return tmpFile;
+        try (InputStream inStream = Opal.class.getClassLoader().getResourceAsStream("jmods/java.base.jmod")) {
+            if (inStream == null) {
+                throw new IllegalStateException("Resource jmods/java.base.jmod not found (see compile-dse.sh)");
+            }
+            File tmpFile = Files.createTempFile("java.base", ".jmod").toFile();
+            tmpFile.deleteOnExit();
+            try (OutputStream outStream = new FileOutputStream(tmpFile)) {
+                IOUtils.copy(inStream, outStream);
+            }
+            System.out.println("tmpFile: " + tmpFile.getAbsolutePath());
+            bundledJavaBase = tmpFile;
+            return tmpFile;
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot read java.base.jmod due to IOException: " + e.toString());
+        }
     }
 
     /**
@@ -442,12 +455,53 @@ public class Opal {
                 ));
                 return null;
             });
+            addInheritedLibraryMethods(type, polymorphicInfos);
         }
         System.out.println("[Opal] collectPolymorphyInformation: " + types.length + " types -> "
                 + polymorphicInfos.size() + " methods");
         return polymorphicInfos;
     }
 
+
+    /**
+     * Adds the methods that {@code type} inherits from library supertypes (in particular {@code java.lang.Object},
+     * e.g. {@code toString}, {@code hashCode}, {@code equals}) and that are not already listed for {@code type}.
+     * {@link DeclaredMethods} does not contain these, but SPouT records {@code obj.method.of} decisions for them as
+     * for any other virtual call (e.g. {@code (obj.method.of o.cls "toString" "()Ljava/lang/String;"
+     * "Ljava/lang/Object;")} when an object is printed).
+     */
+    private void addInheritedLibraryMethods(ClassType type, List<PolymorphyInformation> infos) {
+        String typeName = type.toJVMTypeName();
+        Set<String> listed = new HashSet<>();
+        for (PolymorphyInformation info : infos) {
+            if (info.accessingClass().equals(typeName)) {
+                listed.add(info.methodName() + info.methodDescriptor());
+            }
+        }
+        this.project.classHierarchy().allSupertypes(type, false).foreach(superType -> {
+            if (this.project.isProjectType(superType) || this.project.classFile(superType).isEmpty()) {
+                return null;
+            }
+            ClassFile superFile = (ClassFile) this.project.classFile(superType).get();
+            superFile.methods().foreach(m -> {
+                if (m.isStatic() || m.isPrivate() || m.isInitializer()) {
+                    return null;
+                }
+                String key = m.name() + m.descriptor().toJVMDescriptor();
+                if (!listed.add(key)) {
+                    return null;
+                }
+                scala.Option<Method> resolved = this.project.resolveMethodReference(
+                        type, m.name(), m.descriptor(), superFile.isInterfaceDeclaration());
+                if (resolved.isDefined()) {
+                    infos.add(new PolymorphyInformation(typeName, m.name(), m.descriptor().toJVMDescriptor(),
+                            resolved.get().classFile().thisType().toJVMTypeName()));
+                }
+                return null;
+            });
+            return null;
+        });
+    }
 
     /**
      * Identifier of a branch node in the polymorphism dispatch decision tree.

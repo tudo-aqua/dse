@@ -154,6 +154,12 @@ public class TraceParser {
 
                 Opal.BranchData branchData =
                         branchInformationMap.get(new Opal.PolymorphicMethodDefinition(methodName, methodDescriptor, definingClass));
+                if (branchData == null) {
+                    // the method is missing in the static polymorphism table: keep the path instead of failing
+                    System.out.println("WARNING: no polymorphism information for " + definingClass + "::" + methodName
+                            + methodDescriptor + "; treating the dispatch as a single-branch decision");
+                    return new Decision(ExpressionUtil.and(smt.assertions), 1, 0);
+                }
                 System.out.println("BranchCountLog: "+branchData.branchCount());
                 System.out.println("BranchIdLog: "+branchData.branchId());
 
