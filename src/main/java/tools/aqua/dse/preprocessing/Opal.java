@@ -250,6 +250,13 @@ public class Opal {
 
     /** Renders the {@code obj.extends} relation (pairs {@code {sub, super}}) as SMT-LIB definition. */
     public static String renderExtendsSummary(List<String[]> relation) {
+        if (relation.isEmpty()) {
+            // an empty (or) does not parse, the relation is just false
+            return """
+                (declare-fun obj.extends (String String) Bool)
+                (assert (forall ((x!0 String) (x!1 String)) (not (obj.extends x!0 x!1))))
+                """;
+        }
         StringBuilder result = new StringBuilder();
 
         result.append(
@@ -548,6 +555,14 @@ public class Opal {
      * @return SMT-LibS string of the {@code obj.method.of} definition.
      */
     static String generatePolymorphismSummaryInternal(List<PolymorphyInformation> infos) {
+        if (infos.isEmpty()) {
+            // e.g. classes without methods: an empty (or) does not parse, the relation is just false
+            return """
+                (declare-fun obj.method.of (String String String String) Bool)
+                (assert (forall ((x!0 String) (x!1 String) (x!2 String) (x!3 String))
+                (not (obj.method.of x!0 x!1 x!2 x!3))))
+                """;
+        }
         StringBuilder result = new StringBuilder();
 
         result.append("""
