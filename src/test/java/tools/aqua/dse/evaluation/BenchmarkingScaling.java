@@ -26,8 +26,13 @@ public class BenchmarkingScaling {
     private PrintStream originalOut;
 
 
-    @BeforeMethod()
+    // alwaysRun: otherwise TestNG skips these when tests are selected by group (-Dgroups=...)
+    @BeforeMethod(alwaysRun = true)
     void setUpStreams() {
+        // one instance for all invocations (TestNG, data providers): start every run with empty buffers,
+        // otherwise set-up time and decision tree of the first run are reported for all later runs
+        capturedOutput.reset();
+        capturedErr.reset();
         //get console output
         this.originalOut = System.out;
         PrintStream originalErr = System.err;
@@ -39,7 +44,7 @@ public class BenchmarkingScaling {
 
     }
 
-    @AfterMethod
+    @AfterMethod(alwaysRun = true)
     void restoreStreams() {
         System.setOut(originalOut);
     }
@@ -131,7 +136,7 @@ public class BenchmarkingScaling {
     private static final int NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS = 10;
 
 
-    @BeforeClass
+    @BeforeClass(alwaysRun = true)
     static void setUpTestFiles() throws IOException, InterruptedException {
         FilePreparator.setUpConstructorScalingTest(CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS);
         FilePreparator.setUpNonDetObjectTest(NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS);

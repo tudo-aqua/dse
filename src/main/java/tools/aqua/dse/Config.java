@@ -97,6 +97,8 @@ public class Config {
     private boolean incrementalSummaries = false;
     /** number of constructor signatures summarized per refinement step in incremental mode */
     private int summaryBatchSize = 1;
+    /** maximal nesting depth of constructor calls in constructor signatures (the ASE'26 experiments used 3) */
+    private int summaryDepth = 1;
     private ConstructorErrorAnalysis.Mode errorAnalysisMode = ConstructorErrorAnalysis.Mode.DECLARED_AND_LANGUAGE;
     private int errorAnalysisMaxMethods = ConstructorErrorAnalysis.DEFAULT_MAX_METHODS;
     private int errorAnalysisMaxCallTargets = ConstructorErrorAnalysis.DEFAULT_MAX_CALL_TARGETS;
@@ -302,6 +304,13 @@ public class Config {
             }
         }
 
+        if (props.containsKey("dse.summaries.depth")) {
+            this.summaryDepth = Integer.parseInt(props.getProperty("dse.summaries.depth").trim());
+            if (this.summaryDepth < 1) {
+                throw new IllegalArgumentException("dse.summaries.depth must be >= 1");
+            }
+        }
+
         if (props.containsKey("dse.errors.mode")) {
             String mode = props.getProperty("dse.errors.mode").trim().toLowerCase();
             switch (mode) {
@@ -402,7 +411,7 @@ public class Config {
         if (this.smtProblemManager == null && this.classPaths.size() > 0) {
             String path = this.classPaths.get(0);
             System.out.println("config path: " + path);
-            int depth = 1; //todo: Which depth is needed
+            int depth = this.summaryDepth;
             this.smtProblemManager = this.incrementalSummaries
                     ? new SmtProblemManager(path, depth, new ConstructorSummaryManager.IncrementalOptions(
                             this.summaryBatchSize, this.errorAnalysisMode,

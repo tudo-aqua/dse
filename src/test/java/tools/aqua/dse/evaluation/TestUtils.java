@@ -17,6 +17,9 @@ public class TestUtils {
     /** constructor summaries for the integration tests: eager (default) or incremental */
     public static final String SUMMARIES_MODE = System.getProperty("test.summaries.mode", "eager");
 
+    /** nesting depth of constructor signatures for the integration tests (the ASE'26 experiments used 3) */
+    public static final String SUMMARIES_DEPTH = System.getProperty("test.summaries.depth", "1");
+
     public static void printExample(String exampleName,
                                     String directorOfExample
     ) {
@@ -68,6 +71,7 @@ public class TestUtils {
             props.setProperty("dse.constructor.blueprint.cache", "true");
         }
         props.setProperty("dse.summaries.mode", SUMMARIES_MODE);
+        props.setProperty("dse.summaries.depth", SUMMARIES_DEPTH);
 
         Config config = Config.fromProperties(props);
 

@@ -6,6 +6,8 @@ import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.smtlibUtility.parser.SMTLIBParser;
 import gov.nasa.jpf.constraints.solvers.ConstraintSolverFactory;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -43,6 +45,17 @@ public class IncrementalSummariesTest {
     private ConstructorSummaryManager manager;
     private SolverContext ctx;
 
+    /** One solver context for all tests (as in DSE); each test runs in its own push/pop scope. */
+    @BeforeClass
+    void createSolver() {
+        ConstraintSolver solver = ConstraintSolverFactory.createSolver("z3", new Properties());
+        ctx = solver.createContext();
+        ctx.push();
+        SmtProblemManager.addSmtProblemAsString("(declare-fun null () Int)\n(assert (= null 0))\n"
+                + Opal.renderExtendsSummary(EXTENDS) + "\n"
+                + Opal.generatePolymorphismSummaryInternal(METHODS), ctx);
+    }
+
     @BeforeMethod
     void setUp() {
         generated.clear();
@@ -53,13 +66,12 @@ public class IncrementalSummariesTest {
         });
         manager = new ConstructorSummaryManager(store, new SummaryRelevance(facts(ERRORS)),
                 List.of("java/lang/AssertionError"), 1);
-
-        ConstraintSolver solver = ConstraintSolverFactory.createSolver("z3", new Properties());
-        ctx = solver.createContext();
         ctx.push();
-        SmtProblemManager.addSmtProblemAsString("(declare-fun null () Int)\n(assert (= null 0))\n"
-                + Opal.renderExtendsSummary(EXTENDS) + "\n"
-                + Opal.generatePolymorphismSummaryInternal(METHODS), ctx);
+    }
+
+    @AfterMethod
+    void tearDown() {
+        ctx.pop();
     }
 
     private Result solve(Valuation val, String... decisions) throws Exception {
@@ -109,11 +121,35 @@ public class IncrementalSummariesTest {
     }
 
     @Test
+    void pathsUnsatisfiableWithoutObjectsNeedNoSummaries() throws Exception {
+        // o != o (e.g., from o1 == o2 with o2 = o1): every signature is relevant, but the path itself is UNSAT
+        assertThat(solve(new Valuation(), BOUND_A, NO_ERROR, "(not (= __object_0 __object_0))")).isEqualTo(Result.UNSAT);
+        assertThat(generated).containsExactly("null|NULL");
+    }
+
+    @Test
+    void distinctnessOfObjectsNeedsNoSummaries() throws Exception {
+        // o1 != null && o2 != null && o1 == o2: contradicts the distinctness of concolic objects
+        assertThat(solve(new Valuation(), "(= __object_0.err \"\")", "(= __object_1.err \"\")",
+                "(not (= __object_0 null))", "(not (= __object_1 null))", "(= __object_0 __object_1)"))
+                .isEqualTo(Result.UNSAT);
+        assertThat(generated).containsExactly("null|NULL");
+    }
+
+    @Test
+    void anObjectWithoutRelevantSignaturesMakesTheQueryUnsat() throws Exception {
+        // __object_0 is unconstrained (all signatures relevant), __object_1 cannot be constructed at all
+        assertThat(solve(new Valuation(), BOUND_A, "(= __object_1.err \"\")", "(not (obj.extends __object_1.cls \"LA;\"))"))
+                .isEqualTo(Result.UNSAT);
+        assertThat(generated).containsExactly("null|NULL");
+    }
+
+    @Test
     void unsatIsReportedOnlyAfterAllNeededSummaries() throws Exception {
-        // only D(int) dispatches foo to D::foo; x == 5 and x == 6 is unsatisfiable for it
-        assertThat(solve(new Valuation(), BOUND_A, NO_ERROR, FOO_IS_D,
-                "(= __object_0.x #x00000005)", "(= __object_0.x #x00000006)")).isEqualTo(Result.UNSAT);
-        assertThat(generated).containsExactly("null|NULL", "LD;|(I)V|{}");
+        // only C() is relevant (o.cls = C); satisfiable without summaries, but C() sets x = 0
+        assertThat(solve(new Valuation(), BOUND_A, NO_ERROR, INSTANCEOF_B, "(= __object_0.cls \"LC;\")", X_POSITIVE))
+                .isEqualTo(Result.UNSAT);
+        assertThat(generated).containsExactly("null|NULL", "LC;|()V|");
     }
 
     @Test

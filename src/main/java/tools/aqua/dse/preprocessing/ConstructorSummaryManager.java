@@ -145,6 +145,16 @@ public class ConstructorSummaryManager {
      */
     public ConstraintSolver.Result solve(SolverContext solverCtx, List<Expression<Boolean>> path, Valuation val) {
         Query query = startQuery(path);
+
+        // every base object needs a constructor: if one has no relevant signature, no summary can help
+        for (Map.Entry<String, List<ConstructorSignature>> e : query.relevant().entrySet()) {
+            if (e.getValue().isEmpty()) {
+                System.out.println("[ConstructorSummaryManager] UNSAT without solving: no signature can construct "
+                        + e.getKey());
+                return ConstraintSolver.Result.UNSAT;
+            }
+        }
+
         int round = 0;
         while (true) {
             round++;
@@ -164,9 +174,39 @@ public class ConstructorSummaryManager {
                 solverCtx.pop();
             }
 
-            if (res != ConstraintSolver.Result.UNSAT || summarizeNextBatch(query) == 0) {
+            if (res != ConstraintSolver.Result.UNSAT) {
                 return res;
             }
+            if (round == 1 && isUnsatWithoutSummaries(solverCtx, path, query)) {
+                System.out.println("[ConstructorSummaryManager] UNSAT independently of constructor summaries");
+                return res;
+            }
+            if (summarizeNextBatch(query) == 0) {
+                return res;
+            }
+        }
+    }
+
+    /**
+     * Summaries only add constraints on objects. If the path is unsatisfiable with unconstrained objects (e.g.,
+     * {@code o != o}), it is unsatisfiable with any set of summaries, and no summary needs to be computed. The
+     * distinctness of objects does not depend on summaries and is included.
+     */
+    private boolean isUnsatWithoutSummaries(SolverContext solverCtx, List<Expression<Boolean>> path, Query query) {
+        solverCtx.push();
+        try {
+            String distinct = objectNotIdentityConstraints(query.objectIdentifiers());
+            if (!distinct.isEmpty()) {
+                StringBuilder sb = new StringBuilder("(declare-fun null () Int)\n");
+                for (String object : query.objectIdentifiers()) {
+                    sb.append(String.format("(declare-fun %s () Int)%n", object));
+                }
+                SmtProblemManager.addSmtProblemAsString(sb + distinct, solverCtx);
+            }
+            solverCtx.add(path);
+            return solverCtx.solve(new Valuation()) == ConstraintSolver.Result.UNSAT;
+        } finally {
+            solverCtx.pop();
         }
     }
 

@@ -31,13 +31,17 @@ public class DSEIntegrationTest {
     private boolean debug = true;
     private boolean compile = true;
 
-    @BeforeClass
+    @BeforeClass(alwaysRun = true)
     static void resetDecisionTreeOutput() throws IOException {
         Files.deleteIfExists(DECISION_TREE_OUTPUT);
     }
 
-    @BeforeMethod
+    // alwaysRun: otherwise TestNG skips these when tests are selected by group (-Dgroups=...)
+    @BeforeMethod(alwaysRun = true)
     void setUpStreams() {
+        // one instance for all test methods (TestNG): start every test with empty buffers
+        capturedOutput.reset();
+        capturedErr.reset();
         //get console output
         this.originalOut = System.out;
         PrintStream originalErr = System.err;
@@ -62,7 +66,7 @@ public class DSEIntegrationTest {
         }
     }
 
-    @AfterMethod
+    @AfterMethod(alwaysRun = true)
     void restoreStreams() {
         System.setOut(originalOut);
     }

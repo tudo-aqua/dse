@@ -33,16 +33,16 @@ import java.util.regex.Pattern;
  * <ul>
  *   <li>{@code null|NULL}: {@code o = null}, {@code o.cls = "null"}, {@code o.err = ""}.</li>
  *   <li>normal termination: {@code o != null}, {@code o.cls = R}, {@code o.err = ""}.</li>
- *   <li>for each statically known error {@code E}: {@code o.err = E}, nullness and class unknown.</li>
- *   <li>if the error set is incomplete: {@code o.err} is some unknown non-empty value.</li>
+ *   <li>for each statically known error {@code E}: {@code o.cls = R}, {@code o.err = E}, nullness unknown.</li>
+ *   <li>if the error set is incomplete: {@code o.cls = R}, {@code o.err} some unknown non-empty value.</li>
  * </ul>
  *
  * <p>Soundness: since any model of the path constraint that uses {@code s} for {@code o} falls into one of the
  * outcomes, and the decided atoms have the same value as in the SMT encoding, an excluded signature cannot occur
  * in a model. Leaving its summary out of the SMT problem therefore does not change satisfiability. This relies on
- * two assumptions: summaries of a constructor of {@code R} that terminate normally fix {@code o.cls = R} and
- * {@code o != null}, and {@link StaticTypeFacts#errorsOf} over-approximates the errors (or is marked
- * incomplete).
+ * two assumptions: summaries of a constructor of {@code R} fix {@code o.cls = R} (also on error paths, as SPouT
+ * records the class at allocation) and, if they terminate normally, {@code o != null}; and
+ * {@link StaticTypeFacts#errorsOf} over-approximates the errors (or is marked incomplete).
  */
 public final class SummaryRelevance {
 
@@ -185,11 +185,13 @@ public final class SummaryRelevance {
         }
         cases.add(new ObjectCase(Tri.FALSE, s.rootClass(), "", false));
         ConstructorErrors errors = facts.errorsOf(s);
+        // the class of the object is fixed at allocation, before the constructor body can raise an error; the
+        // summaries of error paths record it as well (o.cls = R), but not the nullness of the object
         for (String error : errors.types()) {
-            cases.add(new ObjectCase(Tri.UNKNOWN, null, error, true));
+            cases.add(new ObjectCase(Tri.UNKNOWN, s.rootClass(), error, true));
         }
         if (!errors.complete()) {
-            cases.add(new ObjectCase(Tri.UNKNOWN, null, null, true));
+            cases.add(new ObjectCase(Tri.UNKNOWN, s.rootClass(), null, true));
         }
         return cases;
     }
