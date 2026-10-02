@@ -238,6 +238,15 @@ public class ConstraintsTree {
   public void finish(PathResult result) {
     LeafNode updatedLeaf = null;
     diverged = false;
+    // the trace ended where an earlier trace with the same decisions continued: the execution is not
+    // deterministic for these decisions (e.g., it was aborted by the executor). Report instead of failing.
+    if (current.isDecisionNode()) {
+      logger.severe("LIKELY A SEVERE BUG IN EXECUTOR: trace ended at a decision node");
+      if (currentTarget != null) {
+        failCurrentTargetBuggy("trace ended at a decision node");
+      }
+      return;
+    }
     // explored to here before ...
     if (((LeafNode) current).isFinal()) {
       return;

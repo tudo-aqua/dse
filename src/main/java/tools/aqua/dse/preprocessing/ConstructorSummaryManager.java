@@ -497,7 +497,7 @@ public class ConstructorSummaryManager {
                 .toList();
 
         //Collect declarations
-        String regex = "__(byte|char|short|int|long|float|double|string)_\\d";
+        String regex = "__(bool|byte|char|short|int|long|float|double|string)_\\d";
         Set<String> declarations = traces.stream()
                 .map(Trace::getDeclarations)
                 .flatMap(List::stream)
@@ -624,7 +624,7 @@ public class ConstructorSummaryManager {
         if (input == null || prefix == null) {
             return input;
         }
-        String regex = "__(byte|char|short|int|long|float|double|string)_\\d+";
+        String regex = "__(bool|byte|char|short|int|long|float|double|string)_\\d+";
 
         // $0 is a back-reference to the whole matched substring
         return input.replaceAll(regex, prefix + "$0");

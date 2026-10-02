@@ -729,11 +729,11 @@ public class Opal {
                 return null;
             }
             ClassFile cf = (ClassFile) p.classFile(tpe).get();
-            if (cf.isAbstract()) {
+            if (cf.isAbstract() || isSyntheticLambdaClass(cf)) {
                 return null;
             }
             cf.constructors().foreach(constructor -> {
-                if (constructor.isPublic()) {
+                if (constructor.isPublic() && !hasStringParameter(constructor) && !hasArrayParameter(constructor)) {
                     String base = String.format("%s|%s|", tpe.toJVMTypeName(), constructor.descriptor().toJVMDescriptor());
                     result.addAll(generateParametersString(p, constructor, base, depth));
                 }
@@ -742,6 +742,34 @@ public class Opal {
             return null;
         });
         return result;
+    }
+
+    private static final ClassType STRING = ClassType.apply("java/lang/String");
+
+    /**
+     * Constructors with {@code String} parameters are not used for concolic objects: SPouT treats strings like
+     * primitive values and does not support them as symbolic objects, so such a parameter could only be
+     * {@code null} (and, e.g., {@code Integer.parseInt(null)} in SPouT raises a host exception that aborts the
+     * analyzed program).
+     */
+    private static boolean hasStringParameter(Method constructor) {
+        return constructor.descriptor().parameterTypes().exists(t -> t.equals(STRING));
+    }
+
+    /**
+     * Constructors with array parameters are not used for concolic objects: SPouT cannot pass arrays as constructor
+     * arguments (and the signature format has no encoding for them).
+     */
+    private static boolean hasArrayParameter(Method constructor) {
+        return constructor.descriptor().parameterTypes().exists(Type::isArrayType);
+    }
+
+    /**
+     * OPAL rewrites invokedynamic (lambdas) into synthetic classes (e.g. {@code Foo$bar()...$Lambda}) that do not
+     * exist at run time and cannot be instantiated by SPouT.
+     */
+    private static boolean isSyntheticLambdaClass(ClassFile cf) {
+        return cf.isSynthetic() || cf.thisType().toJVMTypeName().contains("$Lambda");
     }
 
     private static final int MAX_CONSTRUCTOR_SIGNATURES =
@@ -1083,10 +1111,10 @@ public class Opal {
             if (isExcludedFactoryClass(tpeClassType)) return null;
             if (this.project.classFile(tpeClassType).isEmpty()) return null;
             ClassFile cf = (ClassFile) this.project.classFile(tpeClassType).get();
-            if (cf.isAbstract()) return null;
+            if (cf.isAbstract() || isSyntheticLambdaClass(cf)) return null;
 
             cf.constructors().foreach(constructor -> {
-                if (constructor.isPublic()) {
+                if (constructor.isPublic() && !hasStringParameter(constructor) && !hasArrayParameter(constructor)) {
                     constructor.descriptor().parameterTypes().foreach(paramTpe -> {
                         if (paramTpe.isClassType()) {
                             collectSeedTypesRecursive(paramTpe.asClassType(), depth - 1, seeds, visited);

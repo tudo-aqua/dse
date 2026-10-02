@@ -4805,6 +4805,69 @@ public class DSEIntegrationTest {
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
     }
+
+    // ***************************************************************************************************************
+    //                        Real-world libraries (fat jars from Maven Central, see e2e/libs)
+    // ***************************************************************************************************************
+
+    /**
+     * Runs DSE on {@code src/test/resources/real_world_programs/<example>/Main}, whose directory contains the fat
+     * jar of the library, and checks the reachability of the assertion and of runtime exceptions.
+     */
+    private void realWorldExample(String example, List<String> classes, boolean assertionReachable,
+                                  boolean runtimeExceptionReachable) throws IOException, InterruptedException {
+        String directoryOfTheExample = String.format("src/test/resources/real_world_programs/%s/", example);
+        FilePreparator.compileClasses(classes, directoryOfTheExample);
+
+        DSE dse = TestUtils.getDseInstance("Main", directoryOfTheExample);
+        Instant start = Instant.now();
+        dse.executeAnalysis();
+        Duration duration = Duration.between(start, Instant.now());
+
+        System.setOut(originalOut);
+        String output = filterOutPutStream();
+        assertThat(output)
+                .doesNotContain("DIVERGED")
+                .doesNotContain("BUGGY");
+
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+        appendDecisionTree(example, decisionTree);
+        assertThat(TestUtils.validAssert(decisionTree)).isEqualTo(!assertionReachable);
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isEqualTo(!runtimeExceptionReachable);
+
+        System.out.println(analyseDecisionTree(decisionTree));
+        printDuration(duration);
+    }
+
+    /** Commons Lang MutableInt: distinct but equal objects; equals agrees with compareTo; NPE in a constructor. */
+    @Test(groups = {"real-world", "tudo"})
+    public void realWorldCommonsLang3MutableInt() throws IOException, InterruptedException {
+        realWorldExample("commons_lang3_mutableint", List.of("Main"), true, true);
+    }
+
+    /** Commons Lang ComparableUtils.between / greaterThan over three MutableInts: unreachable; NPE for null. */
+    @Test(groups = {"real-world", "tudo"})
+    public void realWorldCommonsLang3ComparableUtils() throws IOException, InterruptedException {
+        realWorldExample("commons_lang3_comparableutils", List.of("Main"), false, true);
+    }
+
+    /** Commons Collections NullComparator.compare: null above non-null iff nullsAreHigh; NPE for null comparator. */
+    @Test(groups = {"real-world", "tudo"})
+    public void realWorldCommonsCollections4NullComparator() throws IOException, InterruptedException {
+        realWorldExample("commons_collections4_nullcomparator", List.of("Main"), true, true);
+    }
+
+    /** JDK Objects.equals: asymmetric equals of Point / ColorPoint; Objects.equals is null-safe. */
+    @Test(groups = {"real-world", "tudo"})
+    public void realWorldJdkObjectsEquals() throws IOException, InterruptedException {
+        realWorldExample("jdk_objects_equals", List.of("Point", "ColorPoint", "Main"), true, false);
+    }
+
+    /** Commons Collections Predicate.evaluate over its implementations: UniquePredicate; NPE for null children. */
+    @Test(groups = {"real-world", "tudo"})
+    public void realWorldCommonsCollections4Predicate() throws IOException, InterruptedException {
+        realWorldExample("commons_collections4_predicate", List.of("Main"), true, true);
+    }
 }
 
 
