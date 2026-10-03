@@ -26,7 +26,10 @@ public class LoggingSolverContext extends SolverContext {
 
     @Override
     public ConstraintSolver.Result solve(Valuation valuation) {
-        return context.solve(valuation);
+        long start = System.nanoTime();
+        ConstraintSolver.Result result = context.solve(valuation);
+        System.out.println("[solve] " + result + " in " + (System.nanoTime() - start) / 1_000_000 + "ms");
+        return result;
     }
 
     @Override

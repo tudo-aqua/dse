@@ -54,6 +54,14 @@ public class DSEIntegrationTest {
                     capturedOutput.write(b); // speichern
                     originalOut.write(b);    // Konsole
                 }
+
+                // forward blocks, not single bytes: surefire records a stack trace for every write to the console,
+                // which made tests with much output (e.g. large SMT problems) take minutes instead of seconds
+                @Override
+                public void write(byte[] b, int off, int len) throws IOException {
+                    capturedOutput.write(b, off, len);
+                    originalOut.write(b, off, len);
+                }
             }, true);
             System.setOut(teeStream);
         }

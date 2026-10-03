@@ -375,11 +375,12 @@ public class ConstraintsTree {
       //Add object-specific constraints
       solverCtx.push();
         if (!config.isConstructorSummary() && !config.isBaselineEvaluation() && config.getSmtProblemManager() != null) {
-          String staticSmtLibCode = config.getSmtProblemManager().getStaticManager().generateStaticSmtLibCode();
+          // the static part (class hierarchy, polymorphism) is added to the context once (Config.getSolverContext);
+          // regenerating it here for printing cost ~0.3 s and ~150 KB of output per query for larger libraries
           String dynamicSmtLibCode = config.getSmtProblemManager().getConstructorSummaryManager().generateFullConstructorSMTLIbCode(path);
 
           System.out.println("SMT-Problem-Start");
-          System.out.printf("\u001B[38;5;208m %s %s \u001B[0m%n", staticSmtLibCode, dynamicSmtLibCode);
+          System.out.printf("\u001B[38;5;208m %s \u001B[0m%n", dynamicSmtLibCode);
           System.out.println("SMT-Problem-End");
           SmtProblemManager.addSmtProblemAsString(
                   dynamicSmtLibCode, solverCtx);

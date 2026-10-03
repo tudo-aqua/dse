@@ -17,25 +17,29 @@ The programs exercise object features only:
 All five tests pass in both modes. Eager and incremental summaries find the same executed paths with the same
 verdicts.
 
-Incremental summaries end up summarizing every signature in these tests: the catalogues are small, and the explored
-paths need all constructor alternatives at some point. Still, incremental mode is 2–11× faster. It asserts, per
-object, only the summaries that are relevant for it. Eager mode asserts the complete disjunction of all summaries for
-every object, independently of the object's type bound.
+Incremental summaries end up summarizing every constructor in these tests: the catalogues are small (2–17
+constructors), and the explored paths need every constructor alternative at some point. Incremental mode therefore
+saves no summaries here. It is 1–9 s slower than eager mode, mainly because its error analysis loads the JDK with
+method bodies and runs into its budget of 20,000 methods (about 8–9 s set-up). Solver time is negligible in both
+modes (at most 3.2 s, in the `Predicate` test).
 
-Incremental set-up is slower (about 12 s instead of 4–12 s), because the error analysis loads the JDK with method
-bodies. It also hits its budget of 20,000 methods (about 9 s), for example through `MutableInt(Number)` →
-`Number.intValue()`.
-
-| Test (library method) | Executed paths | Verdicts (both modes) | Signatures (incremental: summarized) | DSE time eager / incremental |
+| Test (library method) | Executed paths | Verdicts (both modes) | Constructors (summarized eager / incremental) | Total time eager / incremental (set-up) |
 |---|---|---|---|---|
-| JDK `Objects.equals(p, q)` (`Point` / `ColorPoint`) | 18 | 16 OK, 2 assertion violations (asymmetric `equals`) | 3 / 3 | 64 s / 26 s |
-| lang3 `MutableInt.equals(b)`, `compareTo(b)` | 6 | 2 OK, 1 assertion violation (equal but distinct objects), 3 NPE | 4 / 4 | 45 s / 21 s |
-| lang3 `ComparableUtils.is(a).between(b, c)` | 17 | 10 OK, 7 NPE; assertion unreachable (as expected) | 4 / 4 | 226 s / 57 s |
-| collections4 `NullComparator.compare(a, b)` | 10 | 5 OK, 1 assertion violation (`nullsAreHigh`), 4 NPE | 8 / 8 | 88 s / 35 s |
-| collections4 `Predicate.evaluate(o)` (twice, same object) | 20 | 6 OK, 1 assertion violation (`UniquePredicate`), 12 NPE (null children), 1 `FunctorException` (`ExceptionPredicate`) | 18 / 18 | 927 s / 85 s |
+| JDK `Objects.equals(p, q)` (`Point` / `ColorPoint`) | 18 | 16 OK, 2 assertion violations (asymmetric `equals`) | 2 (2 / 2) | 6 s (3 s) / 7 s (3 s) |
+| lang3 `MutableInt.equals(b)`, `compareTo(b)` | 6 | 2 OK, 1 assertion violation (equal but distinct objects), 3 NPE | 3 (3 / 3) | 5 s (3 s) / 14 s (12 s) |
+| lang3 `ComparableUtils.is(a).between(b, c)` | 17 | 10 OK, 7 NPE; assertion unreachable (as expected) | 3 (3 / 3) | 8 s (3 s) / 17 s (11 s) |
+| collections4 `NullComparator.compare(a, b)` | 10 | 5 OK, 1 assertion violation (`nullsAreHigh`), 4 NPE | 7 (7 / 7) | 9 s (5 s) / 19 s (13 s) |
+| collections4 `Predicate.evaluate(o)` (twice, same object) | 20 | 6 OK, 1 assertion violation (`UniquePredicate`), 12 NPE (null children), 1 `FunctorException` (`ExceptionPredicate`) | 17 (17 / 17) | 19 s (8 s) / 28 s (12 s) |
 
-Times are wall-clock time of `DSE.executeAnalysis` (including set-up), on an Apple Silicon laptop, with nesting
+Times are wall-clock time of `DSE.executeAnalysis`, including set-up, on an Apple Silicon laptop, with nesting
 depth 1.
+
+An earlier version of this table reported eager times of up to 927 s. Those were an artifact of the test harness:
+- `DSEIntegrationTest` forwarded its output to the console byte by byte, and Surefire records a stack trace for
+  every write to the console.
+- Eager mode printed the whole static SMT code (about 150 KB for collections4) for every query.
+
+Both are fixed.
 
 ## Fixes in DSE found with these tests
 
@@ -46,6 +50,9 @@ depth 1.
   and OPAL's synthetic lambda classes (`…$Lambda`), which don't exist at run time.
 - **Robustness:** a trace that ends where an earlier trace with the same decisions continued now marks the target
   BUGGY instead of crashing the exploration.
+- **Eager mode, every query:** it regenerated the static SMT code (class hierarchy and polymorphism tables) only to
+  print it, which costs 12–41 ms for the small benchmarks and about 0.3 s for collections4. It no longer does this.
+  The paper-experiment numbers for eager mode (`e2e/experiments`) still include this overhead, roughly 5% per run.
 
 ## What currently does not work because of missing SPouT features
 
