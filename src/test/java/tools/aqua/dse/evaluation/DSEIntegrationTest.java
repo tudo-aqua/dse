@@ -4876,6 +4876,33 @@ public class DSEIntegrationTest {
     public void realWorldCommonsCollections4Predicate() throws IOException, InterruptedException {
         realWorldExample("commons_collections4_predicate", List.of("Main"), true, true);
     }
+
+    // Variants with loose type bounds (Object, JDK interfaces): many more candidate constructors
+
+    @Test(groups = {"real-world-object", "tudo"})
+    public void realWorldObjectJdkObjectsEquals() throws IOException, InterruptedException {
+        realWorldExample("jdk_objects_equals_object", List.of("Point", "ColorPoint", "Main"), true, false);
+    }
+
+    @Test(groups = {"real-world-object", "tudo"})
+    public void realWorldObjectCommonsLang3MutableInt() throws IOException, InterruptedException {
+        realWorldExample("commons_lang3_mutableint_object", List.of("Main"), true, true);
+    }
+
+    @Test(groups = {"real-world-object", "tudo"})
+    public void realWorldObjectCommonsLang3ComparableUtils() throws IOException, InterruptedException {
+        realWorldExample("commons_lang3_comparableutils_object", List.of("Main"), false, true);
+    }
+
+    @Test(groups = {"real-world-object", "tudo"})
+    public void realWorldObjectCommonsCollections4NullComparator() throws IOException, InterruptedException {
+        realWorldExample("commons_collections4_nullcomparator_object", List.of("Main"), true, true);
+    }
+
+    @Test(groups = {"real-world-object", "tudo"})
+    public void realWorldObjectCommonsCollections4Predicate() throws IOException, InterruptedException {
+        realWorldExample("commons_collections4_predicate_object", List.of("Main"), true, true);
+    }
 }
 
 

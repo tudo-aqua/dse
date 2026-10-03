@@ -153,6 +153,29 @@ public class IncrementalSummariesTest {
     }
 
     @Test
+    void conflictingFieldSortsAreRenamed() throws Exception {
+        // field x is an int in B(int), but a boolean in D(int) (another class with a field of the same name)
+        SummaryStore store = new SummaryStore(SIGNATURES, sig -> {
+            generated.add(sig);
+            String decl = sig.startsWith("LD;") ? "(declare-fun __object_0.x () Bool)" : DECLS;
+            String formula = sig.startsWith("LD;")
+                    ? "(and (= __object_0.init \"<>LD;|(I)V|{}\") (not (= __object_0 null)) (= __object_0.cls \"LD;\") (= __object_0.x true) (= __object_0.err \"\"))"
+                    : SUMMARIES.get(sig);
+            return new GeneratedSummary(sig, List.of(formula),
+                    new java.util.LinkedHashSet<>(List.of(decl, DECLS, "(declare-fun __object_0__int_0 () (_ BitVec 32))")),
+                    List.of());
+        });
+        ConstructorSummaryManager mixed = new ConstructorSummaryManager(store, new SummaryRelevance(facts(ERRORS)),
+                List.of("java/lang/AssertionError"), 18);
+        Valuation val = new Valuation();
+        // the path uses x as a bit-vector: the Bool x of D's summary is renamed and does not constrain it
+        assertThat(mixed.solve(ctx, path(BOUND_A, NO_ERROR, INSTANCEOF_B, X_POSITIVE), val)).isEqualTo(Result.SAT);
+        String smt = mixed.generateIncrementalSMTLibCode(mixed.startQuery(path(BOUND_A, NO_ERROR, INSTANCEOF_B, X_POSITIVE)));
+        assertThat(smt).contains("(declare-fun __object_0.x__as_Bool () Bool)").contains("(= __object_0.x__as_Bool true)");
+        assertThat(SMTLIBParser.parseSMTProgram(smt).assertions).isNotEmpty();
+    }
+
+    @Test
     void generatedSmtIsParsable() throws Exception {
         manager.solve(ctx, path(BOUND_A, NO_ERROR, INSTANCEOF_B), new Valuation());
         ConstructorSummaryManager.Query query = manager.startQuery(path(BOUND_A, NO_ERROR, INSTANCEOF_B));

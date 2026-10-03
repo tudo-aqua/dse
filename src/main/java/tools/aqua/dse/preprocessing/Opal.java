@@ -281,28 +281,28 @@ public class Opal {
                 (assert (forall ((x!0 String) (x!1 String)) (not (obj.extends x!0 x!1))))
                 """;
         }
-        StringBuilder result = new StringBuilder();
-
-        result.append(
-                """
-                (declare-fun obj.extends (String String) Bool)
-                (assert (forall ((x!0 String) (x!1 String))
-                (= (obj.extends x!0 x!1)
-                (ite (or"""
-        );
-
+        List<String> terms = new ArrayList<>();
         for (String[] pair : relation) {
-            result.append(String.format("\n  (and (= x!0 \"%s\")  (= x!1 \"%s\"))", pair[0], pair[1]));
+            terms.add(String.format("(and (= x!0 \"%s\")  (= x!1 \"%s\"))", pair[0], pair[1]));
         }
+        return "(declare-fun obj.extends (String String) Bool)\n"
+                + "(assert (forall ((x!0 String) (x!1 String))\n"
+                + "(= (obj.extends x!0 x!1)\n"
+                + "(ite " + balancedOr(terms) + " true false)\n"
+                + ")))\n";
+    }
 
-        result.append(
-                """
-
-                ) true false)
-                )))
-                """
-        );
-        return result.toString();
+    /**
+     * Disjunction of {@code terms} as a balanced tree of binary {@code or}s. The SMT-LIB parser turns an n-ary
+     * {@code (or t1 ... tn)} into a chain of nested binary disjunctions of depth n, which overflows the stack of
+     * the recursive translation to Z3 for large class hierarchies; a balanced tree has depth log n.
+     */
+    static String balancedOr(List<String> terms) {
+        if (terms.size() == 1) {
+            return terms.get(0);
+        }
+        int mid = terms.size() / 2;
+        return "(or " + balancedOr(terms.subList(0, mid)) + "\n " + balancedOr(terms.subList(mid, terms.size())) + ")";
     }
 
     /**
@@ -320,9 +320,13 @@ public class Opal {
     public List<String[]> extendsRelation(Set<ClassType> reachable) {
         List<String[]> relation = new ArrayList<>();
         ClassHierarchy ch = this.project.classHierarchy();
+        // java.lang.Object is a supertype of every class (and of null): it occurs as type bound (nondetObject(
+        // Object.class)), and Object() is a candidate constructor (see generatedAllConstructors). Main has a public
+        // constructor and is a candidate as well.
+        ClassType object = ClassType.Object();
         for (ClassType subType : reachable) {
             String subTypeName = subType.toJVMTypeName();
-            if (subTypeName.equals("LMain;") || subTypeName.equals("Ljava/lang/Object;") || isExcludedFactoryClass(subType)) {
+            if (isExcludedFactoryClass(subType)) {
                 continue;
             }
 
@@ -331,12 +335,15 @@ public class Opal {
 
             ch.allSupertypes(subType, true).foreach(superType -> {
                 String superTypeName = superType.toJVMTypeName();
-                if (!superTypeName.equals("LMain;") && !superTypeName.equals("Ljava/lang/Object;")
-                        && !isExcludedFactoryClass(superType) && reachable.contains(superType)) {
+                if (!isExcludedFactoryClass(superType) && reachable.contains(superType) && !superType.equals(object)) {
                     relation.add(new String[] {subTypeName, superTypeName});
                 }
                 return null;
             });
+            relation.add(new String[] {subTypeName, object.toJVMTypeName()});
+        }
+        if (!reachable.contains(object)) {
+            relation.add(new String[] {"null", object.toJVMTypeName()});
         }
         return relation;
     }
@@ -449,23 +456,34 @@ public class Opal {
         List<PolymorphyInformation> polymorphicInfos = new ArrayList<>();
         DeclaredMethods methods = (DeclaredMethods) this.project.get(DeclaredMethodsKey$.MODULE$);
 
+        // group the declared methods by class once (instead of filtering all of them for every type)
+        Map<ClassType, List<DeclaredMethod>> methodsByClass = new HashMap<>();
+        methods.declaredMethods().foreach(m -> {
+            if (m.hasSingleDefinedMethod() && !m.asDefinedMethod().definedMethod().isInitializer()) {
+                methodsByClass.computeIfAbsent(m.declaringClassType(), k -> new ArrayList<>()).add(m);
+            }
+            return null;
+        });
+
         for (ClassType type : types) {
             if (isExcludedFactoryClass(type)) continue;
-            if (type.toJVMTypeName().equals("Ljava/lang/Object;")) continue;
+            if (type.equals(ClassType.Object())) {
+                // objects of class Object can be created (constructor Object()): its own methods
+                addObjectMethods(polymorphicInfos);
+                continue;
+            }
+            // only project classes can be the class of a concolic object (library supertypes are in the types for
+            // obj.extends); their entries include the methods they inherit from library classes
+            if (!this.project.isProjectType(type)) continue;
 
-            methods.declaredMethods().filter(m ->
-                    m.declaringClassType().equals(type) &&
-                            m.hasSingleDefinedMethod() &&
-                            !m.asDefinedMethod().definedMethod().isInitializer()
-            ).foreach(method -> {
+            for (DeclaredMethod method : methodsByClass.getOrDefault(type, List.of())) {
                 polymorphicInfos.add(new PolymorphyInformation(
                         type.toJVMTypeName(),
                         method.name(),
                         method.descriptor().toJVMDescriptor(),
                         method.asDefinedMethod().definedMethod().declaringClassFile().thisType().toJVMTypeName()
                 ));
-                return null;
-            });
+            }
             addInheritedLibraryMethods(type, polymorphicInfos);
         }
         System.out.println("[Opal] collectPolymorphyInformation: " + types.length + " types -> "
@@ -473,6 +491,21 @@ public class Opal {
         return polymorphicInfos;
     }
 
+
+    /** Adds the entries of class {@code java.lang.Object}: its non-static, non-private methods, declared in Object. */
+    private void addObjectMethods(List<PolymorphyInformation> infos) {
+        scala.Option<ClassFile> objectFile = this.project.classFile(ClassType.Object());
+        if (objectFile.isEmpty()) {
+            return;
+        }
+        String name = ClassType.Object().toJVMTypeName();
+        objectFile.get().methods().foreach(m -> {
+            if (!m.isStatic() && !m.isPrivate() && !m.isInitializer()) {
+                infos.add(new PolymorphyInformation(name, m.name(), m.descriptor().toJVMDescriptor(), name));
+            }
+            return null;
+        });
+    }
 
     /**
      * Adds the methods that {@code type} inherits from library supertypes (in particular {@code java.lang.Object},
@@ -628,32 +661,16 @@ public class Opal {
                 (not (obj.method.of x!0 x!1 x!2 x!3))))
                 """;
         }
-        StringBuilder result = new StringBuilder();
-
-        result.append("""
-            (declare-fun obj.method.of (String String String String) Bool)
-            (assert (forall ((x!0 String) (x!1 String) (x!2 String) (x!3 String))
-            (= (obj.method.of x!0 x!1 x!2 x!3)
-            (ite (or
-            """);
-
+        List<String> terms = new ArrayList<>();
         for (PolymorphyInformation info : infos) {
-            result.append(String.format(
-                    "\n  (and (= x!0 \"%s\") (= x!1 \"%s\") (= x!2 \"%s\") (= x!3 \"%s\"))",
-                    info.accessingClass(),
-                    info.methodName(),
-                    info.methodDescriptor(),
-                    info.declaringClass()
-            ));
+            terms.add(String.format("(and (= x!0 \"%s\") (= x!1 \"%s\") (= x!2 \"%s\") (= x!3 \"%s\"))",
+                    info.accessingClass(), info.methodName(), info.methodDescriptor(), info.declaringClass()));
         }
-
-        result.append("""
-
-            ) true false)
-            )))
-            """);
-
-        return result.toString();
+        return "(declare-fun obj.method.of (String String String String) Bool)\n"
+                + "(assert (forall ((x!0 String) (x!1 String) (x!2 String) (x!3 String))\n"
+                + "(= (obj.method.of x!0 x!1 x!2 x!3)\n"
+                + "(ite " + balancedOr(terms) + " true false)\n"
+                + ")))\n";
     }
 
     
@@ -729,7 +746,7 @@ public class Opal {
                 return null;
             }
             ClassFile cf = (ClassFile) p.classFile(tpe).get();
-            if (cf.isAbstract() || isSyntheticLambdaClass(cf)) {
+            if (cf.isAbstract() || isSyntheticLambdaClass(cf) || hasArrayOrStringField(p, cf)) {
                 return null;
             }
             cf.constructors().foreach(constructor -> {
@@ -768,6 +785,24 @@ public class Opal {
      * OPAL rewrites invokedynamic (lambdas) into synthetic classes (e.g. {@code Foo$bar()...$Lambda}) that do not
      * exist at run time and cannot be instantiated by SPouT.
      */
+    private static boolean hasArrayOrStringField(Project p, ClassFile cf) {
+        // SPouT annotates all fields of a new concolic object recursively (ConcolicAnalysis.annotateObject) and fails
+        // with a host exception on arrays ("TODO: arrays?"), including the byte[] of a String. Objects of classes with
+        // (declared or inherited) instance fields of array or String type are therefore not used.
+        ClassFile current = cf;
+        while (current != null) {
+            boolean found = current.fields().exists(f ->
+                    !f.isStatic() && (f.fieldType().isArrayType() || f.fieldType().equals(STRING)));
+            if (found) {
+                return true;
+            }
+            scala.Option<ClassType> superType = current.superclassType();
+            current = (superType.isDefined() && p.classFile(superType.get()).isDefined())
+                    ? (ClassFile) p.classFile(superType.get()).get() : null;
+        }
+        return false;
+    }
+
     private static boolean isSyntheticLambdaClass(ClassFile cf) {
         return cf.isSynthetic() || cf.thisType().toJVMTypeName().contains("$Lambda");
     }
@@ -1017,7 +1052,12 @@ public class Opal {
         ClassHierarchy ch = this.project.classHierarchy();
         Set<ClassType> reachable = new HashSet<>(seeds);
         for (ClassType s : seeds) {
-            ch.allSubtypes(s, true).foreach(t -> { reachable.add((ClassType) t); return null; });
+            // concolic objects are only created with constructors of project classes: library subtypes (e.g. all JDK
+            // classes for the bound Object) cannot occur, library supertypes are needed for type tests
+            ch.allSubtypes(s, true).foreach(t -> {
+                if (this.project.isProjectType((ClassType) t)) reachable.add((ClassType) t);
+                return null;
+            });
             ch.allSupertypes(s, true).foreach(t -> { reachable.add((ClassType) t); return null; });
         }
         System.out.println("[Opal] reachableTypesFromConstructors: " + seeds.size() + " seeds → " + reachable.size() + " reachable");
@@ -1100,13 +1140,19 @@ public class Opal {
     private void collectSeedTypesRecursive(ClassType paramType, int depth, Set<ClassType> seeds, Set<ClassType> visited) {
         if (!visited.add(paramType)) return;
 
+        // only project types can be instantiated (see generatedAllConstructors); the bound itself is kept for type tests
         scala.collection.Set<ClassType> subtypes = this.project.classHierarchy().allSubtypes(paramType, true);
-        subtypes.foreach(tpe -> { seeds.add((ClassType) tpe); return null; });
+        seeds.add(paramType);
+        subtypes.foreach(tpe -> {
+            if (this.project.isProjectType((ClassType) tpe)) seeds.add((ClassType) tpe);
+            return null;
+        });
 
         if (depth <= 1) return;
 
         subtypes.foreach(tpe -> {
             ClassType tpeClassType = (ClassType) tpe;
+            if (!this.project.isProjectType(tpeClassType)) return null;
             if (tpeClassType.toJVMTypeName().equals("Ljava/lang/Object;")) return null;
             if (isExcludedFactoryClass(tpeClassType)) return null;
             if (this.project.classFile(tpeClassType).isEmpty()) return null;

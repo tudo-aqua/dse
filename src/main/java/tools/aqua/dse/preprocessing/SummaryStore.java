@@ -96,6 +96,18 @@ public final class SummaryStore {
         return formulas.isEmpty() ? "false" : String.join("\n", formulas);
     }
 
+    /** @return the summaries computed so far among {@code signatures}, in the given order. */
+    public List<GeneratedSummary> summaries(Collection<ConstructorSignature> signatures) {
+        List<GeneratedSummary> result = new ArrayList<>();
+        for (ConstructorSignature s : signatures) {
+            GeneratedSummary summary = summaries.get(s.signature());
+            if (summary != null) {
+                result.add(summary);
+            }
+        }
+        return result;
+    }
+
     /** @return declarations (templated on {@code __object_0}) required by all summaries computed so far. */
     public Set<String> declarations() {
         return Collections.unmodifiableSet(declarations);

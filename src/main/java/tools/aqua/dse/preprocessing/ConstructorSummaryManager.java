@@ -35,6 +35,8 @@ public class ConstructorSummaryManager {
     private final Set<String> declarationsOfBluePrint = new HashSet<>();
     /** eager mode: disjunction of all summaries; {@code null} in incremental mode */
     private final String bluePrintConstructorSummaries;
+    /** eager mode, not loaded from the cache: the summaries of all signatures */
+    private List<GeneratedSummary> eagerSummaries;
     private final List<String> possibleErrorsWithInConstructors = new ArrayList<>();
     private final List<String> objectsWithinAllTraces = new ArrayList<>();
 
@@ -217,11 +219,13 @@ public class ConstructorSummaryManager {
      * @param baseIdentifiers   the top-level objects, each of which needs a constructor.
      * @param relevant          per base object: the signatures not statically excluded for it, simplest first.
      * @param needed            union of {@code relevant} in the order in which missing summaries are computed.
+     * @param pathSorts         SMT sorts of the variables of the path, by name.
      */
     public record Query(List<String> objectIdentifiers,
                         List<String> baseIdentifiers,
                         Map<String, List<ConstructorSignature>> relevant,
-                        List<ConstructorSignature> needed) {}
+                        List<ConstructorSignature> needed,
+                        Map<String, String> pathSorts) {}
 
     public Query startQuery(List<Expression<Boolean>> path) {
         List<String> objectIdentifiers = extractObjectIdentifiers(extractFreeVariables(path));
@@ -240,7 +244,7 @@ public class ConstructorSummaryManager {
         System.out.println("[ConstructorSummaryManager] query: objects " + baseIdentifiers + ", "
                 + needed.size() + " of " + this.summaryStore.catalogue().size() + " signatures relevant, "
                 + this.summaryStore.unsummarized(needed).size() + " of them not summarized yet");
-        return new Query(objectIdentifiers, baseIdentifiers, relevant, needed);
+        return new Query(objectIdentifiers, baseIdentifiers, relevant, needed, pathSorts(path));
     }
 
     /**
@@ -248,19 +252,92 @@ public class ConstructorSummaryManager {
      * far among its relevant signatures ({@code (or false)} if there is none yet), and distinctness of objects.
      */
     public String generateIncrementalSMTLibCode(Query query) {
-        StringBuilder sb = new StringBuilder();
-        String declarationsTemplate = String.join("\n", this.summaryStore.declarations());
+        Map<String, List<GeneratedSummary>> summariesPerObject = new LinkedHashMap<>();
         for (String object : query.baseIdentifiers()) {
-            sb.append(String.format("\n(declare-fun %s.init () String)", object));
-            sb.append(declarationsTemplate.replace("__object_0", object));
+            summariesPerObject.put(object, this.summaryStore.summaries(query.relevant().get(object)));
         }
-        sb.append("\n(declare-fun null () Int)\n");
-        for (String object : query.baseIdentifiers()) {
-            String blueprint = this.summaryStore.blueprint(query.relevant().get(object));
-            sb.append(String.format("(assert (or %s))", blueprint.replace("__object_0", object) + "\n"));
+        return renderObjectSummaries(summariesPerObject, query.pathSorts(), query.objectIdentifiers());
+    }
+
+    /** a nullary declaration; the sort is a symbol (e.g. {@code Int}) or one parenthesized term ({@code (_ BitVec 32)}) */
+    private static final Pattern DECLARATION =
+            Pattern.compile("\\(declare-fun\\s+(\\S+)\\s+\\(\\)\\s+(\\([^()]*\\)|[^\\s()]+)\\s*\\)");
+
+    /**
+     * SMT-LIB code that constrains each object to one of its summaries: declarations, per object
+     * {@code (assert (or <summary paths>))}, and distinctness of objects.
+     *
+     * <p>SPouT names field symbols by object and field name only ({@code __object_0.value}). Summaries of
+     * different classes can therefore declare the same symbol with different sorts (e.g. {@code value} of
+     * {@code MutableInt} and of {@code MutableBoolean}), which cannot be expressed in one SMT problem. Each symbol
+     * gets one sort, the sort of the path constraint if the path uses it and the first sort seen otherwise. In
+     * summaries that use the symbol with another sort, it is renamed (e.g. {@code __object_0.value__as_Bool}): such
+     * a summary describes an object of another class, for which the path cannot read the field without first
+     * checking the class (type test, cast, or dispatch).
+     */
+    private String renderObjectSummaries(Map<String, List<GeneratedSummary>> summariesPerObject,
+                                         Map<String, String> pathSorts, List<String> objectIdentifiers) {
+        Map<String, String> declared = new HashMap<>();
+        StringBuilder declarations = new StringBuilder();
+        StringBuilder assertions = new StringBuilder();
+        for (Map.Entry<String, List<GeneratedSummary>> e : summariesPerObject.entrySet()) {
+            String object = e.getKey();
+            declarations.append(String.format("(declare-fun %s.init () String)%n", object));
+            declared.put(object + ".init", "String");
+            List<String> disjuncts = new ArrayList<>();
+            for (GeneratedSummary summary : e.getValue()) {
+                Map<String, String> renaming = new HashMap<>();
+                for (String declaration : summary.declarations()) {
+                    Matcher m = DECLARATION.matcher(declaration);
+                    while (m.find()) {
+                        String name = m.group(1).replace("__object_0", object);
+                        String sort = m.group(2).trim();
+                        String canonical = pathSorts.getOrDefault(name, declared.getOrDefault(name, sort));
+                        String symbol = name;
+                        if (!canonical.equals(sort)) {
+                            symbol = name + "__as_" + sort.replaceAll("[^A-Za-z0-9]", "");
+                            renaming.put(name, symbol);
+                        }
+                        if (!declared.containsKey(symbol)) {
+                            declared.put(symbol, sort);
+                            declarations.append(String.format("(declare-fun %s () %s)%n", symbol, sort));
+                        }
+                    }
+                }
+                for (String formula : summary.formulas()) {
+                    String text = formula.replace("__object_0", object);
+                    for (Map.Entry<String, String> r : renaming.entrySet()) {
+                        text = text.replaceAll("(?<=[\\s(])" + Pattern.quote(r.getKey()) + "(?=[\\s)])",
+                                Matcher.quoteReplacement(r.getValue()));
+                    }
+                    disjuncts.add(text);
+                }
+            }
+            assertions.append(String.format("(assert (or %s))%n",
+                    disjuncts.isEmpty() ? "false" : String.join("\n", disjuncts)));
         }
-        sb.append(objectNotIdentityConstraints(query.objectIdentifiers()));
-        return sb.toString();
+        // object symbols are needed by the distinctness constraints, also if no summary declared them (yet)
+        for (String object : objectIdentifiers) {
+            if (!declared.containsKey(object)) {
+                declared.put(object, "Int");
+                declarations.append(String.format("(declare-fun %s () Int)%n", object));
+            }
+        }
+        declarations.append("(declare-fun null () Int)\n");
+        return declarations + assertions.toString() + objectNotIdentityConstraints(objectIdentifiers);
+    }
+
+    /** SMT sorts of the variables of the path, by name. */
+    private Map<String, String> pathSorts(List<Expression<Boolean>> path) {
+        Map<String, String> sorts = new HashMap<>();
+        for (Variable<?> v : extractFreeVariables(path)) {
+            try {
+                sorts.put(v.getName(), type(v));
+            } catch (IllegalArgumentException e) {
+                // unsupported type: no sort constraint from the path
+            }
+        }
+        return sorts;
     }
 
     /**
@@ -300,6 +377,16 @@ public class ConstructorSummaryManager {
         System.out.println("baseIdentifiers: " + baseIdentifiers);
         System.out.println("objectIdentifiers: " + objectIdentifiers);
 
+        if (this.eagerSummaries != null) {
+            // all summaries for every object, with the same handling of conflicting field sorts as incremental mode
+            Map<String, List<GeneratedSummary>> summariesPerObject = new LinkedHashMap<>();
+            for (String object : baseIdentifiers) {
+                summariesPerObject.put(object, this.eagerSummaries);
+            }
+            return renderObjectSummaries(summariesPerObject, pathSorts(path), objectIdentifiers);
+        }
+
+        // blueprint loaded from the cache: no per-signature summaries
         String declarations = buildAllObjectDeclarations(baseIdentifiers);
         String summaries = buildAllObjectSummaries(baseIdentifiers);
         String objectNotIdentityConstraints = objectNotIdentityConstraints(objectIdentifiers);
@@ -466,11 +553,13 @@ public class ConstructorSummaryManager {
                 + filteredSignaturesConstructorCalls);
 
         List<String> formulas = new ArrayList<>();
+        this.eagerSummaries = new ArrayList<>();
         for (String signature : filteredSignaturesConstructorCalls) {
             GeneratedSummary summary = this.summarizeSignature(signature);
             this.objectsWithinAllTraces.addAll(summary.objects());
             this.declarationsOfBluePrint.addAll(summary.declarations());
             formulas.addAll(summary.formulas());
+            this.eagerSummaries.add(summary);
         }
 
         return String.join("\n", formulas);
