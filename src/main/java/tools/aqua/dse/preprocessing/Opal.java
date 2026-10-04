@@ -34,8 +34,10 @@ import java.lang.Deprecated;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -349,6 +351,35 @@ public class Opal {
     }
 
     /**
+     * Rows of {@code obj.extends} for a class that is not in the static relation, e.g. a JDK class assigned to a
+     * field by a constructor ({@code java.util.HashSet} in a field of type {@code Collection}): the class extends all
+     * its supertypes (known from the class hierarchy, which includes the JDK), and {@code null} extends them, too.
+     *
+     * @param jvmTypeName e.g. {@code Ljava/util/HashSet;}.
+     */
+    public List<String[]> extendsRowsFor(String jvmTypeName) {
+        List<String[]> rows = new ArrayList<>();
+        String object = ClassType.Object().toJVMTypeName();
+        rows.add(new String[] {jvmTypeName, jvmTypeName});
+        rows.add(new String[] {jvmTypeName, object});
+        if (!jvmTypeName.startsWith("L") || !jvmTypeName.endsWith(";")) {
+            return rows;
+        }
+        ClassType type = ClassType.apply(jvmTypeName.substring(1, jvmTypeName.length() - 1));
+        ClassHierarchy ch = this.project.classHierarchy();
+        if (!ch.isKnown(type)) {
+            return rows;
+        }
+        ch.allSupertypes(type, true).foreach(superType -> {
+            String superTypeName = superType.toJVMTypeName();
+            rows.add(new String[] {jvmTypeName, superTypeName});
+            rows.add(new String[] {"null", superTypeName});
+            return null;
+        });
+        return rows;
+    }
+
+    /**
      * Generates the SMT definition {@code obj.extends} based on all project classes.
      *
      * @return SMT-LibS string of the {@code obj.extends} definition.
@@ -584,11 +615,19 @@ public class Opal {
                         Collectors.reducing(0, info -> 1, Integer::sum)
                 ));
 
-        int i = 0;
-        HashMap<PolymorphicMethodDefinition, BranchData> result = new HashMap<>();
+        // A call of m with descriptor d dispatches to one of the definitions of m/d, so the dispatch decision has one
+        // branch per definition of m/d (not per polymorphic method of the program: with loose type bounds, these are
+        // thousands, and every sibling becomes an open target that needs its own solver query).
+        Map<String, List<PolymorphicMethodDefinition>> bySignature = countsMap.keySet().stream()
+                .sorted(Comparator.comparing(PolymorphicMethodDefinition::declaringClass))
+                .collect(Collectors.groupingBy(def -> def.methodName() + def.methodDescriptor(),
+                        LinkedHashMap::new, Collectors.toList()));
 
-        for (PolymorphicMethodDefinition polymorphicMethodDefinition :countsMap.keySet()) {
-            result.put(polymorphicMethodDefinition,new BranchData(i++, countsMap.size()));
+        HashMap<PolymorphicMethodDefinition, BranchData> result = new HashMap<>();
+        for (List<PolymorphicMethodDefinition> definitions : bySignature.values()) {
+            for (int i = 0; i < definitions.size(); i++) {
+                result.put(definitions.get(i), new BranchData(i, definitions.size()));
+            }
         }
 
         return result;
@@ -746,7 +785,7 @@ public class Opal {
                 return null;
             }
             ClassFile cf = (ClassFile) p.classFile(tpe).get();
-            if (cf.isAbstract() || isSyntheticLambdaClass(cf) || hasArrayOrStringField(p, cf)) {
+            if (cf.isAbstract() || isSyntheticLambdaClass(cf)) {
                 return null;
             }
             cf.constructors().foreach(constructor -> {
@@ -785,24 +824,6 @@ public class Opal {
      * OPAL rewrites invokedynamic (lambdas) into synthetic classes (e.g. {@code Foo$bar()...$Lambda}) that do not
      * exist at run time and cannot be instantiated by SPouT.
      */
-    private static boolean hasArrayOrStringField(Project p, ClassFile cf) {
-        // SPouT annotates all fields of a new concolic object recursively (ConcolicAnalysis.annotateObject) and fails
-        // with a host exception on arrays ("TODO: arrays?"), including the byte[] of a String. Objects of classes with
-        // (declared or inherited) instance fields of array or String type are therefore not used.
-        ClassFile current = cf;
-        while (current != null) {
-            boolean found = current.fields().exists(f ->
-                    !f.isStatic() && (f.fieldType().isArrayType() || f.fieldType().equals(STRING)));
-            if (found) {
-                return true;
-            }
-            scala.Option<ClassType> superType = current.superclassType();
-            current = (superType.isDefined() && p.classFile(superType.get()).isDefined())
-                    ? (ClassFile) p.classFile(superType.get()).get() : null;
-        }
-        return false;
-    }
-
     private static boolean isSyntheticLambdaClass(ClassFile cf) {
         return cf.isSynthetic() || cf.thisType().toJVMTypeName().contains("$Lambda");
     }

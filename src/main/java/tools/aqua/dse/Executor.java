@@ -84,9 +84,23 @@ public class Executor {
                     .redirectErrorStream(true)
                     .redirectOutput(ProcessBuilder.Redirect.to(output.toFile()))
                     .start();
+            this.lastTimedOut = false;
             try {
+                long timeout = config.getExecutorTimeoutSeconds();
+                if (timeout > 0 && !process.waitFor(timeout, java.util.concurrent.TimeUnit.SECONDS)) {
+                    // e.g. a constructor argument chosen by the solver is a huge capacity: the execution does not end
+                    // in reasonable time. The executor script starts the JVM as a child process: kill both.
+                    process.descendants().forEach(ProcessHandle::destroyForcibly);
+                    process.destroyForcibly();
+                    process.waitFor();
+                    Files.deleteIfExists(output);
+                    this.lastTimedOut = true;
+                    System.out.println("== executor timeout after " + timeout + "s");
+                    return null;
+                }
                 process.waitFor();
             } catch (InterruptedException e) {
+                process.descendants().forEach(ProcessHandle::destroyForcibly);
                 process.destroyForcibly();
                 Thread.currentThread().interrupt();
                 return null;
@@ -101,6 +115,13 @@ public class Executor {
             t.printStackTrace();
             return null;
         }
+    }
+
+    private boolean lastTimedOut = false;
+
+    /** @return whether the last execution was stopped by the executor timeout (dse.executor.timeout) */
+    public boolean lastExecutionTimedOut() {
+        return lastTimedOut;
     }
 
     private String generateParam(String optionName, String prefix, Valuation val) {
@@ -138,6 +159,7 @@ public class Executor {
 
         List<String> modifiedConstructorValues = new ArrayList<>();
         for (String constructorValue : constructorValues) {
+            constructorValue = unwrapConversions(constructorValue);
             Matcher matcher = pattern2.matcher(constructorValue);
             while (matcher.find()) {
                 String primitive = matcher.group();
@@ -149,19 +171,8 @@ public class Executor {
                         .map(ValuationEntry::getValue);
                 
                 if (valueOfPrimitive.isEmpty()) {
-                    Set<String> declarationsOfBluePrint =
-                            this.config.getSmtProblemManager().getConstructorSummaryManager().getDeclarationsOfBluePrint();
-
-                    String variableNameLookingFor = primitive.replaceAll("__object_\\d+", "__object_0");
-
-
-                    Optional<String> declaration = declarationsOfBluePrint.stream()
-                            .filter(s -> s.contains(variableNameLookingFor))
-                            .findFirst();
-
-                    String s = declaration.get().split("\\(\\)")[1];
-                    s = s.substring(0, s.length()-1).trim();
-                    constructorValue = constructorValue.replace(primitive, getDefault(s));
+                    // unconstrained argument: a default of its type, which is part of the name (__object_0__long_0)
+                    constructorValue = constructorValue.replace(primitive, defaultOfPrimitive(matcher.group(1)));
                 }
                 else {
                     constructorValue = constructorValue.replace(primitive, valueOfPrimitive.get().toString());
@@ -181,6 +192,35 @@ public class Executor {
     }
 
 
+    /** a conversion of a byte, short, or char argument, e.g. {@code ((_ zero_extend 16) __object_0__char_0)} */
+    private static final Pattern CONVERSION =
+            Pattern.compile("\\(\\(_ (?:zero_extend|sign_extend|extract)(?: \\d+)+\\) ([^()\\s]+)\\)");
+
+    /**
+     * SPouT records byte, short, and char constructor arguments in the label of the constructor ({@code .init}) with
+     * their conversion to int; the executor needs the argument itself (and no spaces on the command line).
+     */
+    static String unwrapConversions(String constructorValue) {
+        String result = constructorValue;
+        String previous;
+        do {
+            previous = result;
+            result = CONVERSION.matcher(result).replaceAll("$1");
+        } while (!result.equals(previous));
+        return result;
+    }
+
+    /** default values in the format parsed by SPouT (Config.parsePrimitiveValue) */
+    private static String defaultOfPrimitive(String type) {
+        switch (type) {
+            case "bool": return "false";
+            case "float":
+            case "double": return "0.0";
+            case "string": return "";
+            default: return "0"; // byte, char, short, int, long (no "L" suffix: Long.parseLong rejects it)
+        }
+    }
+
     private String getDefault(String type) {
         switch (type) {
             case "String": return "";
@@ -188,7 +228,7 @@ public class Executor {
             case "(_ BitVec 8)": return "0";
             case "(_ BitVec 16)": return "0";
             case "(_ BitVec 32)": return "0";
-            case "(_ BitVec 64)": return "0L";
+            case "(_ BitVec 64)": return "0";
             case "(_ FloatingPoint 8 24)": return "0.0";
             case "(_ FloatingPoint 11 53)": return "0.0";
 

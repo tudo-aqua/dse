@@ -32,6 +32,11 @@ public class Explorer {
         this.ctree = new ConstraintsTree(config);
     }
 
+    /** the execution for the current target did not end in time: its result is unknown */
+    public void executionTimedOut() {
+        ctree.failCurrentTargetDontKnow();
+    }
+
     public void addTrace(Trace t) {
         if (t == null) {
             ctree.failCurrentTargetBuggy("not executed or failed");

@@ -134,6 +134,20 @@ public class ConstructorSummaryManager {
         this.summaryStore.ensureSummarized(List.of(ConstructorSignature.parse(ConstructorSignature.NULL_SIGNATURE)));
     }
 
+    /** @return the number of constructor signatures summarized so far (eager: all, computed up front), -1 if unknown */
+    public int summarizedCount() {
+        if (this.summaryStore != null) {
+            return this.summaryStore.summarizedCount();
+        }
+        return this.eagerSummaries != null ? this.eagerSummaries.size() : -1;
+    }
+
+    /** @return the number of constructor signatures that can be summarized (incremental mode), -1 if unknown */
+    public int signatureCount() {
+        return this.summaryStore != null ? this.summaryStore.catalogue().size()
+                : this.eagerSummaries != null ? this.eagerSummaries.size() : -1;
+    }
+
     public boolean isIncremental() {
         return this.summaryStore != null;
     }
@@ -158,12 +172,11 @@ public class ConstructorSummaryManager {
         }
 
         int round = 0;
+        checkedComplete = 0;
         while (true) {
             round++;
             String dynamicSmtLibCode = generateIncrementalSMTLibCode(query);
-            System.out.println("SMT-Problem-Start");
-            System.out.printf("\u001B[38;5;208m %s \u001B[0m%n", dynamicSmtLibCode);
-            System.out.println("SMT-Problem-End");
+            SmtProblemManager.printSmtProblem(dynamicSmtLibCode);
 
             solverCtx.push();
             ConstraintSolver.Result res;
@@ -179,9 +192,16 @@ public class ConstructorSummaryManager {
             if (res != ConstraintSolver.Result.UNSAT) {
                 return res;
             }
-            if (round == 1 && isUnsatWithoutSummaries(solverCtx, path, query)) {
-                System.out.println("[ConstructorSummaryManager] UNSAT independently of constructor summaries");
+            Set<String> complete = completeObjects(query);
+            if ((round == 1 || complete.size() > checkedComplete) && isUnsatOverApproximated(solverCtx, path, query, complete)) {
+                System.out.println("[ConstructorSummaryManager] UNSAT with summaries of " + complete
+                        + " only, other objects unconstrained");
                 return res;
+            }
+            checkedComplete = complete.size();
+            if (System.currentTimeMillis() >= this.deadline) {
+                System.out.println("[ConstructorSummaryManager] dse.timeout reached, query unknown");
+                return ConstraintSolver.Result.DONT_KNOW;
             }
             if (summarizeNextBatch(query) == 0) {
                 return res;
@@ -189,22 +209,52 @@ public class ConstructorSummaryManager {
         }
     }
 
+    /** time budget of the DSE of a single constructor (dse.summaries.timeout), in seconds */
+    private static long summaryTimeoutSeconds = 60;
+
+    /** set before creating a manager: in eager mode, all summaries are computed by the constructor */
+    public static void setSummaryTimeoutSeconds(long seconds) {
+        summaryTimeoutSeconds = seconds;
+    }
+
+    /** end of the exploration (dse.timeout): no summaries are computed after it */
+    private long deadline = Long.MAX_VALUE;
+
+    public void setDeadline(long deadline) {
+        this.deadline = deadline;
+    }
+
+    /** number of complete objects at the last over-approximation check of the current query */
+    private int checkedComplete;
+
+    /** @return the base objects of the query whose relevant signatures are all summarized. */
+    private Set<String> completeObjects(Query query) {
+        Set<String> complete = new LinkedHashSet<>();
+        for (String object : query.baseIdentifiers()) {
+            if (this.summaryStore.unsummarized(query.relevant().get(object)).isEmpty()) {
+                complete.add(object);
+            }
+        }
+        return complete;
+    }
+
     /**
-     * Summaries only add constraints on objects. If the path is unsatisfiable with unconstrained objects (e.g.,
-     * {@code o != o}), it is unsatisfiable with any set of summaries, and no summary needs to be computed. The
-     * distinctness of objects does not depend on summaries and is included.
+     * Over-approximation of the query: objects whose relevant signatures are all summarized are constrained to their
+     * summaries, all other objects are unconstrained (summaries only add constraints on objects). If this is UNSAT,
+     * the query is UNSAT for any set of summaries, and no further summary needs to be computed. Without complete
+     * objects, this checks whether the path is unsatisfiable independently of constructors (e.g., {@code o != o}).
+     * The distinctness of objects does not depend on summaries and is included.
      */
-    private boolean isUnsatWithoutSummaries(SolverContext solverCtx, List<Expression<Boolean>> path, Query query) {
+    private boolean isUnsatOverApproximated(SolverContext solverCtx, List<Expression<Boolean>> path, Query query,
+                                            Set<String> complete) {
+        Map<String, List<GeneratedSummary>> summariesPerObject = new LinkedHashMap<>();
+        for (String object : complete) {
+            summariesPerObject.put(object, this.summaryStore.summaries(query.relevant().get(object)));
+        }
         solverCtx.push();
         try {
-            String distinct = objectNotIdentityConstraints(query.objectIdentifiers());
-            if (!distinct.isEmpty()) {
-                StringBuilder sb = new StringBuilder("(declare-fun null () Int)\n");
-                for (String object : query.objectIdentifiers()) {
-                    sb.append(String.format("(declare-fun %s () Int)%n", object));
-                }
-                SmtProblemManager.addSmtProblemAsString(sb + distinct, solverCtx);
-            }
+            SmtProblemManager.addSmtProblemAsString(
+                    renderObjectSummaries(summariesPerObject, query.pathSorts(), query.objectIdentifiers()), solverCtx);
             solverCtx.add(path);
             return solverCtx.solve(new Valuation()) == ConstraintSolver.Result.UNSAT;
         } finally {
@@ -294,7 +344,7 @@ public class ConstructorSummaryManager {
                         String sort = m.group(2).trim();
                         String canonical = pathSorts.getOrDefault(name, declared.getOrDefault(name, sort));
                         String symbol = name;
-                        if (!canonical.equals(sort)) {
+                        if (!normalizeSort(canonical).equals(normalizeSort(sort))) {
                             symbol = name + "__as_" + sort.replaceAll("[^A-Za-z0-9]", "");
                             renaming.put(name, symbol);
                         }
@@ -313,8 +363,10 @@ public class ConstructorSummaryManager {
                     disjuncts.add(text);
                 }
             }
-            assertions.append(String.format("(assert (or %s))%n",
-                    disjuncts.isEmpty() ? "false" : String.join("\n", disjuncts)));
+            // balanced: the parser turns an n-ary (or ...) into a chain of depth n, which overflows the stack
+            // when it is printed or translated to Z3 (objects with hundreds of summary paths)
+            assertions.append(String.format("(assert %s)%n",
+                    disjuncts.isEmpty() ? "false" : Opal.balancedOr(disjuncts)));
         }
         // object symbols are needed by the distinctness constraints, also if no summary declared them (yet)
         for (String object : objectIdentifiers) {
@@ -325,6 +377,18 @@ public class ConstructorSummaryManager {
         }
         declarations.append("(declare-fun null () Int)\n");
         return declarations + assertions.toString() + objectNotIdentityConstraints(objectIdentifiers);
+    }
+
+    /** the same sort can be written in different ways, e.g. {@code Float64} and {@code (_ FloatingPoint 11 53)} */
+    static String normalizeSort(String sort) {
+        String s = sort.trim().replaceAll("\\s+", " ");
+        switch (s) {
+            case "Float16": return "(_ FloatingPoint 5 11)";
+            case "Float32": return "(_ FloatingPoint 8 24)";
+            case "Float64": return "(_ FloatingPoint 11 53)";
+            case "Float128": return "(_ FloatingPoint 15 113)";
+            default: return s;
+        }
     }
 
     /** SMT sorts of the variables of the path, by name. */
@@ -347,14 +411,20 @@ public class ConstructorSummaryManager {
      *         solver result for the query is final.
      */
     public int summarizeNextBatch(Query query) {
-        List<ConstructorSignature> missing = this.summaryStore.unsummarized(query.needed());
+        // complete the object with the fewest missing summaries first: once an object is complete, the
+        // over-approximation (see isUnsatOverApproximated) can prove UNSAT without summarizing the other objects
+        List<ConstructorSignature> missing = query.baseIdentifiers().stream()
+                .map(object -> this.summaryStore.unsummarized(query.relevant().get(object)))
+                .filter(list -> !list.isEmpty())
+                .min(Comparator.comparingInt(List::size))
+                .orElse(List.of());
         List<ConstructorSignature> batch = missing.subList(0, Math.min(this.batchSize, missing.size()));
         if (batch.isEmpty()) {
             return 0;
         }
         System.out.println("[ConstructorSummaryManager] summarizing " + batch.stream()
                 .map(ConstructorSignature::signature).toList() + " (" + (missing.size() - batch.size())
-                + " needed signatures left, " + (this.summaryStore.summarizedCount() + batch.size())
+                + " signatures of this object left, " + (this.summaryStore.summarizedCount() + batch.size())
                 + " summarized in total)");
         return this.summaryStore.ensureSummarized(batch);
     }
@@ -595,9 +665,64 @@ public class ConstructorSummaryManager {
 
         List<String> formulas = traces.stream()
                 .map(this::generateSmtCodeFromSingleConstructorSummaryTrace)
+                .filter(formula -> isParsable(formula, declarations, signature))
                 .toList();
 
+        formulas.forEach(this::registerClasses);
         return new GeneratedSummary(signature, formulas, declarations, objects);
+    }
+
+    /** class constants of summaries ({@code (= o.f.cls "Ljava/util/HashSet;")}), e.g. JDK classes in fields */
+    private static final Pattern CLASS_CONSTANT = Pattern.compile("\\.cls \"(L[^\"]*;)\"");
+    private final Set<String> summaryClasses = new LinkedHashSet<>();
+    private java.util.function.Consumer<String> classListener;
+
+    private void registerClasses(String formula) {
+        Matcher m = CLASS_CONSTANT.matcher(formula);
+        while (m.find()) {
+            if (this.summaryClasses.add(m.group(1)) && this.classListener != null) {
+                this.classListener.accept(m.group(1));
+            }
+        }
+    }
+
+    /**
+     * Notified of every class that occurs in a summary (also of those in the summaries computed so far), so that
+     * the class hierarchy used by the solver can be extended by classes that only occur in summaries.
+     */
+    public void setClassListener(java.util.function.Consumer<String> listener) {
+        this.classListener = listener;
+        new ArrayList<>(this.summaryClasses).forEach(listener);
+    }
+
+    /**
+     * Summary paths whose formula cannot be parsed are dropped (with a warning): one broken formula would make every
+     * query that includes the summary unparsable. Dropping a path is sound (every model still uses a valid summary)
+     * but incomplete. Known cause: SPouT writes string values of fields without escaping, so a value with a line
+     * break (e.g. {@code ToStringStyle.contentStart} of commons-lang3) truncates the summary line of the trace.
+     */
+    static boolean isParsable(String formula, Set<String> declarations, String signature) {
+        int depth = 0;
+        boolean inString = false;
+        for (int i = 0; i < formula.length(); i++) {
+            char c = formula.charAt(i);
+            if (c == '"') {
+                if (inString && i + 1 < formula.length() && formula.charAt(i + 1) == '"') {
+                    i++; // escaped quote
+                } else {
+                    inString = !inString;
+                }
+            } else if (!inString && c == '(') {
+                depth++;
+            } else if (!inString && c == ')' && --depth < 0) {
+                break;
+            }
+        }
+        if (depth == 0 && !inString) {
+            return true;
+        }
+        System.out.println("WARNING: dropping truncated summary path of " + signature);
+        return false;
     }
 
     private List<Trace> performDseOnConstructor(String constructorSignature) {
@@ -618,6 +743,13 @@ public class ConstructorSummaryManager {
         props.setProperty("dse.terminate.on", "completion");
         props.setProperty("dse.explore", "BFS");
         props.setProperty("concolic.max.object.annotation.depth", "3");
+        // bounded: constructors with loops over symbolic values (e.g. capacity computations) have unboundedly many
+        // paths. A summary cut off by the timeout misses paths of the constructor (incomplete, like any timeout).
+        long timeout = summaryTimeoutSeconds;
+        if (this.deadline != Long.MAX_VALUE) {
+            timeout = Math.min(timeout, Math.max(1, (this.deadline - System.currentTimeMillis()) / 1000));
+        }
+        props.setProperty("dse.timeout", String.valueOf(timeout));
 
         Config config = Config.fromProperties(props);
         DSE dse = new DSE(config);
@@ -640,6 +772,8 @@ public class ConstructorSummaryManager {
 
         List<String> parsedExpressions = new ArrayList<>();
         for (Expression<Boolean> decision : decisions) {
+            // reset: otherwise every decision repeats all earlier ones (quadratically many conjuncts)
+            baos.reset();
             decision.accept(visitor, null);
             genCtx.flush();
             parsedExpressions.add(baos.toString().trim());
@@ -651,14 +785,13 @@ public class ConstructorSummaryManager {
                 .filter(line -> !line.startsWith("(declare-const"))
                 .toList();
 
-        String erg =  String.format(
-                "(and %s)",
-                Stream.concat(
+        // without duplicates, as a balanced tree: the parser turns an n-ary (and ...) into a chain of depth n,
+        // which overflows the stack of recursive visitors (printing, grounding, translation to Z3)
+        List<String> conjuncts = new ArrayList<>(new LinkedHashSet<>(Stream.concat(
                         summaryTrace.getSummaries().stream(),
                         decisionStrings.stream()
-                ).filter(s -> s != null && !s.isEmpty())
-                        .collect(Collectors.joining(" "))
-        );
+                ).filter(s -> s != null && !s.isEmpty()).toList()));
+        String erg = conjuncts.isEmpty() ? "true" : balancedAnd(conjuncts);
 
         erg = addObjectPrefixToPrimitives(erg, "__object_0");
 
@@ -672,6 +805,14 @@ public class ConstructorSummaryManager {
 
         return erg;
 
+    }
+
+    static String balancedAnd(List<String> terms) {
+        if (terms.size() == 1) {
+            return terms.get(0);
+        }
+        int mid = terms.size() / 2;
+        return "(and " + balancedAnd(terms.subList(0, mid)) + " " + balancedAnd(terms.subList(mid, terms.size())) + ")";
     }
 
     public String getBluePrintConstructorSummaries() {

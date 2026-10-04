@@ -43,12 +43,14 @@ public class IncrementalSummariesTest {
 
     private final List<String> generated = new ArrayList<>();
     private ConstructorSummaryManager manager;
+    /** kept: if the solver is garbage-collected, it closes the Z3 context */
+    private ConstraintSolver solver;
     private SolverContext ctx;
 
     /** One solver context for all tests (as in DSE); each test runs in its own push/pop scope. */
     @BeforeClass
     void createSolver() {
-        ConstraintSolver solver = ConstraintSolverFactory.createSolver("z3", new Properties());
+        solver = ConstraintSolverFactory.createSolver("z3", new Properties());
         ctx = solver.createContext();
         ctx.push();
         SmtProblemManager.addSmtProblemAsString("(declare-fun null () Int)\n(assert (= null 0))\n"
@@ -153,6 +155,25 @@ public class IncrementalSummariesTest {
     }
 
     @Test
+    void unsatIsReportedOnceOneObjectIsComplete() throws Exception {
+        // __object_0 can only be built by C(), which sets x = 0; __object_1 is unconstrained (all signatures relevant)
+        assertThat(solve(new Valuation(), BOUND_A, NO_ERROR, INSTANCEOF_B, "(= __object_0.cls \"LC;\")", X_POSITIVE,
+                "(= __object_1.err \"\")", "(obj.extends __object_1.cls \"LA;\")"))
+                .isEqualTo(Result.UNSAT);
+        assertThat(generated).containsExactly("null|NULL", "LC;|()V|");
+    }
+
+    @Test
+    void equalSortsWrittenDifferentlyAreNotRenamed() {
+        assertThat(ConstructorSummaryManager.normalizeSort("Float64"))
+                .isEqualTo(ConstructorSummaryManager.normalizeSort("(_ FloatingPoint  11 53)"));
+        assertThat(ConstructorSummaryManager.normalizeSort("Float32"))
+                .isEqualTo(ConstructorSummaryManager.normalizeSort("(_ FloatingPoint 8 24)"));
+        assertThat(ConstructorSummaryManager.normalizeSort("Float32"))
+                .isNotEqualTo(ConstructorSummaryManager.normalizeSort("(_ FloatingPoint 11 53)"));
+    }
+
+    @Test
     void conflictingFieldSortsAreRenamed() throws Exception {
         // field x is an int in B(int), but a boolean in D(int) (another class with a field of the same name)
         SummaryStore store = new SummaryStore(SIGNATURES, sig -> {
@@ -184,5 +205,13 @@ public class IncrementalSummariesTest {
         // only relevant summaries are asserted: B() and C() are summarized and relevant, null is not relevant
         assertThat(smt).contains("<>LC;|()V|").contains("<java/lang/AssertionError>LB;|()V|").doesNotContain("null|NULL");
         assertThat(SMTLIBParser.parseSMTProgram(smt).assertions).isNotEmpty();
+    }
+
+    @Test
+    void truncatedSummaryPathsAreDetected() {
+        assertThat(ConstructorSummaryManager.isParsable("(and (= __object_0.s \"a)\") (= __object_0.err \"\"))", Set.of(), "s")).isTrue();
+        assertThat(ConstructorSummaryManager.isParsable("(and (= __object_0.s \"a\"\"b\") true)", Set.of(), "s")).isTrue();
+        assertThat(ConstructorSummaryManager.isParsable("(and (= __object_0.s \"line", Set.of(), "s")).isFalse();
+        assertThat(ConstructorSummaryManager.isParsable("(and (= __object_0.s \"\")", Set.of(), "s")).isFalse();
     }
 }

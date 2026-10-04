@@ -88,8 +88,11 @@ public class DSEArguments {
         printDSEOptionHelp("dse.summaries.mode", "constructor summaries: eager (default, all up front) / incremental (on demand)");
         printDSEOptionHelp("dse.summaries.depth", "max. nesting depth of constructor calls in summarized signatures (default 1)");
         printDSEOptionHelp("dse.summaries.batch", "incremental: no. of signatures summarized per refinement step (default 1)");
-        printDSEOptionHelp("dse.errors.mode", "incremental: constructor error inference: declared (default, declared and\nlanguage exceptions) / unknown (imprecision means unknown errors)");
-        printDSEOptionHelp("dse.errors.maxMethods", "incremental: max. no. of methods analyzed for constructor errors");
+        printDSEOptionHelp("dse.executor.timeout", "time limit of a single execution in seconds (default 120, 0: none)");
+        printDSEOptionHelp("dse.summaries.timeout", "time budget of the DSE of a single constructor in seconds (default 60)");
+        printDSEOptionHelp("dse.objects.relations", "encoding of obj.extends / obj.method.of: grounded (default, instantiated\nper constraint) / quantified (defined by universally quantified formulas)");
+        printDSEOptionHelp("dse.errors.mode", "incremental: constructor error inference: unknown (default, imprecision means unknown\nerrors) / declared (declared and language exceptions, trusted as complete)");
+        printDSEOptionHelp("dse.errors.maxMethods", "incremental: max. no. of methods analyzed for constructor errors (default 200000)");
         printDSEOptionHelp("dse.errors.maxCallTargets", "incremental: max. no. of call targets followed per call site");
         System.out.println();
     }

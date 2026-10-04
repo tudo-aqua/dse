@@ -45,6 +45,17 @@ public class SmtProblemManager {
         return constructorSummaryManager;
     }
 
+    /** queries larger than this are printed truncated (eager summaries of large libraries reach gigabytes of output) */
+    private static final int MAX_PRINTED_SMT = 20_000;
+
+    public static void printSmtProblem(String smtLibCode) {
+        System.out.println("SMT-Problem-Start");
+        String printed = smtLibCode.length() <= MAX_PRINTED_SMT ? smtLibCode
+                : smtLibCode.substring(0, MAX_PRINTED_SMT) + "\n... (truncated, " + smtLibCode.length() + " characters)";
+        System.out.printf("\u001B[38;5;208m %s \u001B[0m%n", printed);
+        System.out.println("SMT-Problem-End");
+    }
+
     public static void addSmtProblemAsString(String smtLibCode, SolverContext solverContext) {
         SMTProblem smtProblem = null;
         try {

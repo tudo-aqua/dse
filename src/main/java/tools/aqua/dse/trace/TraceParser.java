@@ -52,17 +52,21 @@ public class TraceParser {
         List<String> summeries = new ArrayList<>();
         PathResult result = PathResult.ok(vals);
 //        String decl = "";
-        String decl = "(declare-fun obj.extends (String String) Bool) \n (declare-fun obj.method.of (String String String String) Bool)"; //todo: needed?
+        // a StringBuilder: traces can have very many declarations (repeated concatenation is quadratic)
+        StringBuilder decl = new StringBuilder("(declare-fun obj.extends (String String) Bool) \n (declare-fun obj.method.of (String String String String) Bool)"); //todo: needed?
         int objectCount = 0;
         boolean traceComplete = false;
         Set<String> objectIdentifiers = new HashSet<>();
 
         for (String line : lines) {
             if (line.startsWith("[DECISION]")) {
-                decisions.add(parseDecision( line.substring("[DECISION]".length()), decl, config));
+                Decision d = parseDecision( line.substring("[DECISION]".length()), decl.toString(), config);
+                if (d != null) {
+                    decisions.add(d);
+                }
             }
             else if (line.startsWith("[AUXILIARY]")) {
-                decl += line.substring("[AUXILIARY]".length());
+                decl.append(line.substring("[AUXILIARY]".length()));
             }
             else if (line.startsWith("[SUMMARY]")) {
                 summeries.add(line.substring("[SUMMARY]".length()));
@@ -72,7 +76,7 @@ public class TraceParser {
             }
             else if (line.startsWith("[DECLARE]")) {
                 String declaration = line.substring("[DECLARE]".length());
-                decl += declaration;
+                decl.append(declaration);
 
                 declarations.add(declaration);
 
@@ -95,7 +99,7 @@ public class TraceParser {
                 result = PathResult.abort(vals, line.substring("[ABORT]".length()).trim());
             }
             else if (line.startsWith("[ASSUMPTION]")) {
-                decisions.add(parseAssumption( line.substring("[ASSUMPTION]".length()), decl));
+                decisions.add(parseAssumption( line.substring("[ASSUMPTION]".length()), decl.toString()));
             }
             else if (line.startsWith("[WITNESS]")) {
                 witness.add(parseWitnessAssumption( line.substring("[WITNESS]".length()).trim() ));
@@ -123,6 +127,7 @@ public class TraceParser {
         return new Trace(decisions, summeries, declarations, witness, flows, result, objectCount, objectIdentifiers);
     }
 
+    /** @return the decision, or {@code null} if it is dropped (dispatch without static information) */
     public static Decision parseDecision(String decision,
                                          String decl,
                                          Config config) throws IOException, SMTLIBParserException {
@@ -155,10 +160,13 @@ public class TraceParser {
                 Opal.BranchData branchData =
                         branchInformationMap.get(new Opal.PolymorphicMethodDefinition(methodName, methodDescriptor, definingClass));
                 if (branchData == null) {
-                    // the method is missing in the static polymorphism table: keep the path instead of failing
+                    // the method is missing in the static polymorphism table (e.g. a method of a JDK class, called on
+                    // an object in a field): the alternatives are unknown, so DSE cannot steer this dispatch (the
+                    // class of the object is fixed by the constructor summaries). The decision is dropped: as a
+                    // node with a single branch, it would conflict with traces that dispatch to another method here.
                     System.out.println("WARNING: no polymorphism information for " + definingClass + "::" + methodName
-                            + methodDescriptor + "; treating the dispatch as a single-branch decision");
-                    return new Decision(ExpressionUtil.and(smt.assertions), 1, 0);
+                            + methodDescriptor + "; dropping the dispatch decision");
+                    return null;
                 }
                 System.out.println("BranchCountLog: "+branchData.branchCount());
                 System.out.println("BranchIdLog: "+branchData.branchId());

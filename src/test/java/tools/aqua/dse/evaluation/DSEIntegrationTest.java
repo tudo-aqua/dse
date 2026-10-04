@@ -4827,7 +4827,10 @@ public class DSEIntegrationTest {
         String directoryOfTheExample = String.format("src/test/resources/real_world_programs/%s/", example);
         FilePreparator.compileClasses(classes, directoryOfTheExample);
 
-        DSE dse = TestUtils.getDseInstance("Main", directoryOfTheExample);
+        // with broad type bounds, objects of any class (e.g. with String fields) are created; SPouT's symbolic
+        // strings are out of scope for these tests, so String fields keep their concrete values
+        String executorOptions = example.endsWith("_object") ? "-Dconcolic.symbolic.string.fields=false" : "";
+        DSE dse = TestUtils.getDseInstance("Main", directoryOfTheExample, executorOptions);
         Instant start = Instant.now();
         dse.executeAnalysis();
         Duration duration = Duration.between(start, Instant.now());

@@ -26,7 +26,6 @@ public class StaticManager {
     public StaticManager(String classPath, int depth) {
         this.opal = new Opal(classPath);
         this.reachableTypes = this.opal.reachableTypesFromConstructors(depth);
-        this.staticSMTLibCode = generateStaticSmtLibCode();
         this.polymorphicInformation = this.opal.collectPolymorphyInformation(reachableTypes.toArray(new ClassType[0]));
         this.branchInformationMap = this.opal.createBranchInformationMap(polymorphicInformation);
     }
@@ -34,6 +33,9 @@ public class StaticManager {
     public SolverContext setStaticSmtLibCode(SolverContext solverContext) {
         SMTProblem smtProblem = null;
         try {
+            if (this.staticSMTLibCode == null) {
+                this.staticSMTLibCode = generateStaticSmtLibCode();
+            }
             smtProblem = SMTLIBParser.parseSMTProgram(this.staticSMTLibCode);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -43,6 +45,30 @@ public class StaticManager {
         return smtProblem.addProblemToContext(solverContext);
     }
 
+
+    /** Adds only the {@code null} constant; for the relations, see {@link #getGrounding()}. */
+    public void setNullConstant(SolverContext solverContext) {
+        SmtProblemManager.addSmtProblemAsString(generateNullConstant(), solverContext);
+    }
+
+    /** The quantifier-free instantiation of the relations defined by {@link #generateStaticSmtLibCode()}. */
+    public ObjectRelationGrounding getGrounding() {
+        if (this.grounding == null) {
+            this.grounding = ObjectRelationGrounding.of(getExtendsRelation(),
+                    this.reachableTypes.isEmpty() ? List.of() : this.polymorphicInformation);
+        }
+        return this.grounding;
+    }
+
+    private ObjectRelationGrounding grounding;
+
+    /** Adds a class that occurs in constructor summaries (e.g. a JDK class in a field) to the grounded relation. */
+    public void registerClass(String jvmTypeName) {
+        ObjectRelationGrounding g = getGrounding();
+        if (!g.knowsClass(jvmTypeName)) {
+            g.addExtends(this.opal.extendsRowsFor(jvmTypeName));
+        }
+    }
 
     public String generateStaticSmtLibCode() {
         String staticCode = generateNullConstant();

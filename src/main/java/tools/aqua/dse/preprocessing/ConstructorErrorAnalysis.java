@@ -72,7 +72,8 @@ public final class ConstructorErrorAnalysis {
     }
 
     public static final int DEFAULT_MAX_CALL_TARGETS = 32;
-    public static final int DEFAULT_MAX_METHODS = 20_000;
+    // the JDK makes the call graph large: with 20,000 methods most constructors were analyzed incompletely
+    public static final int DEFAULT_MAX_METHODS = 200_000;
 
     private static final int INVOKEDYNAMIC = 186;
     private static final ClassType NPE = ClassType.apply("java/lang/NullPointerException");
