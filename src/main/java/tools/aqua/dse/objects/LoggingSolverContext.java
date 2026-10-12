@@ -26,16 +26,28 @@ public class LoggingSolverContext extends SolverContext {
 
     @Override
     public ConstraintSolver.Result solve(Valuation valuation) {
-        return context.solve(valuation);
+        long start = System.nanoTime();
+        ConstraintSolver.Result result = context.solve(valuation);
+        System.out.println("[solve] " + result + " in " + (System.nanoTime() - start) / 1_000_000 + "ms");
+        return result;
     }
 
     @Override
     public void add(List<Expression<Boolean>> list) {
         for (Expression<Boolean> booleanExpression : list) {
-            System.out.println("\u001B[33m" + booleanExpression + "\u001B[0m");
-
+            try {
+                System.out.println("\u001B[33m" + truncate(booleanExpression.toString()) + "\u001B[0m");
+            } catch (StackOverflowError e) {
+                System.out.println("\u001B[33m(expression too deep to print)\u001B[0m");
+            }
         }
         context.add(list);
+    }
+
+    /** constraints with all constructor summaries (eager mode) are huge; the log only needs their beginning */
+    public static String truncate(String s) {
+        int max = 2000;
+        return s.length() <= max ? s : s.substring(0, max) + " ... (truncated, " + s.length() + " characters)";
     }
 
     @Override

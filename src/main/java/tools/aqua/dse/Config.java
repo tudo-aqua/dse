@@ -22,7 +22,11 @@ import gov.nasa.jpf.constraints.solvers.ConstraintSolverFactory;
 import org.apache.commons.cli.CommandLine;
 import tools.aqua.dse.bounds.BoundedSolverProvider;
 import tools.aqua.dse.objects.ClazzModel;
+import tools.aqua.dse.objects.GroundingSolverContext;
+import tools.aqua.dse.preprocessing.StaticManager;
 import tools.aqua.dse.objects.LoggingSolverContext;
+import tools.aqua.dse.preprocessing.ConstructorErrorAnalysis;
+import tools.aqua.dse.preprocessing.ConstructorSummaryManager;
 import tools.aqua.dse.preprocessing.SmtProblemManager;
 
 import java.io.*;
@@ -90,6 +94,28 @@ public class Config {
 
     private boolean constructorSummary = false;
     private boolean constructorBlueprintCache = false;
+
+    /** compute constructor summaries on demand (true) or all up front (false, default) */
+    private boolean incrementalSummaries = false;
+    /** number of constructor signatures summarized per refinement step in incremental mode */
+    private int summaryBatchSize = 1;
+    /** maximal nesting depth of constructor calls in constructor signatures (the ASE'26 experiments used 3) */
+    private int summaryDepth = 1;
+    /** time limit of a single execution (SPouT run), in seconds; 0 means no limit */
+    private long executorTimeoutSeconds = 120;
+
+    public long getExecutorTimeoutSeconds() {
+        return executorTimeoutSeconds;
+    }
+
+    /** time budget of the DSE of a single constructor, in seconds */
+    private long summaryTimeoutSeconds = 60;
+    // sound default: constructors analyzed incompletely are never excluded because of their errors
+    private ConstructorErrorAnalysis.Mode errorAnalysisMode = ConstructorErrorAnalysis.Mode.WITH_UNKNOWN;
+    private int errorAnalysisMaxMethods = ConstructorErrorAnalysis.DEFAULT_MAX_METHODS;
+    /** instantiate obj.extends / obj.method.of per constraint instead of defining them by quantified formulas */
+    private boolean groundObjectRelations = true;
+    private int errorAnalysisMaxCallTargets = ConstructorErrorAnalysis.DEFAULT_MAX_CALL_TARGETS;
     private int maxObjectAnnotationDepth = 0;
 
     private SmtProblemManager smtProblemManager;
@@ -137,7 +163,8 @@ public class Config {
 
     public SolverContext getSolverContext() {
         System.out.println("Create SolverContext");
-        SolverContext ctx = new LoggingSolverContext(this.solver.createContext());
+        GroundingSolverContext grounding = new GroundingSolverContext(this.solver.createContext());
+        SolverContext ctx = new LoggingSolverContext(grounding);
         if(this.executorArgs != null) {
             this.baselineEvaluation = this.executorArgs.contains("-Dconcolic.object.factories=true");
         }
@@ -146,7 +173,16 @@ public class Config {
             ctx.push();
             this.initializeSmtProblemManager();
             if(this.smtProblemManager != null) {
-                this.smtProblemManager.getStaticManager().setStaticSmtLibCode(ctx);
+                StaticManager staticManager = this.smtProblemManager.getStaticManager();
+                if (this.groundObjectRelations) {
+                    grounding.setGrounding(staticManager.getGrounding());
+                    if (this.smtProblemManager.getConstructorSummaryManager() != null) {
+                        this.smtProblemManager.getConstructorSummaryManager().setClassListener(staticManager::registerClass);
+                    }
+                    staticManager.setNullConstant(ctx);
+                } else {
+                    staticManager.setStaticSmtLibCode(ctx);
+                }
             }
         }
 
@@ -276,6 +312,63 @@ public class Config {
             this.constructorBlueprintCache = Boolean.parseBoolean(props.getProperty("dse.constructor.blueprint.cache"));
         }
 
+        if (props.containsKey("dse.summaries.mode")) {
+            String mode = props.getProperty("dse.summaries.mode").trim().toLowerCase();
+            switch (mode) {
+                case "eager": this.incrementalSummaries = false; break;
+                case "incremental": this.incrementalSummaries = true; break;
+                default: throw new IllegalArgumentException("dse.summaries.mode must be eager or incremental: " + mode);
+            }
+        }
+
+        if (props.containsKey("dse.summaries.batch")) {
+            this.summaryBatchSize = Integer.parseInt(props.getProperty("dse.summaries.batch").trim());
+            if (this.summaryBatchSize < 1) {
+                throw new IllegalArgumentException("dse.summaries.batch must be >= 1");
+            }
+        }
+
+        if (props.containsKey("dse.executor.timeout")) {
+            this.executorTimeoutSeconds = Long.parseLong(props.getProperty("dse.executor.timeout").trim());
+        }
+
+        if (props.containsKey("dse.summaries.timeout")) {
+            this.summaryTimeoutSeconds = Long.parseLong(props.getProperty("dse.summaries.timeout").trim());
+        }
+
+        if (props.containsKey("dse.summaries.depth")) {
+            this.summaryDepth = Integer.parseInt(props.getProperty("dse.summaries.depth").trim());
+            if (this.summaryDepth < 1) {
+                throw new IllegalArgumentException("dse.summaries.depth must be >= 1");
+            }
+        }
+
+        if (props.containsKey("dse.errors.mode")) {
+            String mode = props.getProperty("dse.errors.mode").trim().toLowerCase();
+            switch (mode) {
+                case "declared": this.errorAnalysisMode = ConstructorErrorAnalysis.Mode.DECLARED_AND_LANGUAGE; break;
+                case "unknown": this.errorAnalysisMode = ConstructorErrorAnalysis.Mode.WITH_UNKNOWN; break;
+                default: throw new IllegalArgumentException("dse.errors.mode must be declared or unknown: " + mode);
+            }
+        }
+
+        if (props.containsKey("dse.objects.relations")) {
+            String mode = props.getProperty("dse.objects.relations").trim().toLowerCase();
+            switch (mode) {
+                case "grounded": this.groundObjectRelations = true; break;
+                case "quantified": this.groundObjectRelations = false; break;
+                default: throw new IllegalArgumentException("dse.objects.relations must be grounded or quantified: " + mode);
+            }
+        }
+
+        if (props.containsKey("dse.errors.maxMethods")) {
+            this.errorAnalysisMaxMethods = Integer.parseInt(props.getProperty("dse.errors.maxMethods").trim());
+        }
+
+        if (props.containsKey("dse.errors.maxCallTargets")) {
+            this.errorAnalysisMaxCallTargets = Integer.parseInt(props.getProperty("dse.errors.maxCallTargets").trim());
+        }
+
         if (props.containsKey("concolic.max.object.annotation.depth")) {
             this.maxObjectAnnotationDepth = Integer.parseInt(props.getProperty("concolic.max.object.annotation.depth"));
         }
@@ -359,8 +452,13 @@ public class Config {
         if (this.smtProblemManager == null && this.classPaths.size() > 0) {
             String path = this.classPaths.get(0);
             System.out.println("config path: " + path);
-            int depth = 1; //todo: Which depth is needed
-            this.smtProblemManager = new SmtProblemManager(path, depth, this.constructorBlueprintCache);
+            int depth = this.summaryDepth;
+            ConstructorSummaryManager.setSummaryTimeoutSeconds(this.summaryTimeoutSeconds);
+            this.smtProblemManager = this.incrementalSummaries
+                    ? new SmtProblemManager(path, depth, new ConstructorSummaryManager.IncrementalOptions(
+                            this.summaryBatchSize, this.errorAnalysisMode,
+                            this.errorAnalysisMaxCallTargets, this.errorAnalysisMaxMethods))
+                    : new SmtProblemManager(path, depth, this.constructorBlueprintCache);
         }
     }
 
@@ -371,6 +469,10 @@ public class Config {
 
     public boolean isConstructorSummary() {
         return constructorSummary;
+    }
+
+    public boolean isIncrementalSummaries() {
+        return incrementalSummaries;
     }
 
     public boolean isBaselineEvaluation() {

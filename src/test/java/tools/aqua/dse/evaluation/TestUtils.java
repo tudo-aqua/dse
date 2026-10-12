@@ -14,6 +14,12 @@ public class TestUtils {
     public static final boolean BLUEPRINT_CACHE_ENABLED =
             Boolean.parseBoolean(System.getProperty("test.blueprint.cache", "true"));
 
+    /** constructor summaries for the integration tests: eager (default) or incremental */
+    public static final String SUMMARIES_MODE = System.getProperty("test.summaries.mode", "eager");
+
+    /** nesting depth of constructor signatures for the integration tests (the ASE'26 experiments used 3) */
+    public static final String SUMMARIES_DEPTH = System.getProperty("test.summaries.depth", "1");
+
     public static void printExample(String exampleName,
                                     String directorOfExample
     ) {
@@ -50,12 +56,19 @@ public class TestUtils {
 
     public static DSE getDseInstance(String exampleName,
                                      String pathToExamples) {
+        return getDseInstance(exampleName, pathToExamples, "");
+    }
+
+    /** @param executorOptions additional options of the executor (SPouT), e.g. {@code -Dconcolic.symbolic.string.fields=false} */
+    public static DSE getDseInstance(String exampleName,
+                                     String pathToExamples,
+                                     String executorOptions) {
         String jarWildCard = pathToExamples+"*";
         String libJarWildCard = pathToExamples+"libs/*";
         Properties props = new Properties();
         props.setProperty("dse.dp", "z3");
         props.setProperty("dse.executor", "../executor.sh");
-        props.setProperty("dse.executor.args", String.format("-cp %s:%s:%s:../verifier-stub/target/verifier-stub-1.0.jar -Dconcolic.execution=true %s", pathToExamples, jarWildCard, libJarWildCard, exampleName));
+        props.setProperty("dse.executor.args", String.format("-cp %s:%s:%s:../verifier-stub/target/verifier-stub-1.0.jar -Dconcolic.execution=true %s %s", pathToExamples, jarWildCard, libJarWildCard, executorOptions, exampleName));
         props.setProperty("dse.dp.incremental", "false");
         props.setProperty("dse.terminate.on", "completion");
         props.setProperty("dse.explore", "BFS");
@@ -64,6 +77,8 @@ public class TestUtils {
         if (BLUEPRINT_CACHE_ENABLED) {
             props.setProperty("dse.constructor.blueprint.cache", "true");
         }
+        props.setProperty("dse.summaries.mode", SUMMARIES_MODE);
+        props.setProperty("dse.summaries.depth", SUMMARIES_DEPTH);
 
         Config config = Config.fromProperties(props);
 

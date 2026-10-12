@@ -45,13 +45,21 @@ public class DSE {
     }
 
     public void executeAnalysis() {
+        long start = System.currentTimeMillis();
         Explorer explorer = new Explorer(config);
         Executor executor = new Executor(config);
+        // set-up: static analysis, error analysis, and (eager mode) all constructor summaries
+        long setUpDone = System.currentTimeMillis();
+        int paths = 0;
+        boolean assertionReached = false;
 
         List<List<String>> flows = new LinkedList<>();
 
         long timeoutMs = config.getTimeoutSeconds() * 1000L;
         long deadline = timeoutMs > 0 ? System.currentTimeMillis() + timeoutMs : Long.MAX_VALUE;
+        if (config.getSmtProblemManager() != null && config.getSmtProblemManager().getConstructorSummaryManager() != null) {
+            config.getSmtProblemManager().getConstructorSummaryManager().setDeadline(deadline);
+        }
 
         while (explorer.hasNextValuation()) {
             if (System.currentTimeMillis() >= deadline) {
@@ -68,11 +76,22 @@ public class DSE {
             } else {
                 System.out.println("== no trace obtained.");
             }
+            if (trace == null && executor.lastExecutionTimedOut()) {
+                explorer.executionTimedOut();
+                continue;
+            }
             explorer.addTrace(trace);
+            paths++;
+            if (!assertionReached && trace != null && trace.getTraceState() instanceof PathResult.ErrorResult
+                    && "java/lang/AssertionError".equals(((PathResult.ErrorResult) trace.getTraceState()).getExceptionClass())) {
+                assertionReached = true;
+                System.out.println(statistics("first-assertion", start, setUpDone, paths));
+            }
 
             // check if we should save a witness
             checkAndSaveWitness(trace);
         }
+        System.out.println(statistics("end", start, setUpDone, paths));
 
         System.out.println("\u001b[32mdecision tree of the analysed program:");
         System.out.println(explorer.getAnalysis()+"\u001b[0m");
@@ -104,6 +123,19 @@ public class DSE {
 //        System.exit(0);
     }
 
+    /** one line of measurements, e.g. for the experiments with incremental constructor summaries */
+    private String statistics(String event, long start, long setUpDone, int paths) {
+        long now = System.currentTimeMillis();
+        int summarized = -1;
+        int signatures = -1;
+        if (config.getSmtProblemManager() != null && config.getSmtProblemManager().getConstructorSummaryManager() != null) {
+            summarized = config.getSmtProblemManager().getConstructorSummaryManager().summarizedCount();
+            signatures = config.getSmtProblemManager().getConstructorSummaryManager().signatureCount();
+        }
+        return String.format("[dse-stats] event=%s time_ms=%d setup_ms=%d paths=%d summarized=%d signatures=%d",
+                event, now - start, setUpDone - start, paths, summarized, signatures);
+    }
+
     public List<Trace> executeConstructor(String constructor) {
         Explorer explorer = new Explorer(config);
         Executor executor = new Executor(config);
@@ -113,6 +145,9 @@ public class DSE {
 
         long timeoutMs = config.getTimeoutSeconds() * 1000L;
         long deadline = timeoutMs > 0 ? System.currentTimeMillis() + timeoutMs : Long.MAX_VALUE;
+        if (config.getSmtProblemManager() != null && config.getSmtProblemManager().getConstructorSummaryManager() != null) {
+            config.getSmtProblemManager().getConstructorSummaryManager().setDeadline(deadline);
+        }
 
         while (explorer.hasNextValuation()) {
             if (System.currentTimeMillis() >= deadline) {
@@ -126,6 +161,11 @@ public class DSE {
             val.setValue(constrVar, constructor);
 
             Trace trace = executor.execute(val, config);
+            if (trace == null && executor.lastExecutionTimedOut()) {
+                // the summary misses the paths of this execution (incomplete, like a timeout)
+                explorer.executionTimedOut();
+                continue;
+            }
             traces.add(trace);
 
             if (trace != null) {

@@ -31,13 +31,17 @@ public class DSEIntegrationTest {
     private boolean debug = true;
     private boolean compile = true;
 
-    @BeforeClass
+    @BeforeClass(alwaysRun = true)
     static void resetDecisionTreeOutput() throws IOException {
         Files.deleteIfExists(DECISION_TREE_OUTPUT);
     }
 
-    @BeforeMethod
+    // alwaysRun: otherwise TestNG skips these when tests are selected by group (-Dgroups=...)
+    @BeforeMethod(alwaysRun = true)
     void setUpStreams() {
+        // one instance for all test methods (TestNG): start every test with empty buffers
+        capturedOutput.reset();
+        capturedErr.reset();
         //get console output
         this.originalOut = System.out;
         PrintStream originalErr = System.err;
@@ -49,6 +53,14 @@ public class DSEIntegrationTest {
                 public void write(int b) throws IOException {
                     capturedOutput.write(b); // speichern
                     originalOut.write(b);    // Konsole
+                }
+
+                // forward blocks, not single bytes: surefire records a stack trace for every write to the console,
+                // which made tests with much output (e.g. large SMT problems) take minutes instead of seconds
+                @Override
+                public void write(byte[] b, int off, int len) throws IOException {
+                    capturedOutput.write(b, off, len);
+                    originalOut.write(b, off, len);
                 }
             }, true);
             System.setOut(teeStream);
@@ -62,7 +74,7 @@ public class DSEIntegrationTest {
         }
     }
 
-    @AfterMethod
+    @AfterMethod(alwaysRun = true)
     void restoreStreams() {
         System.setOut(originalOut);
     }
@@ -4758,48 +4770,98 @@ public class DSEIntegrationTest {
 //    }
 //
 //
-    @Test(groups = {"own-tests","tudo"})
-    public void examplejoda() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "joda_money";
 
-        String directoryOfTheExample = String.format("src/test/resources/real_world_programs/%s/", exampleName);
+    // ***************************************************************************************************************
+    //                        Real-world libraries (fat jars from Maven Central, see e2e/libs)
+    // ***************************************************************************************************************
 
-        // Compile Base Classes
-//        FilePreparator.compileClass("Main", directoryOfTheExample, directoryOfTheExample + "joda-money-2.0.3.jar");
-        FilePreparator.compileClass("Main", directoryOfTheExample);
+    /**
+     * Runs DSE on {@code src/test/resources/real_world_programs/<example>/Main}, whose directory contains the fat
+     * jar of the library, and checks the reachability of the assertion and of runtime exceptions.
+     */
+    private void realWorldExample(String example, List<String> classes, boolean assertionReachable,
+                                  boolean runtimeExceptionReachable) throws IOException, InterruptedException {
+        String directoryOfTheExample = String.format("src/test/resources/real_world_programs/%s/", example);
+        FilePreparator.compileClasses(classes, directoryOfTheExample);
 
-        //execute example
-        DSE dse = TestUtils.getDseInstance("Main",
-                directoryOfTheExample);
-
+        // with broad type bounds, objects of any class (e.g. with String fields) are created; SPouT's symbolic
+        // strings are out of scope for these tests, so String fields keep their concrete values
+        String executorOptions = example.endsWith("_object") ? "-Dconcolic.symbolic.string.fields=false" : "";
+        DSE dse = TestUtils.getDseInstance("Main", directoryOfTheExample, executorOptions);
         Instant start = Instant.now();
         dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
+        Duration duration = Duration.between(start, Instant.now());
 
-        //stop redirection of console log
         System.setOut(originalOut);
-
-        //printing results
         String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         assertThat(output)
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
-
-        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
-
+        appendDecisionTree(example, decisionTree);
+        assertThat(TestUtils.validAssert(decisionTree)).isEqualTo(!assertionReachable);
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isEqualTo(!runtimeExceptionReachable);
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
+    }
+
+    /** Commons Lang MutableInt: distinct but equal objects; equals agrees with compareTo; NPE in a constructor. */
+    @Test(groups = {"real-world", "tudo"})
+    public void realWorldCommonsLang3MutableInt() throws IOException, InterruptedException {
+        realWorldExample("commons_lang3_mutableint", List.of("Main"), true, true);
+    }
+
+    /** Commons Lang ComparableUtils.between / greaterThan over three MutableInts: unreachable; NPE for null. */
+    @Test(groups = {"real-world", "tudo"})
+    public void realWorldCommonsLang3ComparableUtils() throws IOException, InterruptedException {
+        realWorldExample("commons_lang3_comparableutils", List.of("Main"), false, true);
+    }
+
+    /** Commons Collections NullComparator.compare: null above non-null iff nullsAreHigh; NPE for null comparator. */
+    @Test(groups = {"real-world", "tudo"})
+    public void realWorldCommonsCollections4NullComparator() throws IOException, InterruptedException {
+        realWorldExample("commons_collections4_nullcomparator", List.of("Main"), true, true);
+    }
+
+    /** JDK Objects.equals: asymmetric equals of Point / ColorPoint; Objects.equals is null-safe. */
+    @Test(groups = {"real-world", "tudo"})
+    public void realWorldJdkObjectsEquals() throws IOException, InterruptedException {
+        realWorldExample("jdk_objects_equals", List.of("Point", "ColorPoint", "Main"), true, false);
+    }
+
+    /** Commons Collections Predicate.evaluate over its implementations: UniquePredicate; NPE for null children. */
+    @Test(groups = {"real-world", "tudo"})
+    public void realWorldCommonsCollections4Predicate() throws IOException, InterruptedException {
+        realWorldExample("commons_collections4_predicate", List.of("Main"), true, true);
+    }
+
+    // Variants with loose type bounds (Object, JDK interfaces): many more candidate constructors
+
+    @Test(groups = {"real-world-object", "tudo"})
+    public void realWorldObjectJdkObjectsEquals() throws IOException, InterruptedException {
+        realWorldExample("jdk_objects_equals_object", List.of("Point", "ColorPoint", "Main"), true, false);
+    }
+
+    @Test(groups = {"real-world-object", "tudo"})
+    public void realWorldObjectCommonsLang3MutableInt() throws IOException, InterruptedException {
+        realWorldExample("commons_lang3_mutableint_object", List.of("Main"), true, true);
+    }
+
+    @Test(groups = {"real-world-object", "tudo"})
+    public void realWorldObjectCommonsLang3ComparableUtils() throws IOException, InterruptedException {
+        realWorldExample("commons_lang3_comparableutils_object", List.of("Main"), false, true);
+    }
+
+    @Test(groups = {"real-world-object", "tudo"})
+    public void realWorldObjectCommonsCollections4NullComparator() throws IOException, InterruptedException {
+        realWorldExample("commons_collections4_nullcomparator_object", List.of("Main"), true, true);
+    }
+
+    @Test(groups = {"real-world-object", "tudo"})
+    public void realWorldObjectCommonsCollections4Predicate() throws IOException, InterruptedException {
+        realWorldExample("commons_collections4_predicate_object", List.of("Main"), true, true);
     }
 }
 

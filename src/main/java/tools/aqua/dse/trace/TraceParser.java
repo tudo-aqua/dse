@@ -31,6 +31,7 @@ import tools.aqua.dse.Config;
 import tools.aqua.dse.objects.Clazz;
 import tools.aqua.dse.objects.ClazzModel;
 import tools.aqua.dse.paths.PathResult;
+import tools.aqua.dse.preprocessing.ConstructorSummaryManager;
 import tools.aqua.dse.preprocessing.Opal;
 
 import java.io.IOException;
@@ -51,17 +52,21 @@ public class TraceParser {
         List<String> summeries = new ArrayList<>();
         PathResult result = PathResult.ok(vals);
 //        String decl = "";
-        String decl = "(declare-fun obj.extends (String String) Bool) \n (declare-fun obj.method.of (String String String String) Bool)"; //todo: needed?
+        // a StringBuilder: traces can have very many declarations (repeated concatenation is quadratic)
+        StringBuilder decl = new StringBuilder("(declare-fun obj.extends (String String) Bool) \n (declare-fun obj.method.of (String String String String) Bool)"); //todo: needed?
         int objectCount = 0;
         boolean traceComplete = false;
         Set<String> objectIdentifiers = new HashSet<>();
 
         for (String line : lines) {
             if (line.startsWith("[DECISION]")) {
-                decisions.add(parseDecision( line.substring("[DECISION]".length()), decl, config));
+                Decision d = parseDecision( line.substring("[DECISION]".length()), decl.toString(), config);
+                if (d != null) {
+                    decisions.add(d);
+                }
             }
             else if (line.startsWith("[AUXILIARY]")) {
-                decl += line.substring("[AUXILIARY]".length());
+                decl.append(line.substring("[AUXILIARY]".length()));
             }
             else if (line.startsWith("[SUMMARY]")) {
                 summeries.add(line.substring("[SUMMARY]".length()));
@@ -71,7 +76,7 @@ public class TraceParser {
             }
             else if (line.startsWith("[DECLARE]")) {
                 String declaration = line.substring("[DECLARE]".length());
-                decl += declaration;
+                decl.append(declaration);
 
                 declarations.add(declaration);
 
@@ -94,7 +99,7 @@ public class TraceParser {
                 result = PathResult.abort(vals, line.substring("[ABORT]".length()).trim());
             }
             else if (line.startsWith("[ASSUMPTION]")) {
-                decisions.add(parseAssumption( line.substring("[ASSUMPTION]".length()), decl));
+                decisions.add(parseAssumption( line.substring("[ASSUMPTION]".length()), decl.toString()));
             }
             else if (line.startsWith("[WITNESS]")) {
                 witness.add(parseWitnessAssumption( line.substring("[WITNESS]".length()).trim() ));
@@ -122,6 +127,7 @@ public class TraceParser {
         return new Trace(decisions, summeries, declarations, witness, flows, result, objectCount, objectIdentifiers);
     }
 
+    /** @return the decision, or {@code null} if it is dropped (dispatch without static information) */
     public static Decision parseDecision(String decision,
                                          String decl,
                                          Config config) throws IOException, SMTLIBParserException {
@@ -153,6 +159,15 @@ public class TraceParser {
 
                 Opal.BranchData branchData =
                         branchInformationMap.get(new Opal.PolymorphicMethodDefinition(methodName, methodDescriptor, definingClass));
+                if (branchData == null) {
+                    // the method is missing in the static polymorphism table (e.g. a method of a JDK class, called on
+                    // an object in a field): the alternatives are unknown, so DSE cannot steer this dispatch (the
+                    // class of the object is fixed by the constructor summaries). The decision is dropped: as a
+                    // node with a single branch, it would conflict with traces that dispatch to another method here.
+                    System.out.println("WARNING: no polymorphism information for " + definingClass + "::" + methodName
+                            + methodDescriptor + "; dropping the dispatch decision");
+                    return null;
+                }
                 System.out.println("BranchCountLog: "+branchData.branchCount());
                 System.out.println("BranchIdLog: "+branchData.branchId());
 
@@ -162,12 +177,18 @@ public class TraceParser {
 
             //Special Handling of branchCount & BranchId of (assert (= __object_0.err "{ERROR_TYPE}")) because
             // SPout has no information how many error per constructor can occur
-            Pattern errorPattern = Pattern.compile("\\(assert \\(= __object_\\d+\\.err \"(.*?)\"\\)\\)");
+            Pattern errorPattern = Pattern.compile("\\(assert \\(= (__object_\\d+)\\.err \"(.*?)\"\\)\\)");
             Matcher errorMatcher = errorPattern.matcher(constraint);
             if (errorMatcher.find()) {
-                String errorMessage = errorMatcher.group(1);
-                List<String> possibleErrorsWithInConstructors =
-                        config.getSmtProblemManager().getConstructorSummaryManager().getPossibleErrorsWithInConstructors();
+                String objectName = errorMatcher.group(1);
+                String errorMessage = errorMatcher.group(2);
+                ConstructorSummaryManager csm = config.getSmtProblemManager().getConstructorSummaryManager();
+                List<String> possibleErrorsWithInConstructors = csm.getPossibleErrorsWithInConstructors();
+
+                if (csm.hasStaticErrorList()) {
+                    return parseErrorDecisionWithStaticErrors(
+                            objectName, errorMessage, possibleErrorsWithInConstructors, decl, smt);
+                }
 
                 //todo: error index für leer
                 int currentBranchCount = possibleErrorsWithInConstructors.size()+1;
@@ -182,6 +203,37 @@ public class TraceParser {
 
         return new Decision( ExpressionUtil.and(smt.assertions), branches, branchId);
 
+    }
+
+    /**
+     * Decision on {@code o.err} with a static list {@code E_0 ... E_{n-1}} of possible constructor errors (computed
+     * by the static error inference in incremental mode). Branches: {@code 0..n-1} for {@code o.err = E_i}, {@code n}
+     * for "some other error" (an error the static analysis did not predict), {@code n+1} for no error. The condition
+     * of the "other" branch is {@code not (o.err = "" or o.err = E_0 or ...)}, so that the branch has a well-defined
+     * meaning independently of which unpredicted error was observed first.
+     */
+    static Decision parseErrorDecisionWithStaticErrors(String objectName,
+                                                               String errorMessage,
+                                                               List<String> errors,
+                                                               String decl,
+                                                               SMTProblem smt) throws IOException, SMTLIBParserException {
+        int branchCount = errors.size() + 2;
+        if (errorMessage.isEmpty()) {
+            return new Decision(ExpressionUtil.and(smt.assertions), branchCount, branchCount - 1);
+        }
+        int index = errors.indexOf(errorMessage);
+        if (index >= 0) {
+            return new Decision(ExpressionUtil.and(smt.assertions), branchCount, index);
+        }
+
+        System.out.println("WARNING: constructor error " + errorMessage + " of " + objectName
+                + " was not predicted by the static error analysis; using the \"other error\" branch");
+        StringBuilder known = new StringBuilder(String.format("(= %s.err \"\")", objectName));
+        for (String error : errors) {
+            known.append(String.format(" (= %s.err \"%s\")", objectName, error));
+        }
+        SMTProblem other = SMTLIBParser.parseSMTProgram(decl + "(assert (not (or " + known + ")))");
+        return new Decision(ExpressionUtil.and(other.assertions), branchCount, errors.size());
     }
 
     private static Expression<Boolean> parseExtends(String constraint,
