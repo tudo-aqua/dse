@@ -314,6 +314,30 @@ public class ConstructorSummaryManager {
             Pattern.compile("\\(declare-fun\\s+(\\S+)\\s+\\(\\)\\s+(\\([^()]*\\)|[^\\s()]+)\\s*\\)");
 
     /**
+     * a declaration of a function with arguments: the fields and array elements of the heap model
+     * ({@code (declare-fun fld.LBox;.x (Int) (_ BitVec 32))}), see {@link #HEAP_FUNCTIONS}
+     */
+    private static final Pattern FUNCTION_DECLARATION = Pattern.compile(
+            "\\(declare-fun\\s+(\\S+)\\s+\\(((?:[^()]|\\([^()]*\\))+)\\)\\s+(\\([^()]*\\)|[^\\s()]+)\\s*\\)");
+
+    /**
+     * Functions of the heap model of SPouT: objects are identities (sort {@code Int}), {@code obj.cls} is the class
+     * of an object, {@code obj.owner} the nondet object whose construction allocated it ({@code -1} for objects held
+     * by static fields, which existed before), {@code obj.idx} its index among the objects of the owner ({@code 0}
+     * for the nondet object). Summaries name the objects of a constructed heap {@code __heap_0_j}; they are renamed
+     * to {@code __heap_k_j} for object {@code __object_k}.
+     */
+    static final String HEAP_FUNCTIONS = "(declare-fun obj.cls (Int) String)\n"
+            + "(declare-fun obj.owner (Int) (_ BitVec 32))\n"
+            + "(declare-fun obj.idx (Int) (_ BitVec 32))\n";
+
+    /** renames the template object {@code __object_0} and its heap objects {@code __heap_0_j} to the given object */
+    static String renameObject(String text, String object) {
+        String heap = "__heap_" + object.substring("__object_".length()) + "_";
+        return text.replace("__object_0", object).replace("__heap_0_", heap);
+    }
+
+    /**
      * SMT-LIB code that constrains each object to one of its summaries: declarations, per object
      * {@code (assert (or <summary paths>))}, and distinctness of objects.
      *
@@ -338,9 +362,16 @@ public class ConstructorSummaryManager {
             for (GeneratedSummary summary : e.getValue()) {
                 Map<String, String> renaming = new HashMap<>();
                 for (String declaration : summary.declarations()) {
+                    Matcher f = FUNCTION_DECLARATION.matcher(declaration);
+                    while (f.find()) {
+                        if (!declared.containsKey(f.group(1))) {
+                            declared.put(f.group(1), f.group(3));
+                            declarations.append(f.group(0)).append('\n');
+                        }
+                    }
                     Matcher m = DECLARATION.matcher(declaration);
                     while (m.find()) {
-                        String name = m.group(1).replace("__object_0", object);
+                        String name = renameObject(m.group(1), object);
                         String sort = m.group(2).trim();
                         String canonical = pathSorts.getOrDefault(name, declared.getOrDefault(name, sort));
                         String symbol = name;
@@ -355,7 +386,7 @@ public class ConstructorSummaryManager {
                     }
                 }
                 for (String formula : summary.formulas()) {
-                    String text = formula.replace("__object_0", object);
+                    String text = renameObject(formula, object);
                     for (Map.Entry<String, String> r : renaming.entrySet()) {
                         text = text.replaceAll("(?<=[\\s(])" + Pattern.quote(r.getKey()) + "(?=[\\s)])",
                                 Matcher.quoteReplacement(r.getValue()));
@@ -368,15 +399,25 @@ public class ConstructorSummaryManager {
             assertions.append(String.format("(assert %s)%n",
                     disjuncts.isEmpty() ? "false" : Opal.balancedOr(disjuncts)));
         }
-        // object symbols are needed by the distinctness constraints, also if no summary declared them (yet)
+        // object symbols are needed by the identity constraints, also if no summary declared them (yet)
         for (String object : objectIdentifiers) {
-            if (!declared.containsKey(object)) {
-                declared.put(object, "Int");
-                declarations.append(String.format("(declare-fun %s () Int)%n", object));
+            for (String[] symbol : new String[][]{{object, "Int"}, {object + ".cls", "String"}}) {
+                if (!declared.containsKey(symbol[0])) {
+                    declared.put(symbol[0], symbol[1]);
+                    declarations.append(String.format("(declare-fun %s () %s)%n", symbol[0], symbol[1]));
+                }
             }
         }
         declarations.append("(declare-fun null () Int)\n");
-        return declarations + assertions.toString() + objectNotIdentityConstraints(objectIdentifiers);
+        StringBuilder heapFunctions = new StringBuilder();
+        for (String line : HEAP_FUNCTIONS.split("\n")) {
+            Matcher f = FUNCTION_DECLARATION.matcher(line);
+            if (f.find() && !declared.containsKey(f.group(1))) {
+                declared.put(f.group(1), f.group(3));
+                heapFunctions.append(line).append('\n');
+            }
+        }
+        return heapFunctions.toString() + declarations + assertions + objectIdentityConstraints(objectIdentifiers);
     }
 
     /** the same sort can be written in different ways, e.g. {@code Float64} and {@code (_ FloatingPoint 11 53)} */
@@ -459,10 +500,10 @@ public class ConstructorSummaryManager {
         // blueprint loaded from the cache: no per-signature summaries
         String declarations = buildAllObjectDeclarations(baseIdentifiers);
         String summaries = buildAllObjectSummaries(baseIdentifiers);
-        String objectNotIdentityConstraints = objectNotIdentityConstraints(objectIdentifiers);
+        String identityConstraints = objectIdentityConstraints(objectIdentifiers);
 
 
-        return String.format("%s%n%s%n%s", declarations, summaries, objectNotIdentityConstraints);
+        return String.format("%s%n%s%n%s", declarations, summaries, identityConstraints);
     }
 
     private Collection<String> nestedObjects() {
@@ -539,13 +580,16 @@ public class ConstructorSummaryManager {
     private String buildDeclarationsForObject(String objectIdentifier) {
         StringBuilder sb = new StringBuilder();
 
-        String declarationsTemplate = String.join("\n", this.declarationsOfBluePrint);
+        // declarations of functions are added once, see buildAllObjectDeclarations
+        String declarationsTemplate = this.declarationsOfBluePrint.stream()
+                .filter(d -> !FUNCTION_DECLARATION.matcher(d).find())
+                .collect(Collectors.joining("\n"));
 
         // Declare init function for object
         sb.append(String.format("\n(declare-fun %s.init () String)", objectIdentifier));
 
         // Replace placeholder with actual object identifier
-        sb.append(declarationsTemplate.replace("__object_0", objectIdentifier));
+        sb.append(renameObject(declarationsTemplate, objectIdentifier));
 
         return sb.toString();
     }
@@ -562,6 +606,14 @@ public class ConstructorSummaryManager {
 
         // Add null declaration once
         sb.append("\n(declare-fun null () Int)\n");
+        Map<String, String> functions = new LinkedHashMap<>();
+        for (String d : (HEAP_FUNCTIONS + String.join("\n", this.declarationsOfBluePrint)).split("\n")) {
+            Matcher f = FUNCTION_DECLARATION.matcher(d);
+            while (f.find()) {
+                functions.putIfAbsent(f.group(1), f.group(0));
+            }
+        }
+        functions.values().forEach(d -> sb.append(d).append('\n'));
 
         return sb.toString();
     }
@@ -584,7 +636,7 @@ public class ConstructorSummaryManager {
      */
     private String buildSummariesForObject(String objectIdentifier) {
         return String.format("(assert (or %s))",
-                this.bluePrintConstructorSummaries.replace("__object_0", objectIdentifier) + "\n");
+                renameObject(this.bluePrintConstructorSummaries, objectIdentifier) + "\n");
     }
 
     private String type(Variable v) {
@@ -673,7 +725,7 @@ public class ConstructorSummaryManager {
     }
 
     /** class constants of summaries ({@code (= o.f.cls "Ljava/util/HashSet;")}), e.g. JDK classes in fields */
-    private static final Pattern CLASS_CONSTANT = Pattern.compile("\\.cls \"(L[^\"]*;)\"");
+    private static final Pattern CLASS_CONSTANT = Pattern.compile("(?:\\.cls|\\(obj\\.cls [^()\\s]+\\)) \"(L[^\"]*;)\"");
     private final Set<String> summaryClasses = new LinkedHashSet<>();
     private java.util.function.Consumer<String> classListener;
 
@@ -819,27 +871,29 @@ public class ConstructorSummaryManager {
         return bluePrintConstructorSummaries;
     }
 
-    public String objectNotIdentityConstraints(List<String> objectIdentifiers) {
+    /**
+     * Identities of the nondet objects {@code __object_k}: each is {@code null} or a new object, owned by itself
+     * ({@code obj.owner = k}, {@code obj.idx = 0}). Objects of different owners are distinct (as are the objects of
+     * one owner, see the summaries), so this replaces pairwise distinctness. The class of {@code __object_k} is
+     * {@code __object_k.cls} (also as value of {@code obj.cls}, which is used for other objects).
+     */
+    public String objectIdentityConstraints(List<String> objectIdentifiers) {
         if (objectIdentifiers == null) {
             throw new IllegalArgumentException("objectIdentifiers must not be null");
         }
-        if (objectIdentifiers.size() <= 1) {
-            return "";
-        }
-
         StringBuilder erg = new StringBuilder();
-        for (String identifier1 : objectIdentifiers) {
-            for (String identifier2 : objectIdentifiers) {
-                if (identifier1.equals(identifier2)) {
-                    continue;
-                }
-                erg.append(String.format("(or ( and (not (= %s %s))) (and (= %s null)(= %s null)))",
-                        identifier1, identifier2, identifier1, identifier2));
+        for (String object : objectIdentifiers) {
+            Matcher m = Pattern.compile("__object_(\\d+)").matcher(object);
+            if (!m.matches()) {
+                continue;
             }
+            int k = Integer.parseInt(m.group(1));
+            erg.append(String.format("(assert (= (obj.cls %1$s) %1$s.cls))%n", object));
+            erg.append(String.format(
+                    "(assert (or (= %1$s null) (and (= (obj.owner %1$s) #x%2$08x) (= (obj.idx %1$s) #x00000000))))%n",
+                    object, k));
         }
-        String temp = String.format("(assert (and %s))", erg);
-        System.out.println(temp);
-        return temp;
+        return erg.toString();
     }
 
     /**
