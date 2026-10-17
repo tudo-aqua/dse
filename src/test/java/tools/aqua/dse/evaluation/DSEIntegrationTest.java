@@ -4871,10 +4871,14 @@ public class DSEIntegrationTest {
     // ------------------------------------------------------------------------------------------------------------
 
     private void heapExample(String example, List<String> classes, int depth) throws IOException, InterruptedException {
-        String directory = String.format("src/test/resources/heap_programs/%s/", example);
+        heapExample("heap_programs", example, classes, depth, "-Dconcolic.symbolic.string.fields=false");
+    }
+
+    private void heapExample(String folder, String example, List<String> classes, int depth, String executorOptions)
+            throws IOException, InterruptedException {
+        String directory = String.format("src/test/resources/%s/%s/", folder, example);
         FilePreparator.compileClasses(classes, directory);
-        DSE dse = TestUtils.getDseInstance("Main", directory, "-Dconcolic.symbolic.string.fields=false",
-                String.valueOf(depth));
+        DSE dse = TestUtils.getDseInstance("Main", directory, executorOptions, String.valueOf(depth));
         dse.executeAnalysis();
 
         System.setOut(originalOut);
@@ -4916,5 +4920,36 @@ public class DSEIntegrationTest {
     @Test(groups = {"heap", "tudo"})
     public void heapStaticShare() throws IOException, InterruptedException {
         heapExample("static_share", List.of("Holder", "Main"), 2);
+    }
+
+    // Strings as objects: identity by terms, content by the function str.val (symbolic string fields)
+
+    private void stringExample(String example, List<String> classes) throws IOException, InterruptedException {
+        heapExample("string_programs", example, classes, 2, "");
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringShare() throws IOException, InterruptedException {
+        stringExample("str_share", List.of("P", "Main"));
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringEquals() throws IOException, InterruptedException {
+        stringExample("str_equals", List.of("P", "Main"));
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringNull() throws IOException, InterruptedException {
+        stringExample("str_null", List.of("H", "Main"));
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringContent() throws IOException, InterruptedException {
+        stringExample("str_content", List.of("H", "Main"));
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringLiteral() throws IOException, InterruptedException {
+        stringExample("str_literal", List.of("L", "Main"));
     }
 }
