@@ -147,7 +147,8 @@ public class TraceParser {
         if (!config.isBaselineEvaluation()) {
             // Special Handling of branchCount & BranchId of obj.method.of (SPout sets Unknown because it has no information
             // how many polymorph methods exists and which id they own in DSE)
-            Pattern pattern = Pattern.compile("obj\\.method\\.of\\s+\\S+\\s+\"([^\"]*)\"\\s+\"([^\"]*)\"\\s+\"([^\"]*)\"");
+            // the class argument is __object_k.cls or a term (obj.cls <object>) of the heap model
+            Pattern pattern = Pattern.compile("obj\\.method\\.of\\s[^\"]*\"([^\"]*)\"\\s+\"([^\"]*)\"\\s+\"([^\"]*)\"");
             Matcher matcher = pattern.matcher(constraint);
             if (matcher.find()) {
                 Map<Opal.PolymorphicMethodDefinition, Opal.BranchData> branchInformationMap
