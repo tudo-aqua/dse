@@ -63,6 +63,14 @@ public class TestUtils {
     public static DSE getDseInstance(String exampleName,
                                      String pathToExamples,
                                      String executorOptions) {
+        return getDseInstance(exampleName, pathToExamples, executorOptions, SUMMARIES_DEPTH);
+    }
+
+    /** @param summariesDepth nesting depth of constructor calls for summaries (dse.summaries.depth) */
+    public static DSE getDseInstance(String exampleName,
+                                     String pathToExamples,
+                                     String executorOptions,
+                                     String summariesDepth) {
         String jarWildCard = pathToExamples+"*";
         String libJarWildCard = pathToExamples+"libs/*";
         Properties props = new Properties();
@@ -78,7 +86,7 @@ public class TestUtils {
             props.setProperty("dse.constructor.blueprint.cache", "true");
         }
         props.setProperty("dse.summaries.mode", SUMMARIES_MODE);
-        props.setProperty("dse.summaries.depth", SUMMARIES_DEPTH);
+        props.setProperty("dse.summaries.depth", summariesDepth);
 
         Config config = Config.fromProperties(props);
 

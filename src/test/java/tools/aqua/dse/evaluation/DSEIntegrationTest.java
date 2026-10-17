@@ -4863,7 +4863,58 @@ public class DSEIntegrationTest {
     public void realWorldObjectCommonsCollections4Predicate() throws IOException, InterruptedException {
         realWorldExample("commons_collections4_predicate_object", List.of("Main"), true, true);
     }
+
+    // ------------------------------------------------------------------------------------------------------------
+    //  heap shapes: cycles and sharing created by constructors (docs/heap-model-plan.md). Every program has one
+    //  branch that only aliasing reaches (assertion violation) and one that only distinct objects reach
+    //  (IllegalStateException); both must be explored.
+    // ------------------------------------------------------------------------------------------------------------
+
+    private void heapExample(String example, List<String> classes, int depth) throws IOException, InterruptedException {
+        String directory = String.format("src/test/resources/heap_programs/%s/", example);
+        FilePreparator.compileClasses(classes, directory);
+        DSE dse = TestUtils.getDseInstance("Main", directory, "-Dconcolic.symbolic.string.fields=false",
+                String.valueOf(depth));
+        dse.executeAnalysis();
+
+        System.setOut(originalOut);
+        String output = filterOutPutStream();
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+        System.out.println(String.join("\n", decisionTree));
+        assertThat(decisionTree).noneMatch(line -> line.contains("DIVERGED") || line.contains("BUGGY"));
+        assertThat(decisionTree).as("branch reachable only with aliasing")
+                .anyMatch(line -> line.contains("java/lang/AssertionError"));
+        assertThat(decisionTree).as("branch reachable only with distinct objects")
+                .anyMatch(line -> line.contains("java/lang/IllegalStateException"));
+    }
+
+    @Test(groups = {"heap", "tudo"})
+    public void heapSelfLoop() throws IOException, InterruptedException {
+        heapExample("selfloop", List.of("Node", "Main"), 1);
+    }
+
+    @Test(groups = {"heap", "tudo"})
+    public void heapSharing() throws IOException, InterruptedException {
+        heapExample("sharing", List.of("Pair", "Main"), 2);
+    }
+
+    @Test(groups = {"heap", "tudo"})
+    public void heapCycle2() throws IOException, InterruptedException {
+        heapExample("cycle2", List.of("Ring", "Main"), 2);
+    }
+
+    @Test(groups = {"heap", "tudo"})
+    public void heapNestedAlias() throws IOException, InterruptedException {
+        heapExample("nested_alias", List.of("Box", "BoxPair", "Main"), 2);
+    }
+
+    @Test(groups = {"heap", "tudo"})
+    public void heapWriteAlias() throws IOException, InterruptedException {
+        heapExample("write_alias", List.of("Box", "BoxPair", "Main"), 2);
+    }
+
+    @Test(groups = {"heap", "tudo"})
+    public void heapStaticShare() throws IOException, InterruptedException {
+        heapExample("static_share", List.of("Holder", "Main"), 2);
+    }
 }
-
-
-
