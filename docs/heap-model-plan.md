@@ -109,3 +109,30 @@ constructor calls, size of reachable heaps).
 - Writes (phase 3) are needed for soundness with aliasing; they can follow phases 1, 2, 4, 5 if the first milestone
   only targets constructor-created aliasing.
 - Strings in fields stay concrete (`concolic.symbolic.string.fields=false`) as in the evaluation.
+
+## Implementation status (branches `heap-model` of DSE, SPouT, jconstraints)
+
+Implemented: phases 0–5. Oracle tests (group `heap`) pass in eager and incremental mode; svComp and own-tests pass
+unchanged.
+
+Deviations from the plan above:
+- **Writes** (phase 3) are not encoded by `ite` chains but by case splits: a read through term `t` of a field that
+  was written before decides, for each logged write `(t_w, v)` (newest first), whether `t = t_w` (a branch of the
+  path, both outcomes are explored); the value is `v` of the first aliasing write, `f(t)` if there is none.
+  Syntactically equal terms (and different constant indices) need no decision.
+- **Static singletons**: objects held by static reference fields of the classes met in the heap walk (the class of
+  the object and its super classes, the declaring class of the field, the constructed class) are named
+  `__static_<class>_<field>` with `obj.owner = -1` (existed before the construction, distinct from all allocated
+  objects, may be shared by several nondet objects).
+- **Terms across calls**: the annotations of reference arguments travel in a side table keyed by the argument
+  array (from `popArguments` to `initArguments`), returned references in a thread-local slot (from `areturn` to the
+  push of the result).
+
+Remaining imprecision (reported or concrete, never wrong constraints on the explored path):
+- References lose their terms through native and substituted methods (e.g. `Object.getClass`, reflection,
+  `System.arraycopy`) and `invokedynamic` call sites; their uses fall back to the object annotation (the identity
+  of a nondet object, or the first term by which the object was read).
+- Writes through references without terms are concretized for reads of the same object.
+- Summaries describe at most 64 elements per array and 10,000 objects per heap.
+- Symbolic string fields (`concolic.symbolic.string.fields`, default true): reading a string field through a term
+  sets the symbolic value of the string object (as before, the value is attached to the object).
