@@ -233,6 +233,14 @@ public class ConstructorSummaryManager {
         }
     }
 
+    /** time limit of a single solver query (dse.dp.timeout) in the DSE of constructors, in seconds; 0: none */
+    private static long solverTimeoutSeconds = 0;
+
+    /** set before creating a manager */
+    public static void setSolverTimeoutSeconds(long seconds) {
+        solverTimeoutSeconds = seconds;
+    }
+
     /** end of the exploration (dse.timeout): no summaries are computed after it */
     private long deadline = Long.MAX_VALUE;
 
@@ -819,6 +827,9 @@ public class ConstructorSummaryManager {
         }
         props.setProperty("dse.timeout", String.valueOf(timeout));
         props.putAll(summaryBounds);
+        if (solverTimeoutSeconds > 0) {
+            props.setProperty("dse.dp.timeout", String.valueOf(solverTimeoutSeconds));
+        }
 
         Config config = Config.fromProperties(props);
         DSE dse = new DSE(config);

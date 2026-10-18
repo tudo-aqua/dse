@@ -75,6 +75,7 @@ public class DSEArguments {
         printDSEOptionHelp("dse.terminate.on", "| separated list of: assertion, error, bug, taint, completion (default)");
         printDSEOptionHelp("dse.dp", "jconstraints id of solving backend");
         printDSEOptionHelp("dse.dp.incremental", "use incremental solving: true / false (default)");
+        printDSEOptionHelp("dse.dp.timeout", "time limit of a single solver query in seconds (default 0: none); undecided\nqueries are unknown (the target is not explored)");
         printDSEOptionHelp("dse.bounds", "use bounds on integer values when solving: true / false (default)");
         printDSEOptionHelp("dse.bounds.step", "step width (increase of bounds) when using bounds iteratively");
         printDSEOptionHelp("dse.bounds.iter", "no. of bounded solving attempts before dropping bounds");

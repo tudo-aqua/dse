@@ -108,6 +108,13 @@ public class Config {
         return executorTimeoutSeconds;
     }
 
+    /** time limit of a single solver query (dse.dp.timeout), in seconds; 0 means no limit */
+    private long solverTimeoutSeconds = 0;
+
+    public long getSolverTimeoutSeconds() {
+        return solverTimeoutSeconds;
+    }
+
     /** the options of bounded solving (dse.bounds*), also used for the DSE of constructors (summaries) */
     private final Properties boundsProperties = new Properties();
 
@@ -276,6 +283,13 @@ public class Config {
         }
         if (props.containsKey("dse.dp.incremental")) {
             this.incremental = Boolean.parseBoolean(props.getProperty("dse.dp.incremental"));
+        }
+        if (props.containsKey("dse.dp.timeout")) {
+            // per query: a query that is not decided in time is unknown (DONT_KNOW), e.g. hard string constraints
+            this.solverTimeoutSeconds = Long.parseLong(props.getProperty("dse.dp.timeout").trim());
+            if (this.solverTimeoutSeconds > 0) {
+                props.setProperty("z3.timeout", String.valueOf(this.solverTimeoutSeconds * 1000));
+            }
         }
 
         if (props.containsKey("dse.bounds")
@@ -463,6 +477,7 @@ public class Config {
             int depth = this.summaryDepth;
             ConstructorSummaryManager.setSummaryTimeoutSeconds(this.summaryTimeoutSeconds);
             ConstructorSummaryManager.setSummaryBounds(this.boundsProperties);
+            ConstructorSummaryManager.setSolverTimeoutSeconds(this.solverTimeoutSeconds);
             this.smtProblemManager = this.incrementalSummaries
                     ? new SmtProblemManager(path, depth, new ConstructorSummaryManager.IncrementalOptions(
                             this.summaryBatchSize, this.errorAnalysisMode,
