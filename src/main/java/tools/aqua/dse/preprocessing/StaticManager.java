@@ -9,6 +9,7 @@ import tools.aqua.dse.Config;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -88,6 +89,58 @@ public class StaticManager {
     public Map<Opal.PolymorphicMethodDefinition, Opal.BranchData> getBranchInformationMap() {
         return branchInformationMap;
     }
+
+    /**
+     * Spare branches of every dispatch decision for definitions that are missing in the static polymorphism table
+     * (e.g. methods of JDK classes in fields of objects), see {@link #dispatchBranch}.
+     */
+    public static final int UNKNOWN_DISPATCH_SLOTS = 16;
+
+    /** per method name and descriptor: the definitions missing in the table, in the order in which they were met */
+    private final Map<String, List<String>> unknownDefinitions = new HashMap<>();
+
+    /** per method name and descriptor: the number of its definitions in the table */
+    private Map<String, Integer> knownDefinitions;
+
+    /**
+     * Branch of a dispatch decision of a call of {@code name} with {@code descriptor} to the definition in
+     * {@code declaringClass}. Every dispatch decision of a method has the same number of branches: one per
+     * definition in the table and {@link #UNKNOWN_DISPATCH_SLOTS} spare branches, which are assigned to missing
+     * definitions when they are met. Traces that dispatch to a missing definition therefore have the same decision
+     * tree structure as traces that dispatch to a known one.
+     *
+     * @return the branch, {@code known} tells whether the definition is in the table; {@code null} if the spare
+     *         branches are used up.
+     */
+    public synchronized DispatchBranch dispatchBranch(String name, String descriptor, String declaringClass) {
+        if (knownDefinitions == null) {
+            knownDefinitions = new HashMap<>();
+            for (Map.Entry<Opal.PolymorphicMethodDefinition, Opal.BranchData> e : branchInformationMap.entrySet()) {
+                knownDefinitions.put(e.getKey().methodName() + e.getKey().methodDescriptor(), e.getValue().branchCount());
+            }
+        }
+        String signature = name + descriptor;
+        int known = knownDefinitions.getOrDefault(signature, 0);
+        int count = known + UNKNOWN_DISPATCH_SLOTS;
+        Opal.BranchData data = branchInformationMap.get(
+                new Opal.PolymorphicMethodDefinition(name, descriptor, declaringClass));
+        if (data != null) {
+            return new DispatchBranch(data.branchId(), count, true);
+        }
+        List<String> unknown = unknownDefinitions.computeIfAbsent(signature, k -> new ArrayList<>());
+        int index = unknown.indexOf(declaringClass);
+        if (index < 0) {
+            if (unknown.size() >= UNKNOWN_DISPATCH_SLOTS) {
+                return null;
+            }
+            unknown.add(declaringClass);
+            index = unknown.size() - 1;
+        }
+        return new DispatchBranch(known + index, count, false);
+    }
+
+    /** a branch of a dispatch decision, see {@link #dispatchBranch} */
+    public record DispatchBranch(int branchId, int branchCount, boolean known) {}
 
     public List<Opal.PolymorphyInformation> getPolymorphicInformation() {
         return polymorphicInformation;

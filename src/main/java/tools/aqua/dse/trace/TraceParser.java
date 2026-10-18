@@ -33,6 +33,7 @@ import tools.aqua.dse.objects.ClazzModel;
 import tools.aqua.dse.paths.PathResult;
 import tools.aqua.dse.preprocessing.ConstructorSummaryManager;
 import tools.aqua.dse.preprocessing.Opal;
+import tools.aqua.dse.preprocessing.StaticManager;
 
 import java.io.IOException;
 import java.util.*;
@@ -151,29 +152,27 @@ public class TraceParser {
             Pattern pattern = Pattern.compile("obj\\.method\\.of\\s[^\"]*\"([^\"]*)\"\\s+\"([^\"]*)\"\\s+\"([^\"]*)\"");
             Matcher matcher = pattern.matcher(constraint);
             if (matcher.find()) {
-                Map<Opal.PolymorphicMethodDefinition, Opal.BranchData> branchInformationMap
-                        = config.getSmtProblemManager().getStaticManager().getBranchInformationMap();
-
                 String methodName = matcher.group(1);
                 String methodDescriptor = matcher.group(2);
                 String definingClass = matcher.group(3);
 
-                Opal.BranchData branchData =
-                        branchInformationMap.get(new Opal.PolymorphicMethodDefinition(methodName, methodDescriptor, definingClass));
-                if (branchData == null) {
-                    // the method is missing in the static polymorphism table (e.g. a method of a JDK class, called on
-                    // an object in a field): the alternatives are unknown, so DSE cannot steer this dispatch (the
-                    // class of the object is fixed by the constructor summaries). The decision is dropped: as a
-                    // node with a single branch, it would conflict with traces that dispatch to another method here.
-                    System.out.println("WARNING: no polymorphism information for " + definingClass + "::" + methodName
-                            + methodDescriptor + "; dropping the dispatch decision");
+                StaticManager.DispatchBranch branch = config.getSmtProblemManager().getStaticManager()
+                        .dispatchBranch(methodName, methodDescriptor, definingClass);
+                if (branch == null) {
+                    System.out.println("WARNING: too many definitions of " + methodName + methodDescriptor
+                            + " missing in the polymorphism table; dropping the dispatch decision");
                     return null;
                 }
-                System.out.println("BranchCountLog: "+branchData.branchCount());
-                System.out.println("BranchIdLog: "+branchData.branchId());
-
-
-                return new Decision(ExpressionUtil.and(smt.assertions), branchData.branchCount(), branchData.branchId());
+                if (!branch.known()) {
+                    // the method is missing in the static polymorphism table (e.g. a method of a JDK class, called on
+                    // an object in a field): obj.method.of has no rows for it (grounded: false), so the class of the
+                    // object is not constrained by this branch. The branch keeps the decision tree consistent with
+                    // traces that dispatch to a known definition here.
+                    System.out.println("WARNING: no polymorphism information for " + definingClass + "::" + methodName
+                            + methodDescriptor + "; unconstrained dispatch branch " + branch.branchId());
+                    return new Decision(ExpressionUtil.TRUE, branch.branchCount(), branch.branchId());
+                }
+                return new Decision(ExpressionUtil.and(smt.assertions), branch.branchCount(), branch.branchId());
             }
 
             //Special Handling of branchCount & BranchId of (assert (= __object_0.err "{ERROR_TYPE}")) because
