@@ -252,8 +252,20 @@ public class ConstraintsTree {
     return "java/lang/OutOfMemoryError".equals(exceptionClass) || "java/lang/StackOverflowError".equals(exceptionClass);
   }
 
-  /** @param result */
   public void finish(PathResult result) {
+    finish(result, true);
+  }
+
+  /**
+   * @param result  the final state of the path.
+   * @param precise whether the path constraint describes all inputs of the path: if the executor lost symbolic
+   *                information, the path is incomplete (siblings that depend on the lost information may be missed).
+   */
+  public void finish(PathResult result, boolean precise) {
+    if (!precise && !current.isDecisionNode()) {
+      System.out.println("== precision lost on this path: the exploration is incomplete");
+      ((LeafNode) current).setComplete(false);
+    }
     LeafNode updatedLeaf = null;
     diverged = false;
     offExpectedPath = false;

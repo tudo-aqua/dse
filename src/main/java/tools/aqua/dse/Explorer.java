@@ -49,7 +49,7 @@ public class Explorer {
             for (Decision d : t.getDecisions()) {
                 ConstraintsTree.BranchEffect effect = ctree.decision(d);
             }
-            ctree.finish(t.getTraceState());
+            ctree.finish(t.getTraceState(), t.isPrecise());
         }
         this.nextValuation = ctree.findNext();
     }
