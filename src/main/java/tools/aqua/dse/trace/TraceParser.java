@@ -165,11 +165,21 @@ public class TraceParser {
                 }
                 if (!branch.known()) {
                     // the method is missing in the static polymorphism table (e.g. a method of a JDK class, called on
-                    // an object in a field): obj.method.of has no rows for it (grounded: false), so the class of the
-                    // object is not constrained by this branch. The branch keeps the decision tree consistent with
-                    // traces that dispatch to a known definition here.
+                    // an object in a field): obj.method.of has no rows for it (grounded: false). The branch keeps the
+                    // decision tree consistent with traces that dispatch to a known definition here; its condition is
+                    // that the class of the object extends the declaring class (necessary for the dispatch, not
+                    // sufficient if a subclass overrides the method), or true if obj.extends does not know the class.
                     System.out.println("WARNING: no polymorphism information for " + definingClass + "::" + methodName
-                            + methodDescriptor + "; unconstrained dispatch branch " + branch.branchId());
+                            + methodDescriptor + "; dispatch branch " + branch.branchId() + " without table entry");
+                    Matcher call = Pattern.compile("\\(obj\\.method\\.of (.*) \"[^\"]*\" \"[^\"]*\" \"[^\"]*\"\\)")
+                            .matcher(constraint);
+                    if (call.find() && config.getSmtProblemManager().getStaticManager().isKnownSuperclass(definingClass)) {
+                        String extendsConstraint = constraint.substring(0, call.start())
+                                + "(obj.extends " + call.group(1) + " \"" + definingClass + "\")"
+                                + constraint.substring(call.end());
+                        SMTProblem ext = SMTLIBParser.parseSMTProgram(decl + extendsConstraint);
+                        return new Decision(ExpressionUtil.and(ext.assertions), branch.branchCount(), branch.branchId());
+                    }
                     return new Decision(ExpressionUtil.TRUE, branch.branchCount(), branch.branchId());
                 }
                 return new Decision(ExpressionUtil.and(smt.assertions), branch.branchCount(), branch.branchId());

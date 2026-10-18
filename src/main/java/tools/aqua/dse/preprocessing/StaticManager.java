@@ -139,6 +139,20 @@ public class StaticManager {
         return new DispatchBranch(known + index, count, false);
     }
 
+    /** super classes in {@code obj.extends}, see {@link #isKnownSuperclass} */
+    private java.util.Set<String> superclasses;
+
+    /** @return whether the class occurs as super class in {@code obj.extends} (so the relation can constrain it) */
+    public synchronized boolean isKnownSuperclass(String jvmTypeName) {
+        if (superclasses == null) {
+            superclasses = new java.util.HashSet<>();
+            for (String[] row : getExtendsRelation()) {
+                superclasses.add(row[1]);
+            }
+        }
+        return superclasses.contains(jvmTypeName);
+    }
+
     /** a branch of a dispatch decision, see {@link #dispatchBranch} */
     public record DispatchBranch(int branchId, int branchCount, boolean known) {}
 
