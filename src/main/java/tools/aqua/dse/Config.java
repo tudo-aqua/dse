@@ -108,6 +108,9 @@ public class Config {
         return executorTimeoutSeconds;
     }
 
+    /** the options of bounded solving (dse.bounds*), also used for the DSE of constructors (summaries) */
+    private final Properties boundsProperties = new Properties();
+
     /** time budget of the DSE of a single constructor, in seconds */
     private long summaryTimeoutSeconds = 60;
     // sound default: constructors analyzed incompletely are never excluded because of their errors
@@ -279,6 +282,11 @@ public class Config {
                 && Boolean.parseBoolean( props.getProperty("dse.bounds"))) {
             BoundedSolverProvider bp = new BoundedSolverProvider();
             this.solver = bp.createSolver(props);
+            for (String key : props.stringPropertyNames()) {
+                if (key.startsWith("dse.bounds")) {
+                    this.boundsProperties.setProperty(key, props.getProperty(key));
+                }
+            }
         }
         else {
             String solverName = props.getProperty("dse.dp");
@@ -454,6 +462,7 @@ public class Config {
             System.out.println("config path: " + path);
             int depth = this.summaryDepth;
             ConstructorSummaryManager.setSummaryTimeoutSeconds(this.summaryTimeoutSeconds);
+            ConstructorSummaryManager.setSummaryBounds(this.boundsProperties);
             this.smtProblemManager = this.incrementalSummaries
                     ? new SmtProblemManager(path, depth, new ConstructorSummaryManager.IncrementalOptions(
                             this.summaryBatchSize, this.errorAnalysisMode,

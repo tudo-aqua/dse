@@ -87,10 +87,29 @@ public class TestUtils {
         }
         props.setProperty("dse.summaries.mode", SUMMARIES_MODE);
         props.setProperty("dse.summaries.depth", summariesDepth);
+        addBounds(props);
 
         Config config = Config.fromProperties(props);
 
         return  new DSE(config);
+    }
+
+    /**
+     * Bounded solving if {@code -Dtest.bounds=all|constructors} is set: values are first chosen in
+     * {@code [-step, step]}, then in wider bounds ({@code -Dtest.bounds.step}, default 64, and
+     * {@code -Dtest.bounds.iter} attempts, default 3), then unbounded. With {@code constructors}, only the parameters
+     * of constructors of concolic objects are bounded in the exploration (and all inputs of the DSE of
+     * constructors).
+     */
+    private static void addBounds(Properties props) {
+        String scope = System.getProperty("test.bounds");
+        if (scope == null || scope.isBlank() || scope.equals("none")) {
+            return;
+        }
+        props.setProperty("dse.bounds", "true");
+        props.setProperty("dse.bounds.scope", scope);
+        props.setProperty("dse.bounds.step", System.getProperty("test.bounds.step", "64"));
+        props.setProperty("dse.bounds.iter", System.getProperty("test.bounds.iter", "3"));
     }
 
     public static DSE getDseBaseLineInstance(String exampleName,

@@ -217,6 +217,22 @@ public class ConstructorSummaryManager {
         summaryTimeoutSeconds = seconds;
     }
 
+    /** options of bounded solving (dse.bounds*) for the DSE of constructors; empty: unbounded */
+    private static Properties summaryBounds = new Properties();
+
+    /**
+     * Set before creating a manager. With bounds, the parameters of constructors are first chosen within the bounds
+     * (widened in steps, unbounded as the last attempt), e.g. small capacities of collections instead of huge ones.
+     * In the DSE of a constructor, all its parameters are inputs, so the scope of the bounds is {@code all}.
+     */
+    public static void setSummaryBounds(Properties bounds) {
+        summaryBounds = new Properties();
+        summaryBounds.putAll(bounds);
+        if (!summaryBounds.isEmpty()) {
+            summaryBounds.setProperty("dse.bounds.scope", "all");
+        }
+    }
+
     /** end of the exploration (dse.timeout): no summaries are computed after it */
     private long deadline = Long.MAX_VALUE;
 
@@ -802,6 +818,7 @@ public class ConstructorSummaryManager {
             timeout = Math.min(timeout, Math.max(1, (this.deadline - System.currentTimeMillis()) / 1000));
         }
         props.setProperty("dse.timeout", String.valueOf(timeout));
+        props.putAll(summaryBounds);
 
         Config config = Config.fromProperties(props);
         DSE dse = new DSE(config);
