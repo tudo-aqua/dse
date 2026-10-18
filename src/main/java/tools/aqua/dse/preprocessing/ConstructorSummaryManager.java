@@ -341,16 +341,23 @@ public class ConstructorSummaryManager {
         return renderObjectSummaries(summariesPerObject, query.pathSorts(), query.objectIdentifiers());
     }
 
-    /** a nullary declaration; the sort is a symbol (e.g. {@code Int}) or one parenthesized term ({@code (_ BitVec 32)}) */
+    /**
+     * a sort: a symbol (e.g. {@code Int}) or a parenthesized term, nested up to three levels
+     * ({@code (_ BitVec 32)}, {@code (Array Int (Array Int (_ BitVec 32)))})
+     */
+    private static final String SORT =
+            "(?:\\((?:[^()]|\\((?:[^()]|\\([^()]*\\))*\\))*\\)|[^\\s()]+)";
+
+    /** a nullary declaration (see {@link #SORT}) */
     private static final Pattern DECLARATION =
-            Pattern.compile("\\(declare-fun\\s+(\\S+)\\s+\\(\\)\\s+(\\([^()]*\\)|[^\\s()]+)\\s*\\)");
+            Pattern.compile("\\(declare-fun\\s+(\\S+)\\s+\\(\\)\\s+(" + SORT + ")\\s*\\)");
 
     /**
      * a declaration of a function with arguments: the fields and array elements of the heap model
      * ({@code (declare-fun fld.LBox;.x (Int) (_ BitVec 32))}), see {@link #HEAP_FUNCTIONS}
      */
     private static final Pattern FUNCTION_DECLARATION = Pattern.compile(
-            "\\(declare-fun\\s+(\\S+)\\s+\\(((?:[^()]|\\([^()]*\\))+)\\)\\s+(\\([^()]*\\)|[^\\s()]+)\\s*\\)");
+            "\\(declare-fun\\s+(\\S+)\\s+\\(((?:[^()]|" + SORT + ")+)\\)\\s+(" + SORT + ")\\s*\\)");
 
     /**
      * Functions of the heap model of SPouT: objects are identities (sort {@code Int}), {@code obj.cls} is the class

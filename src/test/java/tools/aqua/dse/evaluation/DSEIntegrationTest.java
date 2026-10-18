@@ -4870,6 +4870,25 @@ public class DSEIntegrationTest {
     //  (IllegalStateException); both must be explored.
     // ------------------------------------------------------------------------------------------------------------
 
+    private void arrayExample(String example, List<String> classes) throws IOException, InterruptedException {
+        heapExample("array_programs", example, classes, 2, "");
+    }
+
+    @Test(groups = {"arrays", "tudo"})
+    public void arrayLocalSymbolicIndex() throws IOException, InterruptedException {
+        arrayExample("arr_local", List.of("Main"));
+    }
+
+    @Test(groups = {"arrays", "tudo"})
+    public void arrayAlias() throws IOException, InterruptedException {
+        arrayExample("arr_alias", List.of("P", "Main"));
+    }
+
+    @Test(groups = {"arrays", "tudo"})
+    public void arraySymbolicIndexOfInput() throws IOException, InterruptedException {
+        arrayExample("arr_index", List.of("H", "Main"));
+    }
+
     private void heapExample(String example, List<String> classes, int depth) throws IOException, InterruptedException {
         heapExample("heap_programs", example, classes, depth, "-Dconcolic.symbolic.string.fields=false");
     }
