@@ -32,9 +32,13 @@ public class Explorer {
         this.ctree = new ConstraintsTree(config);
     }
 
-    /** the execution for the current target did not end in time: its result is unknown */
+    /**
+     * The execution for the current target did not end in time: its result is unknown. The next target is chosen
+     * (otherwise the same valuation would be executed again, and time out again).
+     */
     public void executionTimedOut() {
         ctree.failCurrentTargetDontKnow();
+        this.nextValuation = ctree.findNext();
     }
 
     public void addTrace(Trace t) {
