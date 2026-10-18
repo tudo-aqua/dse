@@ -241,6 +241,14 @@ public class ConstructorSummaryManager {
         solverTimeoutSeconds = seconds;
     }
 
+    /** bound of symbolic unrolling (dse.unroll.bound) in the DSE of constructors; 0: none */
+    private static int unrollBound = 0;
+
+    /** set before creating a manager */
+    public static void setUnrollBound(int bound) {
+        unrollBound = bound;
+    }
+
     /** end of the exploration (dse.timeout): no summaries are computed after it */
     private long deadline = Long.MAX_VALUE;
 
@@ -829,6 +837,9 @@ public class ConstructorSummaryManager {
         props.putAll(summaryBounds);
         if (solverTimeoutSeconds > 0) {
             props.setProperty("dse.dp.timeout", String.valueOf(solverTimeoutSeconds));
+        }
+        if (unrollBound > 0) {
+            props.setProperty("dse.unroll.bound", String.valueOf(unrollBound));
         }
 
         Config config = Config.fromProperties(props);

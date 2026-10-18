@@ -88,6 +88,8 @@ public class TestUtils {
         props.setProperty("dse.summaries.mode", SUMMARIES_MODE);
         props.setProperty("dse.summaries.depth", summariesDepth);
         addBounds(props);
+        // a single hard query (e.g. on strings) must not block the test until it is killed
+        props.setProperty("dse.dp.timeout", System.getProperty("test.dp.timeout", "60"));
 
         Config config = Config.fromProperties(props);
 

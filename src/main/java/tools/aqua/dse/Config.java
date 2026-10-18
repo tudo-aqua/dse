@@ -73,7 +73,8 @@ public class Config {
 
     private List<String> classPaths = new ArrayList<>();
 
-    private boolean b64encodeExecutorValue = false;
+    /** concolic values are passed to the executor base64-encoded: strings can contain separators (,) and quotes */
+    private boolean b64encodeExecutorValue = true;
 
     private boolean incremental = false;
 
@@ -243,6 +244,14 @@ public class Config {
 
     public int getMaxObjectAnnotationDepth() { return maxObjectAnnotationDepth; }
 
+    /**
+     * Maximal number of iterations that the executor unrolls symbolically per execution of an operation (e.g. one
+     * decision per separator when splitting a symbolic string; later also loops), dse.unroll.bound; 0: no bound.
+     */
+    private int unrollBound = 0;
+
+    public int getUnrollBound() { return unrollBound; }
+
 
     public double getFraction() {
         return fraction;
@@ -290,6 +299,12 @@ public class Config {
             if (this.solverTimeoutSeconds > 0) {
                 props.setProperty("z3.timeout", String.valueOf(this.solverTimeoutSeconds * 1000));
             }
+        }
+
+        // Java strings have at most 2^31 - 1 characters: lets the solver compare ints computed from string
+        // lengths and indices in the integer domain
+        if (!props.containsKey("z3.javaStrings")) {
+            props.setProperty("z3.javaStrings", "true");
         }
 
         if (props.containsKey("dse.bounds")
@@ -391,6 +406,9 @@ public class Config {
             this.errorAnalysisMaxCallTargets = Integer.parseInt(props.getProperty("dse.errors.maxCallTargets").trim());
         }
 
+        if (props.containsKey("dse.unroll.bound")) {
+            this.unrollBound = Integer.parseInt(props.getProperty("dse.unroll.bound").trim());
+        }
         if (props.containsKey("concolic.max.object.annotation.depth")) {
             this.maxObjectAnnotationDepth = Integer.parseInt(props.getProperty("concolic.max.object.annotation.depth"));
         }
@@ -478,6 +496,7 @@ public class Config {
             ConstructorSummaryManager.setSummaryTimeoutSeconds(this.summaryTimeoutSeconds);
             ConstructorSummaryManager.setSummaryBounds(this.boundsProperties);
             ConstructorSummaryManager.setSolverTimeoutSeconds(this.solverTimeoutSeconds);
+            ConstructorSummaryManager.setUnrollBound(this.unrollBound);
             this.smtProblemManager = this.incrementalSummaries
                     ? new SmtProblemManager(path, depth, new ConstructorSummaryManager.IncrementalOptions(
                             this.summaryBatchSize, this.errorAnalysisMode,

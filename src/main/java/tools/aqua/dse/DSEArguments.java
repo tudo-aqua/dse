@@ -70,11 +70,12 @@ public class DSEArguments {
         System.out.println();
         printDSEOptionHelp("dse.executor", "executor command (e.g. java)");
         printDSEOptionHelp("dse.executor.args", "executor args (e.g. -cp ... Main)");
-        printDSEOptionHelp("dse.b64encode", "base64-encode concolic values passed to executor: true / false (default)");
+        printDSEOptionHelp("dse.b64encode", "base64-encode concolic values passed to executor: true (default) / false");
         printDSEOptionHelp("dse.explore", "one of: inorder, bfs, dfs (default)");
         printDSEOptionHelp("dse.terminate.on", "| separated list of: assertion, error, bug, taint, completion (default)");
         printDSEOptionHelp("dse.dp", "jconstraints id of solving backend");
         printDSEOptionHelp("dse.dp.incremental", "use incremental solving: true / false (default)");
+        printDSEOptionHelp("dse.unroll.bound", "maximal number of iterations that the executor unrolls symbolically per\nexecution of an operation (e.g. separators of String.split); 0 (default): none");
         printDSEOptionHelp("dse.dp.timeout", "time limit of a single solver query in seconds (default 0: none); undecided\nqueries are unknown (the target is not explored)");
         printDSEOptionHelp("dse.bounds", "use bounds on integer values when solving: true / false (default)");
         printDSEOptionHelp("dse.bounds.step", "step width (increase of bounds) when using bounds iteratively");

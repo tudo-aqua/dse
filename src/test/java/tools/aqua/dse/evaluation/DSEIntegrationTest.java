@@ -4952,4 +4952,29 @@ public class DSEIntegrationTest {
     public void stringLiteral() throws IOException, InterruptedException {
         stringExample("str_literal", List.of("L", "Main"));
     }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringSplit() throws IOException, InterruptedException {
+        stringExample("str_split", List.of("Main"));
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringTokenizer() throws IOException, InterruptedException {
+        stringExample("str_tokenizer", List.of("Main"));
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringChars() throws IOException, InterruptedException {
+        stringExample("str_chars", List.of("Main"));
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringBuilderAlias() throws IOException, InterruptedException {
+        stringExample("sb_alias", List.of("P", "Main"));
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringBuilderContent() throws IOException, InterruptedException {
+        stringExample("sb_content", List.of("H", "Main"));
+    }
 }

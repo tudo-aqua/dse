@@ -74,8 +74,12 @@ public class Executor {
 //            generateConstructorCount(chosenConstructors),
 //            generateConstructorIds(chosenConstructors),
             "-Dconcolic.max.object.annotation.depth=" + config.getMaxObjectAnnotationDepth(),
+            config.getUnrollBound() > 0 ? "-Dconcolic.unroll.bound=" + config.getUnrollBound() : "",
             this.executorArgs
         };
+        // without empty arguments (parameters without values): an executor script that passes its arguments
+        // quoted ("$@") would pass them on
+        cmd = java.util.Arrays.stream(cmd).filter(arg -> !arg.isEmpty()).toArray(String[]::new);
         System.out.println(String.join(" ", cmd));
         try {
             Path output = Files.createTempFile("dse", "");
