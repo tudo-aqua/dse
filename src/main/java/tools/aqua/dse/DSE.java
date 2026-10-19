@@ -15,23 +15,16 @@
 
 package tools.aqua.dse;
 
-import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
-import org.stringtemplate.v4.ST;
-import org.stringtemplate.v4.STGroup;
-import org.stringtemplate.v4.STRawGroupDir;
-import tools.aqua.dse.iflow.InformationFlowAnalysis;
 import tools.aqua.dse.paths.PathResult;
 import tools.aqua.dse.trace.Trace;
 import tools.aqua.dse.trace.WitnessAssumption;
-import tools.aqua.dse.witness.WitnessEdge;
-import tools.aqua.dse.witness.WitnessNode;
+import tools.aqua.dse.witness.svcomp.SVCompViolationWitnessFile;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.*;
 
 public class DSE {
@@ -192,7 +185,7 @@ public class DSE {
      *
      */
     private void checkAndSaveWitness(Trace trace) {
-        if (!config.isWitness() || savedWitness || trace == null ||
+        if (!this.config.isWitness() || savedWitness || trace == null ||
                 !(trace.getTraceState() instanceof PathResult.ErrorResult) ||
                 !trace.hasWitness()) {
             return;
@@ -203,39 +196,40 @@ public class DSE {
         }
 
         savedWitness = true;
-
-        List<WitnessNode> nodes = new ArrayList<>();
-        List<WitnessEdge> edges = new ArrayList<>();
-
-        int nodeId = 0;
-        WitnessNode initNode = new WitnessNode(nodeId++);
-        nodes.add(initNode);
-        initNode.addData("entry", "true");
-        WitnessNode curNode = initNode;
-
-        for (WitnessAssumption wa : trace.getWitness()) {
-            String loc = getLineOfCode(wa.getClazz(), wa.getLine());
-            String assumption = computeAssumption(loc, wa);
-
-            WitnessNode prevNode = curNode;
-            curNode = new WitnessNode(nodeId++);
-            nodes.add(curNode);
-            WitnessEdge edge = new WitnessEdge(prevNode, wa, assumption, curNode);
-            edges.add(edge);
-        }
-
-        curNode.addData("violation", "true");
-
-        STGroup group = new STRawGroupDir("witnesses", '$','$');
-        ST st = group.getInstanceOf("witness");
-        st.add("nodes", nodes);
-        st.add("edges", edges);
-        String result = st.render();
-        try {
-            Files.write(Paths.get("witness.graphml"), result.getBytes());
-        } catch (IOException e) {
-            System.err.println("Error writing witness to file: " + e.getMessage());
-        }
+        SVCompViolationWitnessFile wit = SVCompViolationWitnessFile.createViolationWitnessFromTrace(trace, config);
+        wit.writeToFile(Path.of("witness.yml"));
+//        List<WitnessNode> nodes = new ArrayList<>();
+//        List<WitnessEdge> edges = new ArrayList<>();
+//
+//        int nodeId = 0;
+//        WitnessNode initNode = new WitnessNode(nodeId++);
+//        nodes.add(initNode);
+//        initNode.addData("entry", "true");
+//        WitnessNode curNode = initNode;
+//
+//        for (WitnessAssumption wa : trace.getWitness()) {
+//            String loc = getLineOfCode(wa.getClazz(), wa.getLine());
+//            String assumption = computeAssumption(loc, wa);
+//
+//            WitnessNode prevNode = curNode;
+//            curNode = new WitnessNode(nodeId++);
+//            nodes.add(curNode);
+//            WitnessEdge edge = new WitnessEdge(prevNode, wa, assumption, curNode);
+//            edges.add(edge);
+//        }
+//
+//        curNode.addData("violation", "true");
+//
+//        STGroup group = new STRawGroupDir("witnesses", '$','$');
+//        ST st = group.getInstanceOf("witness");
+//        st.add("nodes", nodes);
+//        st.add("edges", edges);
+//        String result = st.render();
+//        try {
+//            Files.write(Paths.get("witness.graphml"), result.getBytes());
+//        } catch (IOException e) {
+//            System.err.println("Error writing witness to file: " + e.getMessage());
+//        }
     }
 
     private String computeAssumption(String lineOfCode, WitnessAssumption wa) {

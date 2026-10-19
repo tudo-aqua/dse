@@ -84,6 +84,8 @@ public class Config {
 
     private double fraction = 1.0;
 
+    private List<String> taskSources = new ArrayList<>();
+
     private ClassLoader sourceLoader = Config.class.getClassLoader();
 
     // TODO: make this configurable
@@ -331,8 +333,10 @@ public class Config {
             URL urls[] = new URL[folders.length];
             int i=0;
             for (String f : folders) {
+                String trimmedF = f.trim();
+                taskSources.add(trimmedF);
                 try {
-                    urls[i++] = Paths.get(f.trim()).toAbsolutePath().toUri().toURL();
+                    urls[i++] = Paths.get(trimmedF).toAbsolutePath().toUri().toURL();
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 }
@@ -529,5 +533,8 @@ public class Config {
 
     public long getTimeoutSeconds() {
         return timeoutSeconds;
+    }
+    public List<String> getTaskSources() {
+        return taskSources;
     }
 }
