@@ -249,6 +249,48 @@ public class ConstructorSummaryManager {
         unrollBound = bound;
     }
 
+    /** the executor of the summary runs (dse.executor of the analysis); default: relative to the dse directory */
+    private static String executor = "../executor.sh";
+    /** the class path of the program and the verifier stub (-cp of dse.executor.args), null: relative defaults */
+    private static String programClassPath = null;
+
+    /** set before creating a manager: summaries run with the executor and class path of the analysis */
+    public static void setExecutor(String executorCmd, String executorArgs) {
+        if (executorCmd != null && !executorCmd.isBlank()) {
+            executor = executorCmd;
+        }
+        Matcher m = executorArgs == null ? null : Pattern.compile("(?:^|\\s)-(?:cp|classpath)\\s+(\\S+)").matcher(executorArgs);
+        programClassPath = m != null && m.find() ? m.group(1) : null;
+    }
+
+    /**
+     * The directory with SummaryMain (the main class of summary runs): src/main/resources/constructor when DSE runs
+     * in its source directory, otherwise extracted from the jar of DSE into a temporary directory.
+     */
+    private static synchronized String summaryMainDirectory() {
+        Path sources = Paths.get("src/main/resources/constructor");
+        if (Files.exists(sources.resolve("SummaryMain.class"))) {
+            return sources.toString();
+        }
+        if (extractedSummaryMain == null) {
+            try (java.io.InputStream in = ConstructorSummaryManager.class.getResourceAsStream("/constructor/SummaryMain.class")) {
+                if (in == null) {
+                    return sources.toString();
+                }
+                Path dir = Files.createTempDirectory("dse-summary-main");
+                Files.copy(in, dir.resolve("SummaryMain.class"));
+                dir.toFile().deleteOnExit();
+                dir.resolve("SummaryMain.class").toFile().deleteOnExit();
+                extractedSummaryMain = dir.toString();
+            } catch (IOException e) {
+                return sources.toString();
+            }
+        }
+        return extractedSummaryMain;
+    }
+
+    private static String extractedSummaryMain = null;
+
     /** end of the exploration (dse.timeout): no summaries are computed after it */
     private long deadline = Long.MAX_VALUE;
 
@@ -822,14 +864,17 @@ public class ConstructorSummaryManager {
         Properties props = new Properties();
         props.setProperty("dse.dp", "z3");
         props.setProperty("dse.constructor.summary", "true");
-        props.setProperty("dse.executor", "../executor.sh");
+        props.setProperty("dse.executor", executor);
+        // the program (with the verifier stub) as in the analysis if known, else relative to the dse directory
+        String programCp = programClassPath != null ? programClassPath
+                : String.format("%s/:%s:%s:../verifier-stub/target/verifier-stub-1.0.jar",
+                        this.classPath, jarWildCard, libJarWildCard);
         props.setProperty("dse.executor.args",
-                String.format("-cp %s/:%s:%s:src/main/resources/constructor:../verifier-stub/target/verifier-stub-1.0.jar " +
+                String.format("-cp %s:%s " +
                                 "-Dconcolic.execution=true " +
                                 "-Dconcolic.constructor.summary=true " +
-//                "-Dconcolic.constructors=%s " +
                                 "%s",
-                        this.classPath, jarWildCard, libJarWildCard, "SummaryMain"));
+                        programCp, summaryMainDirectory(), "SummaryMain"));
         props.setProperty("dse.dp.incremental", "false");
         props.setProperty("dse.terminate.on", "completion");
         props.setProperty("dse.explore", "BFS");

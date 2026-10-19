@@ -497,6 +497,7 @@ public class Config {
             ConstructorSummaryManager.setSummaryBounds(this.boundsProperties);
             ConstructorSummaryManager.setSolverTimeoutSeconds(this.solverTimeoutSeconds);
             ConstructorSummaryManager.setUnrollBound(this.unrollBound);
+            ConstructorSummaryManager.setExecutor(this.executorCmd, this.executorArgs);
             this.smtProblemManager = this.incrementalSummaries
                     ? new SmtProblemManager(path, depth, new ConstructorSummaryManager.IncrementalOptions(
                             this.summaryBatchSize, this.errorAnalysisMode,
