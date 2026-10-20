@@ -402,6 +402,10 @@ public class Config {
             this.errorAnalysisMaxMethods = Integer.parseInt(props.getProperty("dse.errors.maxMethods").trim());
         }
 
+        if (props.containsKey("dse.errors.timeBudget")) {
+            ConstructorErrorAnalysis.setTimeBudgetSeconds(Long.parseLong(props.getProperty("dse.errors.timeBudget").trim()));
+        }
+
         if (props.containsKey("dse.errors.maxCallTargets")) {
             this.errorAnalysisMaxCallTargets = Integer.parseInt(props.getProperty("dse.errors.maxCallTargets").trim());
         }

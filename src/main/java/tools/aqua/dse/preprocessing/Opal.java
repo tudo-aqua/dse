@@ -64,6 +64,12 @@ import java.util.stream.Stream;
  * {@link #reachableTypesFromConstructors(int)} and includes both project and library classes.
  */
 public class Opal {
+
+    /** a line of the log with the time since the start of the JVM (the phases of OPAL can take long) */
+    static void log(String message) {
+        System.out.printf("[Opal +%.1fs] %s%n",
+                java.lang.management.ManagementFactory.getRuntimeMXBean().getUptime() / 1000.0, message);
+    }
     static {
         // OPAL logs on info level also from finalizers ("[info][project] finalized (LogContext(...))"), i.e., from
         // another thread at arbitrary times. These lines get interleaved with DSE's output, e.g. with the printed
@@ -98,11 +104,12 @@ public class Opal {
     public Opal(String classPath, File javaBaseJmod) {
         this.classPath = new File(classPath);
         this.javaBaseJmod = javaBaseJmod;
+        log("loading " + classPath + " with the JDK classes of " + javaBaseJmod.getName());
         this.project = Project.apply(
                 new File(classPath),
                 javaBaseJmod
         );
-        System.out.println("[Opal] Loaded " + this.project.projectClassFilesCount()
+        log("Loaded " + this.project.projectClassFilesCount()
                 + " project classes, " + this.project.libraryClassFilesCount() + " library classes");
     }
 
@@ -110,26 +117,39 @@ public class Opal {
     private static File bundledJavaBase;
 
     /**
-     * Extracts the bundled {@code jmods/java.base.jmod} to a temporary file. The file must keep the extension
-     * {@code .jmod}: OPAL selects the reader by extension and silently ignores other files ("... is empty"),
-     * which leaves the project without any library classes.
+     * Extracts the bundled {@code jmods/java.base.jmod} to the temporary directory, once for all runs: the file is
+     * named by its size and reused if it exists (writing 20 MB per run, and leaving them behind when a run is killed,
+     * fills small temporary directories). The file must keep the extension {@code .jmod}: OPAL selects the reader by
+     * extension and silently ignores other files ("... is empty"), which leaves the project without library classes.
      */
     private static synchronized File extractBundledJavaBase() {
         if (bundledJavaBase != null && bundledJavaBase.length() > 0) {
             return bundledJavaBase;
         }
-        try (InputStream inStream = Opal.class.getClassLoader().getResourceAsStream("jmods/java.base.jmod")) {
-            if (inStream == null) {
-                throw new IllegalStateException("Resource jmods/java.base.jmod not found (see compile-dse.sh)");
+        java.net.URL resource = Opal.class.getClassLoader().getResource("jmods/java.base.jmod");
+        if (resource == null) {
+            throw new IllegalStateException("Resource jmods/java.base.jmod not found (see compile-dse.sh)");
+        }
+        try {
+            long size = resource.openConnection().getContentLengthLong();
+            File target = new File(System.getProperty("java.io.tmpdir"), "dse-java.base-" + size + ".jmod");
+            if (size <= 0 || target.length() != size) {
+                // write a private copy and move it into place (concurrent runs may extract at the same time)
+                File tmpFile = Files.createTempFile("java.base", ".jmod").toFile();
+                try (InputStream inStream = resource.openStream(); OutputStream outStream = new FileOutputStream(tmpFile)) {
+                    IOUtils.copy(inStream, outStream);
+                }
+                if (size <= 0) {
+                    tmpFile.deleteOnExit();
+                    target = tmpFile;
+                } else {
+                    Files.move(tmpFile.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+                            java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+                }
             }
-            File tmpFile = Files.createTempFile("java.base", ".jmod").toFile();
-            tmpFile.deleteOnExit();
-            try (OutputStream outStream = new FileOutputStream(tmpFile)) {
-                IOUtils.copy(inStream, outStream);
-            }
-            System.out.println("tmpFile: " + tmpFile.getAbsolutePath());
-            bundledJavaBase = tmpFile;
-            return tmpFile;
+            log("java.base.jmod: " + target.getAbsolutePath());
+            bundledJavaBase = target;
+            return target;
         } catch (IOException e) {
             throw new RuntimeException("Cannot read java.base.jmod due to IOException: " + e.toString());
         }
@@ -177,7 +197,7 @@ public class Opal {
                         k -> analysis.errorsOfConstructor(s.rootClass(), s.descriptor()));
             }
         }
-        System.out.println("[Opal] inferConstructorErrors: " + result.size() + " constructors, "
+        log("inferConstructorErrors: " + result.size() + " constructors, "
                 + analysis.analyzedMethodCount() + " methods analyzed, " + (System.currentTimeMillis() - start) + "ms");
         return result;
     }
@@ -185,11 +205,12 @@ public class Opal {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private Project<?> projectWithLibraryBodies() {
         if (this.projectWithLibraryBodies == null) {
+            log("loading the project with the bodies of the JDK classes");
             Java17Framework$ reader = Java17Framework$.MODULE$;
             scala.collection.Iterable projectClassFiles = reader.ClassFiles(this.classPath, reader.defaultExceptionHandler());
             scala.collection.Iterable libraryClassFiles = reader.ClassFiles(this.javaBaseJmod, reader.defaultExceptionHandler());
             this.projectWithLibraryBodies = Project$.MODULE$.apply(projectClassFiles, libraryClassFiles, false);
-            System.out.println("[Opal] Loaded project with library bodies: "
+            log("Loaded project with library bodies: "
                     + this.projectWithLibraryBodies.libraryClassFilesCount() + " library classes");
         }
         return this.projectWithLibraryBodies;
@@ -232,10 +253,10 @@ public class Opal {
         });
         classNames.sort(KlassIdentifier.COMPARATOR);
         if (classNames.size() <= 50) {
-            System.out.println("[Opal] extractKlassesFromClassPath: " + classNames.size() + " classes: "
+            log("extractKlassesFromClassPath: " + classNames.size() + " classes: "
                     + classNames.stream().map(KlassIdentifier::shortIdentifier).collect(Collectors.joining(", ")));
         } else {
-            System.out.println("[Opal] extractKlassesFromClassPath: " + classNames.size() + " classes");
+            log("extractKlassesFromClassPath: " + classNames.size() + " classes");
         }
         return classNames;
     }
@@ -270,7 +291,7 @@ public class Opal {
     public String generateExtendsSummary(Set<ClassType> reachable) {
         if(reachable.isEmpty()) {return "";}
         List<String[]> relation = extendsRelation(reachable);
-        System.out.println("[Opal] generateExtendsSummary: " + relation.size() + " extends relations");
+        log("generateExtendsSummary: " + relation.size() + " extends relations");
         return renderExtendsSummary(relation);
     }
 
@@ -434,7 +455,7 @@ public class Opal {
                 """
         );
 
-        System.out.println("[Opal] generateExtendsSummary: " + relationCount[0] + " extends relations");
+        log("generateExtendsSummary: " + relationCount[0] + " extends relations");
         return result.toString();
 
 //
@@ -517,7 +538,7 @@ public class Opal {
             }
             addInheritedLibraryMethods(type, polymorphicInfos);
         }
-        System.out.println("[Opal] collectPolymorphyInformation: " + types.length + " types -> "
+        log("collectPolymorphyInformation: " + types.length + " types -> "
                 + polymorphicInfos.size() + " methods");
         return polymorphicInfos;
     }
@@ -756,7 +777,7 @@ public class Opal {
      * @return list of generated constructor signature strings including {@code null|NULL}.
      */
     private static List<String> generatedAllConstructors(Project p, scala.collection.Set<ClassType> types, int depth) {
-        System.out.println("[Opal] generatedAllConstructors: " + types.size() + " types, depth=" + depth);
+        log("generatedAllConstructors: " + types.size() + " types, depth=" + depth);
         List<String> result = new ArrayList<>();
         result.add("null|NULL");
         types.foreach(tpe -> {
@@ -768,19 +789,19 @@ public class Opal {
 //                    tpe.packageName().startsWith("java") ||
 //                    tpe.packageName().startsWith("tools/aqua") ||
 //                    tpe.packageName().startsWith("sun")) {
-//                System.out.println("[Opal] generatedAllConstructors: skipping " + tpe.packageName());
+//                log("generatedAllConstructors: skipping " + tpe.packageName());
 //                return null;
 //            }
             if (isExcludedFactoryClass(tpe)) {
                 return null;
             }
             if (!p.isProjectType(tpe)) {
-                System.out.println("[Opal] generatedAllConstructors: skipping non-project type "
+                log("generatedAllConstructors: skipping non-project type "
                         + tpe.toJVMTypeName());
                 return null;
             }
             if (p.classFile(tpe).isEmpty()) {
-                System.out.println("[Opal] generatedAllConstructors: skipping " + tpe.toJVMTypeName()
+                log("generatedAllConstructors: skipping " + tpe.toJVMTypeName()
                         + " (no class file)");
                 return null;
             }
@@ -900,7 +921,7 @@ public class Opal {
      * @return list of generated constructor signature strings for this depth.
      */
     private List<String> possibleObjectsFromNondetObjectWithDepth(int depth) {
-        System.out.println("[Opal] possibleObjectsFromNondetObjectWithDepth: depth=" + depth);
+        log("possibleObjectsFromNondetObjectWithDepth: depth=" + depth);
 
         List<String> result = new ArrayList<>();
 
@@ -989,7 +1010,7 @@ public class Opal {
                                 scala.collection.Set<ClassType> subTypes =
                                         this.project.classHierarchy().allSubtypes(parameterType, true);
 
-                                System.out.println("[Opal]   call-site #" + callSiteIndex[0]
+                                log("  call-site #" + callSiteIndex[0]
                                         + ": param=" + parameterType.toJVMTypeName()
                                         + ", subtypes=" + subTypes.size()
                                         + ", depth=" + depth);
@@ -1013,7 +1034,7 @@ public class Opal {
                     return null;
                 });
 
-        System.out.println("[Opal] nondetObject call-sites processed: " + callSiteIndex[0]);
+        log("nondetObject call-sites processed: " + callSiteIndex[0]);
         return result;
     }
 
@@ -1028,12 +1049,12 @@ public class Opal {
      * @return combined list of all constructor signature strings.
      */
     public List<String> generateSignaturesOfPossibleConstructorCallsFromNondetObject(int depth) {
-        System.out.println("[Opal] generateSignaturesOfPossibleConstructorCallsFromNondetObject: depth=" + depth);
+        log("generateSignaturesOfPossibleConstructorCallsFromNondetObject: depth=" + depth);
         List<String> result = new ArrayList<>();
         for(int i = 1; i <= depth; i++) {
             result.addAll(possibleObjectsFromNondetObjectWithDepth(i));
         }
-        System.out.println("[Opal] generateSignaturesOfPossibleConstructorCallsFromNondetObject: "
+        log("generateSignaturesOfPossibleConstructorCallsFromNondetObject: "
                 + result.size() + " signatures total");
         return result;
     }
@@ -1081,7 +1102,7 @@ public class Opal {
             });
             ch.allSupertypes(s, true).foreach(t -> { reachable.add((ClassType) t); return null; });
         }
-        System.out.println("[Opal] reachableTypesFromConstructors: " + seeds.size() + " seeds → " + reachable.size() + " reachable");
+        log("reachableTypesFromConstructors: " + seeds.size() + " seeds → " + reachable.size() + " reachable");
         return reachable;
     }
 
@@ -1141,7 +1162,7 @@ public class Opal {
             return null;
         });
 
-        System.out.println("[Opal] collectConstructorSeedTypes: " + seeds.size() + " seed types at depth=" + depth);
+        log("collectConstructorSeedTypes: " + seeds.size() + " seed types at depth=" + depth);
         return seeds;
     }
 

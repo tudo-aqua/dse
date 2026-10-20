@@ -102,6 +102,20 @@ public final class ConstructorErrorAnalysis {
     /** Distinct methods whose body was analyzed (bounded by {@code maxMethods}). */
     private final Set<Method> analyzedMethods = new HashSet<>();
 
+    /**
+     * Time budget of one analysis in ms (0: none). After it, the remaining methods are approximated like after
+     * {@code maxMethods} (declared exceptions): bounds the analysis of large parts of the JDK.
+     */
+    private static long timeBudgetMillis = 0;
+
+    /** set before the analysis (dse.errors.timeBudget, seconds; 0: no budget) */
+    public static void setTimeBudgetSeconds(long seconds) {
+        timeBudgetMillis = Math.max(0, seconds) * 1000;
+    }
+
+    private final long startMillis = System.currentTimeMillis();
+    private boolean budgetReported = false;
+
     public ConstructorErrorAnalysis(Project<?> project, Mode mode) {
         this(project, mode, DEFAULT_MAX_CALL_TARGETS, DEFAULT_MAX_METHODS);
     }
@@ -208,7 +222,18 @@ public final class ConstructorErrorAnalysis {
             if (analyzedMethods.size() >= maxMethods) {
                 return declared(m);
             }
+            if (timeBudgetMillis > 0 && System.currentTimeMillis() - startMillis > timeBudgetMillis) {
+                if (!budgetReported) {
+                    budgetReported = true;
+                    Opal.log("errors analysis: time budget of " + timeBudgetMillis / 1000 + " s exceeded after "
+                            + analyzedMethods.size() + " methods, the remaining methods by their declared exceptions");
+                }
+                return declared(m);
+            }
             analyzedMethods.add(m);
+            if (analyzedMethods.size() % 1000 == 0) {
+                Opal.log("errors analysis: " + analyzedMethods.size() + " methods, at " + m.toJava());
+            }
         }
 
         Code code = m.body().get();
