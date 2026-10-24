@@ -39,6 +39,18 @@ public class Trace {
 
     private final Set<String> objectIdentifiers;
 
+    /** reasons for which the executor lost symbolic information on this path ([INCOMPLETE]) */
+    private final List<String> precisionLosses = new java.util.ArrayList<>();
+
+    public List<String> getPrecisionLosses() {
+        return precisionLosses;
+    }
+
+    /** @return whether the path constraint describes all inputs of the path (no precision was lost) */
+    public boolean isPrecise() {
+        return precisionLosses.isEmpty();
+    }
+
     public Trace(List<Decision> decisions, PathResult state) {
         this(decisions, null, null, null, null, state, 0, null);
     }

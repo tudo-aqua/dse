@@ -67,6 +67,23 @@ public class TraceParserTest {
         System.out.println(d);
     }
 
+    /** decisions over the heap model of SPouT: fields are functions of object identities */
+    @Test
+    public void testHeapTermDecisionParser() throws IOException, SMTLIBParserException {
+        String decl = "(declare-fun null () Int)(declare-fun __object_0 () Int)"
+                + "(declare-fun obj.cls (Int) String)(declare-fun fld.Box.x (Int) (_ BitVec 32))"
+                + "(declare-fun fld.BoxPair.a (Int) Int)(declare-fun fld.BoxPair.b (Int) Int)";
+        String[] decisions = {
+                "(assert (not (= (fld.BoxPair.a __object_0) null))) // branchCount=2, branchId=0",
+                "(assert (not (= (fld.BoxPair.b __object_0) (fld.BoxPair.a __object_0)))) // branchCount=2, branchId=0",
+                "(assert (not (bvsle (fld.Box.x (fld.BoxPair.a __object_0)) #x00000000))) // branchCount=2, branchId=0",
+                "(assert (= (obj.cls (fld.BoxPair.a __object_0)) \"LBox;\")) // branchCount=2, branchId=1"};
+        for (String decision : decisions) {
+            Decision d = TraceParser.parseDecision(decision, decl, config);
+            assert d != null && d.getCondition().toString().contains("fld.BoxPair") : d;
+        }
+    }
+
     @Test(enabled = true) //@Marvin: This does not work with JConstraints yet.
     public void testTrace() throws IOException, SMTLIBParserException {
         List<String> log = new LinkedList<>();

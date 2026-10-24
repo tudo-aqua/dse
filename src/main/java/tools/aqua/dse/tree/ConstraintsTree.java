@@ -26,6 +26,7 @@ import gov.nasa.jpf.constraints.solvers.dontknow.DontKnowSolver;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import tools.aqua.dse.Config;
 import tools.aqua.dse.paths.PathResult;
+import tools.aqua.dse.preprocessing.ConstructorSummaryManager;
 import tools.aqua.dse.preprocessing.SmtProblemManager;
 import tools.aqua.dse.trace.Decision;
 import tools.aqua.dse.trace.Trace;
@@ -63,6 +64,8 @@ public class ConstraintsTree {
   private List<Integer> expectedPath = new ArrayList<>();
   /** status flag: execution diverged from expected path */
   private boolean diverged = false;
+  /** status flag: execution took another unknown branch than expected (not a divergence) */
+  private boolean offExpectedPath = false;
   /** internal mode switch: explore open nodes */
   private boolean exploreMode;
   /** internal mode switch: replay given valuations */
@@ -166,14 +169,26 @@ public class ConstraintsTree {
         // diverging now?
         // check if still in expected path
         int depth = dn.depth();
-        int expectedBranch = expectedPath.get(depth).intValue();
-        // FIXME: this could go wrong on true divergence in switch/case
-        if ((expectedBranch != d.getBranchId()) && !multipleOpen)  {
-          diverged = true;
-          // returning unexpected will fail the current target
-          // i.e., mark current target as dont_know
-          failCurrentTargetDiverged();
-          return BranchEffect.UNEXPECTED;
+        if (!offExpectedPath && depth >= expectedPath.size()) {
+          // deeper than the target: the execution left the expected path at a node with several unknown branches
+          offExpectedPath = true;
+        }
+        if (!offExpectedPath) {
+          int expectedBranch = expectedPath.get(depth).intValue();
+          if (expectedBranch != d.getBranchId()) {
+            if (multipleOpen) {
+              // another of several unknown branches (e.g., dispatch, constructor error): not a divergence, the
+              // target stays open (see finish), but the rest of the expected path does not apply anymore
+              offExpectedPath = true;
+            } else {
+              // FIXME: this could go wrong on true divergence in switch/case
+              diverged = true;
+              // returning unexpected will fail the current target
+              // i.e., mark current target as dont_know
+              failCurrentTargetDiverged();
+              return BranchEffect.UNEXPECTED;
+            }
+          }
         }
 
         // check decision
@@ -233,10 +248,47 @@ public class ConstraintsTree {
     }
   }
 
-  /** @param result */
+  private static boolean isResourceExhaustion(String exceptionClass) {
+    return "java/lang/OutOfMemoryError".equals(exceptionClass) || "java/lang/StackOverflowError".equals(exceptionClass);
+  }
+
   public void finish(PathResult result) {
+    finish(result, true);
+  }
+
+  /**
+   * @param result  the final state of the path.
+   * @param precise whether the path constraint describes all inputs of the path: if the executor lost symbolic
+   *                information, the path is incomplete (siblings that depend on the lost information may be missed).
+   */
+  public void finish(PathResult result, boolean precise) {
+    if (!precise && !current.isDecisionNode()) {
+      System.out.println("== precision lost on this path: the exploration is incomplete");
+      ((LeafNode) current).setComplete(false);
+    }
     LeafNode updatedLeaf = null;
     diverged = false;
+    offExpectedPath = false;
+    // the trace ended where an earlier trace with the same decisions continued: the execution is not
+    // deterministic for these decisions (e.g., it was aborted by the executor). Report instead of failing.
+    if (current.isDecisionNode() && result instanceof PathResult.ErrorResult
+            && isResourceExhaustion(((PathResult.ErrorResult) result).getExceptionClass())) {
+      // e.g. a constructor argument chosen by the solver is a huge array capacity: VM errors are not part of the
+      // constructor summaries (see ConstructorErrorAnalysis), so the path is unknown rather than buggy
+      System.out.println("== resource exhaustion (" + ((PathResult.ErrorResult) result).getExceptionClass()
+              + ") before the end of the expected path");
+      if (currentTarget != null) {
+        failCurrentTargetDontKnow();
+      }
+      return;
+    }
+    if (current.isDecisionNode()) {
+      logger.severe("LIKELY A SEVERE BUG IN EXECUTOR: trace ended at a decision node");
+      if (currentTarget != null) {
+        failCurrentTargetBuggy("trace ended at a decision node");
+      }
+      return;
+    }
     // explored to here before ...
     if (((LeafNode) current).isFinal()) {
       return;
@@ -365,17 +417,32 @@ public class ConstraintsTree {
       //Add object-specific constraints
       solverCtx.push();
         if (!config.isConstructorSummary() && !config.isBaselineEvaluation() && config.getSmtProblemManager() != null) {
-          String staticSmtLibCode = config.getSmtProblemManager().getStaticManager().generateStaticSmtLibCode();
+          // the static part (class hierarchy, polymorphism) is added to the context once (Config.getSolverContext);
+          // regenerating it here for printing cost ~0.3 s and ~150 KB of output per query for larger libraries
           String dynamicSmtLibCode = config.getSmtProblemManager().getConstructorSummaryManager().generateFullConstructorSMTLIbCode(path);
 
-          System.out.println("SMT-Problem-Start");
-          System.out.printf("\u001B[38;5;208m %s %s \u001B[0m%n", staticSmtLibCode, dynamicSmtLibCode);
-          System.out.println("SMT-Problem-End");
+          SmtProblemManager.printSmtProblem(dynamicSmtLibCode);
           SmtProblemManager.addSmtProblemAsString(
                   dynamicSmtLibCode, solverCtx);
         }
       solverCtx.add(path);
     }
+  }
+
+  /** incremental constructor summaries are used (only with non-incremental solving) */
+  private boolean useIncrementalSummaries() {
+    return !incremental
+        && !config.isConstructorSummary()
+        && !config.isBaselineEvaluation()
+        && config.getSmtProblemManager() != null
+        && config.getSmtProblemManager().getConstructorSummaryManager().isIncremental();
+  }
+
+  /** Refinement loop for incremental constructor summaries, see {@link ConstructorSummaryManager#solve}. */
+  private Result solveWithIncrementalSummaries(List<Expression<Boolean>> path, Valuation val) {
+    System.out.println("current decision path: " + Arrays.toString(path.toArray()));
+    logger.finer("Finding new valuation");
+    return config.getSmtProblemManager().getConstructorSummaryManager().solve(solverCtx, path, val);
   }
 
   private void assertExpression(Expression<Boolean>... expr) {
@@ -479,21 +546,25 @@ public class ConstraintsTree {
       }
 
 
-      //todo:
-      // update context and current target
-      updateContext(
-          (currentTarget == null || currentTarget.parent() == null) ? root : currentTarget,
-          nextOpen);
-      currentTarget = nextOpen;
-
-
-
       // find model
       Valuation val = new Valuation();
-      logger.finer("Finding new valuation");
-      System.out.println("\033[35mSolve SMT-problem");
-      Result res = solverCtx.solve(val);
-      solverCtx.pop();
+      Result res;
+      if (useIncrementalSummaries()) {
+        currentTarget = nextOpen;
+        res = solveWithIncrementalSummaries(pathConstraint(nextOpen, root), val);
+      } else {
+        //todo:
+        // update context and current target
+        updateContext(
+            (currentTarget == null || currentTarget.parent() == null) ? root : currentTarget,
+            nextOpen);
+        currentTarget = nextOpen;
+
+        logger.finer("Finding new valuation");
+        System.out.println("\033[35mSolve SMT-problem");
+        res = solverCtx.solve(val);
+        solverCtx.pop();
+      }
 
 
       System.out.println("status: "+res);
@@ -501,7 +572,7 @@ public class ConstraintsTree {
 //              .sorted(Comparator.comparing(e -> e.getVariable().getName()))
 //              .collect(Collectors.toList());
 //      System.out.println("model: "+sortedEntries+"\033[0m");
-      System.out.println("model:\n"+val.toString().replaceAll(",", ",\n")+"\033[0m");
+      System.out.println("model:\n"+tools.aqua.dse.objects.LoggingSolverContext.truncate(val.toString()).replaceAll(",", ",\n")+"\033[0m");
       currentValues = val;
       logger.finer("Found: " + res + " : " + val);
 

@@ -31,13 +31,17 @@ public class DSEIntegrationTest {
     private boolean debug = true;
     private boolean compile = true;
 
-    @BeforeClass
+    @BeforeClass(alwaysRun = true)
     static void resetDecisionTreeOutput() throws IOException {
         Files.deleteIfExists(DECISION_TREE_OUTPUT);
     }
 
-    @BeforeMethod
+    // alwaysRun: otherwise TestNG skips these when tests are selected by group (-Dgroups=...)
+    @BeforeMethod(alwaysRun = true)
     void setUpStreams() {
+        // one instance for all test methods (TestNG): start every test with empty buffers
+        capturedOutput.reset();
+        capturedErr.reset();
         //get console output
         this.originalOut = System.out;
         PrintStream originalErr = System.err;
@@ -49,6 +53,14 @@ public class DSEIntegrationTest {
                 public void write(int b) throws IOException {
                     capturedOutput.write(b); // speichern
                     originalOut.write(b);    // Konsole
+                }
+
+                // forward blocks, not single bytes: surefire records a stack trace for every write to the console,
+                // which made tests with much output (e.g. large SMT problems) take minutes instead of seconds
+                @Override
+                public void write(byte[] b, int off, int len) throws IOException {
+                    capturedOutput.write(b, off, len);
+                    originalOut.write(b, off, len);
                 }
             }, true);
             System.setOut(teeStream);
@@ -62,7 +74,7 @@ public class DSEIntegrationTest {
         }
     }
 
-    @AfterMethod
+    @AfterMethod(alwaysRun = true)
     void restoreStreams() {
         System.setOut(originalOut);
     }
@@ -4758,50 +4770,235 @@ public class DSEIntegrationTest {
 //    }
 //
 //
-    @Test(groups = {"own-tests","tudo"})
-    public void examplejoda() throws IOException, InterruptedException {
-        //define example
-        String exampleName = "joda_money";
 
-        String directoryOfTheExample = String.format("src/test/resources/real_world_programs/%s/", exampleName);
+    // ***************************************************************************************************************
+    //                        Real-world libraries (fat jars from Maven Central, see e2e/libs)
+    // ***************************************************************************************************************
 
-        // Compile Base Classes
-//        FilePreparator.compileClass("Main", directoryOfTheExample, directoryOfTheExample + "joda-money-2.0.3.jar");
-        FilePreparator.compileClass("Main", directoryOfTheExample);
+    /**
+     * Runs DSE on {@code src/test/resources/real_world_programs/<example>/Main}, whose directory contains the fat
+     * jar of the library, and checks the reachability of the assertion and of runtime exceptions.
+     */
+    private void realWorldExample(String example, List<String> classes, boolean assertionReachable,
+                                  boolean runtimeExceptionReachable) throws IOException, InterruptedException {
+        String directoryOfTheExample = String.format("src/test/resources/real_world_programs/%s/", example);
+        FilePreparator.compileClasses(classes, directoryOfTheExample);
 
-        //execute example
-        DSE dse = TestUtils.getDseInstance("Main",
-                directoryOfTheExample);
-
+        // with broad type bounds, objects of any class (e.g. with String fields) are created; SPouT's symbolic
+        // strings are out of scope for these tests, so String fields keep their concrete values
+        String executorOptions = example.endsWith("_object") ? "-Dconcolic.symbolic.string.fields=false" : "";
+        DSE dse = TestUtils.getDseInstance("Main", directoryOfTheExample, executorOptions);
         Instant start = Instant.now();
         dse.executeAnalysis();
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
+        Duration duration = Duration.between(start, Instant.now());
 
-        //stop redirection of console log
         System.setOut(originalOut);
-
-        //printing results
         String output = filterOutPutStream();
-        //System.out.println(output);
-
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //                                                CHECKS
-        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         assertThat(output)
                 .doesNotContain("DIVERGED")
                 .doesNotContain("BUGGY");
 
         List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
-
-        assertThat(TestUtils.validAssert(decisionTree)).isFalse();
-        assertThat(TestUtils.noRuntimeException(decisionTree)).isTrue();
-
+        appendDecisionTree(example, decisionTree);
+        assertThat(TestUtils.validAssert(decisionTree)).isEqualTo(!assertionReachable);
+        assertThat(TestUtils.noRuntimeException(decisionTree)).isEqualTo(!runtimeExceptionReachable);
 
         System.out.println(analyseDecisionTree(decisionTree));
         printDuration(duration);
     }
+
+    /** Commons Lang MutableInt: distinct but equal objects; equals agrees with compareTo; NPE in a constructor. */
+    @Test(groups = {"real-world", "tudo"})
+    public void realWorldCommonsLang3MutableInt() throws IOException, InterruptedException {
+        realWorldExample("commons_lang3_mutableint", List.of("Main"), true, true);
+    }
+
+    /** Commons Lang ComparableUtils.between / greaterThan over three MutableInts: unreachable; NPE for null. */
+    @Test(groups = {"real-world", "tudo"})
+    public void realWorldCommonsLang3ComparableUtils() throws IOException, InterruptedException {
+        realWorldExample("commons_lang3_comparableutils", List.of("Main"), false, true);
+    }
+
+    /** Commons Collections NullComparator.compare: null above non-null iff nullsAreHigh; NPE for null comparator. */
+    @Test(groups = {"real-world", "tudo"})
+    public void realWorldCommonsCollections4NullComparator() throws IOException, InterruptedException {
+        realWorldExample("commons_collections4_nullcomparator", List.of("Main"), true, true);
+    }
+
+    /** JDK Objects.equals: asymmetric equals of Point / ColorPoint; Objects.equals is null-safe. */
+    @Test(groups = {"real-world", "tudo"})
+    public void realWorldJdkObjectsEquals() throws IOException, InterruptedException {
+        realWorldExample("jdk_objects_equals", List.of("Point", "ColorPoint", "Main"), true, false);
+    }
+
+    /** Commons Collections Predicate.evaluate over its implementations: UniquePredicate; NPE for null children. */
+    @Test(groups = {"real-world", "tudo"})
+    public void realWorldCommonsCollections4Predicate() throws IOException, InterruptedException {
+        realWorldExample("commons_collections4_predicate", List.of("Main"), true, true);
+    }
+
+    // Variants with loose type bounds (Object, JDK interfaces): many more candidate constructors
+
+    @Test(groups = {"real-world-object", "tudo"})
+    public void realWorldObjectJdkObjectsEquals() throws IOException, InterruptedException {
+        realWorldExample("jdk_objects_equals_object", List.of("Point", "ColorPoint", "Main"), true, false);
+    }
+
+    @Test(groups = {"real-world-object", "tudo"})
+    public void realWorldObjectCommonsLang3MutableInt() throws IOException, InterruptedException {
+        realWorldExample("commons_lang3_mutableint_object", List.of("Main"), true, true);
+    }
+
+    @Test(groups = {"real-world-object", "tudo"})
+    public void realWorldObjectCommonsLang3ComparableUtils() throws IOException, InterruptedException {
+        realWorldExample("commons_lang3_comparableutils_object", List.of("Main"), false, true);
+    }
+
+    @Test(groups = {"real-world-object", "tudo"})
+    public void realWorldObjectCommonsCollections4NullComparator() throws IOException, InterruptedException {
+        realWorldExample("commons_collections4_nullcomparator_object", List.of("Main"), true, true);
+    }
+
+    @Test(groups = {"real-world-object", "tudo"})
+    public void realWorldObjectCommonsCollections4Predicate() throws IOException, InterruptedException {
+        realWorldExample("commons_collections4_predicate_object", List.of("Main"), true, true);
+    }
+
+    // ------------------------------------------------------------------------------------------------------------
+    //  heap shapes: cycles and sharing created by constructors (docs/heap-model-plan.md). Every program has one
+    //  branch that only aliasing reaches (assertion violation) and one that only distinct objects reach
+    //  (IllegalStateException); both must be explored.
+    // ------------------------------------------------------------------------------------------------------------
+
+    private void arrayExample(String example, List<String> classes) throws IOException, InterruptedException {
+        heapExample("array_programs", example, classes, 2, "");
+    }
+
+    @Test(groups = {"arrays", "tudo"})
+    public void arrayLocalSymbolicIndex() throws IOException, InterruptedException {
+        arrayExample("arr_local", List.of("Main"));
+    }
+
+    @Test(groups = {"arrays", "tudo"})
+    public void arrayAlias() throws IOException, InterruptedException {
+        arrayExample("arr_alias", List.of("P", "Main"));
+    }
+
+    @Test(groups = {"arrays", "tudo"})
+    public void arraySymbolicIndexOfInput() throws IOException, InterruptedException {
+        arrayExample("arr_index", List.of("H", "Main"));
+    }
+
+    private void heapExample(String example, List<String> classes, int depth) throws IOException, InterruptedException {
+        heapExample("heap_programs", example, classes, depth, "-Dconcolic.symbolic.string.fields=false");
+    }
+
+    private void heapExample(String folder, String example, List<String> classes, int depth, String executorOptions)
+            throws IOException, InterruptedException {
+        String directory = String.format("src/test/resources/%s/%s/", folder, example);
+        FilePreparator.compileClasses(classes, directory);
+        DSE dse = TestUtils.getDseInstance("Main", directory, executorOptions, String.valueOf(depth));
+        dse.executeAnalysis();
+
+        System.setOut(originalOut);
+        String output = filterOutPutStream();
+        List<String> decisionTree = TestUtils.getDecisionTreeLineByLine(output);
+        System.out.println(String.join("\n", decisionTree));
+        assertThat(decisionTree).noneMatch(line -> line.contains("DIVERGED") || line.contains("BUGGY"));
+        assertThat(decisionTree).as("branch reachable only with aliasing")
+                .anyMatch(line -> line.contains("java/lang/AssertionError"));
+        assertThat(decisionTree).as("branch reachable only with distinct objects")
+                .anyMatch(line -> line.contains("java/lang/IllegalStateException"));
+    }
+
+    @Test(groups = {"heap", "tudo"})
+    public void heapSelfLoop() throws IOException, InterruptedException {
+        heapExample("selfloop", List.of("Node", "Main"), 1);
+    }
+
+    @Test(groups = {"heap", "tudo"})
+    public void heapSharing() throws IOException, InterruptedException {
+        heapExample("sharing", List.of("Pair", "Main"), 2);
+    }
+
+    @Test(groups = {"heap", "tudo"})
+    public void heapCycle2() throws IOException, InterruptedException {
+        heapExample("cycle2", List.of("Ring", "Main"), 2);
+    }
+
+    @Test(groups = {"heap", "tudo"})
+    public void heapNestedAlias() throws IOException, InterruptedException {
+        heapExample("nested_alias", List.of("Box", "BoxPair", "Main"), 2);
+    }
+
+    @Test(groups = {"heap", "tudo"})
+    public void heapWriteAlias() throws IOException, InterruptedException {
+        heapExample("write_alias", List.of("Box", "BoxPair", "Main"), 2);
+    }
+
+    @Test(groups = {"heap", "tudo"})
+    public void heapWriteAlias2() throws IOException, InterruptedException {
+        heapExample("write_alias2", List.of("Box", "BoxPair", "Main"), 2);
+    }
+
+    @Test(groups = {"heap", "tudo"})
+    public void heapStaticShare() throws IOException, InterruptedException {
+        heapExample("static_share", List.of("Holder", "Main"), 2);
+    }
+
+    // Strings as objects: identity by terms, content by the function str.val (symbolic string fields)
+
+    private void stringExample(String example, List<String> classes) throws IOException, InterruptedException {
+        heapExample("string_programs", example, classes, 2, "");
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringShare() throws IOException, InterruptedException {
+        stringExample("str_share", List.of("P", "Main"));
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringEquals() throws IOException, InterruptedException {
+        stringExample("str_equals", List.of("P", "Main"));
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringNull() throws IOException, InterruptedException {
+        stringExample("str_null", List.of("H", "Main"));
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringContent() throws IOException, InterruptedException {
+        stringExample("str_content", List.of("H", "Main"));
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringLiteral() throws IOException, InterruptedException {
+        stringExample("str_literal", List.of("L", "Main"));
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringSplit() throws IOException, InterruptedException {
+        stringExample("str_split", List.of("Main"));
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringTokenizer() throws IOException, InterruptedException {
+        stringExample("str_tokenizer", List.of("Main"));
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringChars() throws IOException, InterruptedException {
+        stringExample("str_chars", List.of("Main"));
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringBuilderAlias() throws IOException, InterruptedException {
+        stringExample("sb_alias", List.of("P", "Main"));
+    }
+
+    @Test(groups = {"strings", "tudo"})
+    public void stringBuilderContent() throws IOException, InterruptedException {
+        stringExample("sb_content", List.of("H", "Main"));
+    }
 }
-
-
-
