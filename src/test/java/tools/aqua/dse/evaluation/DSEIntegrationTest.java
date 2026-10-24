@@ -4937,6 +4937,11 @@ public class DSEIntegrationTest {
     }
 
     @Test(groups = {"heap", "tudo"})
+    public void heapWriteAlias2() throws IOException, InterruptedException {
+        heapExample("write_alias2", List.of("Box", "BoxPair", "Main"), 2);
+    }
+
+    @Test(groups = {"heap", "tudo"})
     public void heapStaticShare() throws IOException, InterruptedException {
         heapExample("static_share", List.of("Holder", "Main"), 2);
     }
