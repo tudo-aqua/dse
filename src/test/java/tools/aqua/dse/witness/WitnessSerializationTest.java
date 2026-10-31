@@ -1,10 +1,13 @@
 package tools.aqua.dse.witness;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import tools.aqua.dse.witness.svcomp.ViolationSequence;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 import java.io.StringWriter;
 import java.io.Writer;
@@ -13,7 +16,9 @@ public class WitnessSerializationTest {
     ObjectMapper mapper;
     @BeforeClass
     public void setup() {
-         mapper = new ObjectMapper(new YAMLFactory());
+         mapper = YAMLMapper.builder().changeDefaultPropertyInclusion(inclusion ->
+                         inclusion.withValueInclusion(JsonInclude.Include.NON_NULL)).
+                 propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE).build();
     }
 
     @Test
