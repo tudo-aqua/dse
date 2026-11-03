@@ -356,6 +356,18 @@ public class ConstraintsTree {
 
   /** */
   public void failCurrentTargetDontKnow() {
+    if (currentTarget == null || currentTarget.parent() == null) {
+      if (!(root instanceof LeafNode)) {
+        // a replayed execution: no target in the tree
+        return;
+      }
+      // the first execution (the root) failed, e.g. by the executor timeout
+      LeafNode dk = LeafNode.dontKnow(null, -1);
+      root = dk;
+      current = dk;
+      currentTarget = dk;
+      return;
+    }
     currentTarget.parent().useUnexploredConstraint(currentTarget.childId());
     LeafNode dk = LeafNode.dontKnow(currentTarget.parent(), currentTarget.childId());
     currentTarget.parent().replace(currentTarget, dk);
