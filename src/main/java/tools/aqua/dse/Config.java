@@ -182,7 +182,7 @@ public class Config {
             this.baselineEvaluation = this.executorArgs.contains("-Dconcolic.object.factories=true");
         }
 
-        if (!this.constructorSummary && !this.baselineEvaluation) {
+        if (!this.constructorSummary && !this.baselineEvaluation && usesNondetObject()) {
             ctx.push();
             this.initializeSmtProblemManager();
             if(this.smtProblemManager != null) {
@@ -202,6 +202,80 @@ public class Config {
         return ctx;
     }
 
+
+    /** cached result of {@link #usesNondetObject()} */
+    private Boolean usesNondetObject;
+
+    /**
+     * Whether a class of the analyzed program (the first class path entry, a directory or a jar) references
+     * {@code nondetObject}, i.e., whether the object model (static class hierarchy and polymorphism, constructor
+     * summaries, {@code null}) is needed. Without such a reference, no symbolic object can occur, and the set-up
+     * (the OPAL analysis and the DSE of the {@code null} constructor, several seconds) as well as the object
+     * constraints in every query are skipped; the latter also keep Z3 from solving pure FP/BV queries with the
+     * strategy of mixed logics. Every call site and method reference has the name in the constant pool of its class,
+     * so the byte search has no false negatives (false positives only cost time). The {@code Verifier} class, which
+     * defines {@code nondetObject}, is ignored.
+     */
+    public boolean usesNondetObject() {
+        if (usesNondetObject == null) {
+            usesNondetObject = this.classPaths.isEmpty() || scanForNondetObject(new File(this.classPaths.get(0)));
+            if (!usesNondetObject) {
+                System.out.println("no reference to nondetObject in " + this.classPaths.get(0)
+                        + ": object model skipped");
+            }
+        }
+        return usesNondetObject;
+    }
+
+    private static final byte[] NONDET_OBJECT = "nondetObject".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+
+    private static boolean scanForNondetObject(File root) {
+        try {
+            if (root.isDirectory()) {
+                try (java.util.stream.Stream<java.nio.file.Path> files = java.nio.file.Files.walk(root.toPath())) {
+                    return files.filter(f -> f.toString().endsWith(".class") && !isVerifier(f.toString()))
+                            .anyMatch(f -> {
+                                try {
+                                    return contains(java.nio.file.Files.readAllBytes(f), NONDET_OBJECT);
+                                } catch (IOException e) {
+                                    return true;
+                                }
+                            });
+                }
+            }
+            if (root.isFile()) {
+                try (java.util.zip.ZipFile jar = new java.util.zip.ZipFile(root)) {
+                    for (java.util.zip.ZipEntry e : Collections.list(jar.entries())) {
+                        if (e.getName().endsWith(".class") && !isVerifier(e.getName())
+                                && contains(jar.getInputStream(e).readAllBytes(), NONDET_OBJECT)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            }
+        } catch (IOException | RuntimeException e) {
+            System.out.println("cannot scan " + root + " for nondetObject (" + e + "), using the object model");
+        }
+        return true;
+    }
+
+    private static boolean isVerifier(String path) {
+        return path.replace('\\', '/').endsWith("org/sosy_lab/sv_benchmarks/Verifier.class");
+    }
+
+    private static boolean contains(byte[] data, byte[] pattern) {
+        outer:
+        for (int i = 0; i + pattern.length <= data.length; i++) {
+            for (int j = 0; j < pattern.length; j++) {
+                if (data[i + j] != pattern[j]) {
+                    continue outer;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
 
     /**
      * max depth of exploration exceeded at depth

@@ -158,7 +158,9 @@ public class TraceParser {
             throw e;
         }
 
-        if (!config.isBaselineEvaluation()) {
+        // without the object model (no nondetObject in the program, see Config#usesNondetObject), there are no
+        // dispatch or constructor error decisions
+        if (!config.isBaselineEvaluation() && config.getSmtProblemManager() != null) {
             // Special Handling of branchCount & BranchId of obj.method.of (SPout sets Unknown because it has no information
             // how many polymorph methods exists and which id they own in DSE)
             // the class argument is __object_k.cls or a term (obj.cls <object>) of the heap model
