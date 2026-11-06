@@ -107,6 +107,17 @@ public class PathResult {
     public String getExceptionClass() {
       return exceptionClass;
     }
+
+    /** whether the exception is a RuntimeException (reported by the executor) */
+    private boolean runtimeException = false;
+
+    public boolean isRuntimeException() {
+      return runtimeException;
+    }
+
+    public void setRuntimeException(boolean runtimeException) {
+      this.runtimeException = runtimeException;
+    }
     
     public String getStackTrace() {
       return stackTrace;

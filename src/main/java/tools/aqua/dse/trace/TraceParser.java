@@ -57,6 +57,7 @@ public class TraceParser {
         StringBuilder decl = new StringBuilder("(declare-fun obj.extends (String String) Bool) \n (declare-fun obj.method.of (String String String String) Bool)"); //todo: needed?
         int objectCount = 0;
         boolean traceComplete = false;
+        boolean runtimeException = false;
         List<String> precisionLosses = new ArrayList<>();
         Set<String> objectIdentifiers = new HashSet<>();
 
@@ -115,6 +116,9 @@ public class TraceParser {
             else if (line.startsWith("[META_INFOS]")) {
                 objectCount = Integer.parseInt(line.substring("[META_INFOS] object_count:".length()).trim());
             }
+            else if (line.startsWith("[RUNTIME_EXCEPTION]")) {
+                runtimeException = true;
+            }
             else if (line.startsWith("[INCOMPLETE]")) {
                 precisionLosses.add(line.substring("[INCOMPLETE]".length()).trim());
             }
@@ -128,6 +132,9 @@ public class TraceParser {
             return null;
         }
 
+        if (runtimeException && result instanceof PathResult.ErrorResult) {
+            ((PathResult.ErrorResult) result).setRuntimeException(true);
+        }
         result.setTaintViolations(taintViolations);
         Trace trace = new Trace(decisions, summeries, declarations, witness, flows, result, objectCount, objectIdentifiers);
         trace.getPrecisionLosses().addAll(precisionLosses);

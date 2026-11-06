@@ -322,6 +322,12 @@ public class ConstraintsTree {
           System.out.println("--- terminating DSE after assertion violation");
           terminate = true;
         }
+        // property no-runtime-exception: the first uncaught RuntimeException decides
+        if ((termination & Config.TERMINATE_ON_ERROR) > 0 && ((PathResult.ErrorResult) result).isRuntimeException()) {
+          System.out.println("--- terminating DSE after uncaught runtime exception "
+                  + ((PathResult.ErrorResult) result).getExceptionClass());
+          terminate = true;
+        }
 
         break;
       case ABORT:

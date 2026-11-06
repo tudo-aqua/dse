@@ -191,7 +191,12 @@ public class DSE {
             return;
         }
         PathResult.ErrorResult res = (PathResult.ErrorResult) trace.getTraceState();
-        if (!res.getExceptionClass().equals("java/lang/AssertionError") && !res.getExceptionClass().equals("error encountered")) {
+        // a violation of the checked property: an uncaught RuntimeException for no-runtime-exception, an assertion
+        // violation otherwise
+        boolean violation = (config.getTermination() & Config.TERMINATE_ON_ERROR) > 0
+                ? res.isRuntimeException()
+                : res.getExceptionClass().equals("java/lang/AssertionError") || res.getExceptionClass().equals("error encountered");
+        if (!violation) {
             return;
         }
 
