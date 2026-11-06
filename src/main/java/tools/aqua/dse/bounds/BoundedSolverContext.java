@@ -94,7 +94,7 @@ public class BoundedSolverContext extends SolverContext {
 		}
 
 		Result res = null;
-    if (BoundedSolver.isBoundable(all)) {
+    if (solver.isBoundable(all)) {
       for (int i = 1; i <= itr; i++) {
         Expression<Boolean> boundExpr = solver.getBound(all, i);
         ArrayList<Expression<Boolean>> bounds = new ArrayList<>();

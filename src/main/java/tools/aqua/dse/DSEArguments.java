@@ -70,11 +70,13 @@ public class DSEArguments {
         System.out.println();
         printDSEOptionHelp("dse.executor", "executor command (e.g. java)");
         printDSEOptionHelp("dse.executor.args", "executor args (e.g. -cp ... Main)");
-        printDSEOptionHelp("dse.b64encode", "base64-encode concolic values passed to executor: true / false (default)");
+        printDSEOptionHelp("dse.b64encode", "base64-encode concolic values passed to executor: true (default) / false");
         printDSEOptionHelp("dse.explore", "one of: inorder, bfs, dfs (default)");
         printDSEOptionHelp("dse.terminate.on", "| separated list of: assertion, error, bug, taint, completion (default)");
         printDSEOptionHelp("dse.dp", "jconstraints id of solving backend");
         printDSEOptionHelp("dse.dp.incremental", "use incremental solving: true / false (default)");
+        printDSEOptionHelp("dse.unroll.bound", "maximal number of iterations that the executor unrolls symbolically per\nexecution of an operation (e.g. separators of String.split); 0 (default): none");
+        printDSEOptionHelp("dse.dp.timeout", "time limit of a single solver query in seconds (default 0: none); undecided\nqueries are unknown (the target is not explored)");
         printDSEOptionHelp("dse.bounds", "use bounds on integer values when solving: true / false (default)");
         printDSEOptionHelp("dse.bounds.step", "step width (increase of bounds) when using bounds iteratively");
         printDSEOptionHelp("dse.bounds.iter", "no. of bounded solving attempts before dropping bounds");
@@ -85,6 +87,15 @@ public class DSEArguments {
         printDSEOptionHelp("static.info", "static information on inheritance and constructors for objects (filename)");
         printDSEOptionHelp("random.seed", "random seed (long value)");
         printDSEOptionHelp("dse.timeout", "timeout in seconds (long value)");
+        printDSEOptionHelp("dse.summaries.mode", "constructor summaries: eager (default, all up front) / incremental (on demand)");
+        printDSEOptionHelp("dse.summaries.depth", "max. nesting depth of constructor calls in summarized signatures (default 1)");
+        printDSEOptionHelp("dse.summaries.batch", "incremental: no. of signatures summarized per refinement step (default 1)");
+        printDSEOptionHelp("dse.executor.timeout", "time limit of a single execution in seconds (default 120, 0: none)");
+        printDSEOptionHelp("dse.summaries.timeout", "time budget of the DSE of a single constructor in seconds (default 60)");
+        printDSEOptionHelp("dse.objects.relations", "encoding of obj.extends / obj.method.of: grounded (default, instantiated\nper constraint) / quantified (defined by universally quantified formulas)");
+        printDSEOptionHelp("dse.errors.mode", "incremental: constructor error inference: unknown (default, imprecision means unknown\nerrors) / declared (declared and language exceptions, trusted as complete)");
+        printDSEOptionHelp("dse.errors.maxMethods", "incremental: max. no. of methods analyzed for constructor errors (default 200000)");
+        printDSEOptionHelp("dse.errors.maxCallTargets", "incremental: max. no. of call targets followed per call site");
         System.out.println();
     }
 

@@ -26,8 +26,13 @@ public class BenchmarkingScaling {
     private PrintStream originalOut;
 
 
-    @BeforeMethod()
+    // alwaysRun: otherwise TestNG skips these when tests are selected by group (-Dgroups=...)
+    @BeforeMethod(alwaysRun = true)
     void setUpStreams() {
+        // one instance for all invocations (TestNG, data providers): start every run with empty buffers,
+        // otherwise set-up time and decision tree of the first run are reported for all later runs
+        capturedOutput.reset();
+        capturedErr.reset();
         //get console output
         this.originalOut = System.out;
         PrintStream originalErr = System.err;
@@ -39,7 +44,7 @@ public class BenchmarkingScaling {
 
     }
 
-    @AfterMethod
+    @AfterMethod(alwaysRun = true)
     void restoreStreams() {
         System.setOut(originalOut);
     }
@@ -109,18 +114,21 @@ public class BenchmarkingScaling {
 
     private static final String CSV_FILE_PREFIX = "target/test-output/";
 
+    /** repetitions of every measurement (-Dtest.repetitions, default 10 as in the paper; e.g. 1 for a quick run) */
+    private static final int REPETITIONS = Integer.getInteger("test.repetitions", 10);
+
     private static final String NAME_OF_THE_EXAMPLES_TEST = "examplesTest";
     private static final String NAME_OF_THE_EXAMPLES_TEST_BASELINE = "examplesTestBaseline";
     private static final Path CSV_FILE_EXAMPLES = Path.of(CSV_FILE_PREFIX + "examplesMeasurement.csv");
     private static final Path CSV_FILE_EXAMPLES_BASELINE = Path.of(CSV_FILE_PREFIX + "examplesBaselineMeasurement.csv");
-    private static final int EXAMPLES_TEST_NUMBER_OF_REPETITIONS = 10;
+    private static final int EXAMPLES_TEST_NUMBER_OF_REPETITIONS = REPETITIONS;
 
     private static final String NAME_OF_THE_CONSTRUCTOR_SCALING_TEST = "constructorScalingTest";
     private static final String NAME_OF_THE_CONSTRUCTOR_SCALING_TEST_BASELINE = "constructorScalingTestBaseline";
     private static final Path CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS = Path.of(CSV_FILE_PREFIX + "constructorScalingMeasurement.csv");
     private static final Path CSV_FILE_SCALING_NUMBER_OF_CONSTRUCTORS_BASELINE = Path.of(CSV_FILE_PREFIX + "constructorScalingBaselineMeasurement.csv");
     private static final int CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS = 30;
-    private static final int CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS = 10;
+    private static final int CONSTRUCTOR_SCALING_NUMBER_OF_REPETITIONS = REPETITIONS;
 
     private static final String NAME_OF_THE_NON_DET_OBJECT_SCALING_TEST = "nondetObjectScalingTest";
     private static final String NAME_OF_THE_NON_DET_OBJECT_SCALING_TEST_BASELINE = "nondetObjectScalingTestBaseline";
@@ -128,10 +136,10 @@ public class BenchmarkingScaling {
     private static final Path CSV_FILE_NON_DET_OBJECT_SCALING_BASELINE = Path.of(CSV_FILE_PREFIX + "nondetObjectScalingBaselineMeasurement.csv");
     private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS = 30;
     private static final int NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS_BASELINE = 12;
-    private static final int NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS = 10;
+    private static final int NON_DET_OBJECT_SCALING_NUMBER_OF_REPETITIONS = REPETITIONS;
 
 
-    @BeforeClass
+    @BeforeClass(alwaysRun = true)
     static void setUpTestFiles() throws IOException, InterruptedException {
         FilePreparator.setUpConstructorScalingTest(CONSTRUCTOR_SCALING_MAX_NUMBER_OF_CONSTRUCTORS);
         FilePreparator.setUpNonDetObjectTest(NON_DET_OBJECT_SCALING_MAX_NON_DET_OBJECT_CALLS);

@@ -26,6 +26,7 @@ import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import tools.aqua.redistribution.org.smtlib.sexpr.Sexpr;
 
 import java.math.BigInteger;
+import java.util.regex.Pattern;
 
 public class BoundedSolver extends ConstraintSolver {
 
@@ -42,13 +43,30 @@ public class BoundedSolver extends ConstraintSolver {
 		linear, fibonacci
 	}
 
+	/**
+	 * Variables that are bounded: all, or only the parameters of constructors of concolic objects
+	 * ({@code __object_<k>__<type>_<i>}, e.g. capacities of collections, which otherwise are often chosen huge).
+	 */
+	public enum Scope {
+		all, constructors
+	}
+
+	private static final Pattern CONSTRUCTOR_PARAMETER = Pattern.compile("__object_\\d+__.*");
+
 	BoundType type;
 
+	private final Scope scope;
+
 	public BoundedSolver(ConstraintSolver back, int bound, int itr, BoundType type) {
+		this(back, bound, itr, type, Scope.all);
+	}
+
+	public BoundedSolver(ConstraintSolver back, int bound, int itr, BoundType type, Scope scope) {
 		this.back = back;
 		this.bound = bound;
 		this.itr = itr;
 		this.type = type;
+		this.scope = scope;
 	}
 
   @Override
@@ -72,51 +90,83 @@ public class BoundedSolver extends ConstraintSolver {
 		return new BoundedSolverContext(ctx, bound, itr, this);
 	}
 
+	/** the bounds of the {@code index}-th attempt (widening with the index, linearly or by the Fibonacci sequence) */
 	public Expression<Boolean> getBound(Expression<Boolean> expr, int index) {
 		int resultingBound = index * bound;
 
 		if (type == BoundType.fibonacci) {
-			resultingBound = fibonacci[index];
+			resultingBound = fibonacci[Math.min(index, fibonacci.length - 1)];
 		}
 
 		return getBoundExpression(expr, resultingBound);
 	}
 
-	private static Expression<Boolean> getBoundExpression(Expression<Boolean> e, int bound) {
+	private boolean inScope(Variable<?> v) {
+		return scope == Scope.all || CONSTRUCTOR_PARAMETER.matcher(v.getName()).matches();
+	}
 
-		Constant low = new Constant(BuiltinTypes.SINT32, -bound);
-		Constant high = new Constant(BuiltinTypes.SINT32, bound);
+	/**
+	 * Bounds for the variables of {@code e}: integers of all widths in {@code [-bound, bound]} (limited to the range
+	 * of their type), lengths of strings up to {@code 10 * bound}, finite floating-point values.
+	 */
+	private Expression<Boolean> getBoundExpression(Expression<Boolean> e, int bound) {
 		Expression<Boolean> ret = ExpressionUtil.TRUE;
 		for (Variable v : ExpressionUtil.freeVariables(e)) {
-			if (v.getType().equals(BuiltinTypes.SINT32)) {
-				Expression<Boolean> lower = new NumericBooleanExpression(low, NumericComparator.LE, v);
-				Expression<Boolean> upper = new NumericBooleanExpression(v, NumericComparator.LE, high);
-				ret = ExpressionUtil.and(ret, lower, upper);
+			if (!inScope(v)) {
+				continue;
 			}
-			if(v.getType().equals(BuiltinTypes.STRING)){
-				Expression<BigInteger> strLen = StringIntegerExpression.createLength(v);
-				Constant<BigInteger> upperBound = Constant.create(BuiltinTypes.INTEGER, BigInteger.valueOf(bound*10));
-				Expression<Boolean> upper = new NumericBooleanExpression(strLen, NumericComparator.LE, upperBound);
-				ret = ExpressionUtil.and(ret, upper);
-			}
-			if(v.getType().equals(BuiltinTypes.DOUBLE)){
-				Expression<Boolean> bound1 = new Negation(new FloatingPointBooleanExpression(FPComparator.FP_IS_NAN, v));
-				Expression<Boolean> bound2 = new Negation(new FloatingPointBooleanExpression(FPComparator.FP_IS_INFINITE, v));
-				ret = ExpressionUtil.and(ret, bound1, bound2);
+			Expression<Boolean> b = boundOf(v, bound);
+			if (b != null) {
+				ret = ExpressionUtil.and(ret, b);
 			}
 		}
 		return ret;
 	}
 
-	public static boolean isBoundable(Expression<Boolean> e){
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	private static Expression<Boolean> boundOf(Variable v, int bound) {
+		Constant low = null;
+		Constant high = null;
+		if (v.getType().equals(BuiltinTypes.SINT8)) {
+			int b = Math.min(bound, Byte.MAX_VALUE);
+			low = Constant.create(BuiltinTypes.SINT8, (byte) -b);
+			high = Constant.create(BuiltinTypes.SINT8, (byte) b);
+		} else if (v.getType().equals(BuiltinTypes.SINT16)) {
+			int b = Math.min(bound, Short.MAX_VALUE);
+			low = Constant.create(BuiltinTypes.SINT16, (short) -b);
+			high = Constant.create(BuiltinTypes.SINT16, (short) b);
+		} else if (v.getType().equals(BuiltinTypes.UINT16)) {
+			// chars: non-negative
+			low = Constant.create(BuiltinTypes.UINT16, (char) 0);
+			high = Constant.create(BuiltinTypes.UINT16, (char) Math.min(bound, Character.MAX_VALUE));
+		} else if (v.getType().equals(BuiltinTypes.SINT32)) {
+			low = Constant.create(BuiltinTypes.SINT32, -bound);
+			high = Constant.create(BuiltinTypes.SINT32, bound);
+		} else if (v.getType().equals(BuiltinTypes.SINT64)) {
+			low = Constant.create(BuiltinTypes.SINT64, (long) -bound);
+			high = Constant.create(BuiltinTypes.SINT64, (long) bound);
+		}
+		if (low != null) {
+			return ExpressionUtil.and(new NumericBooleanExpression(low, NumericComparator.LE, v),
+					new NumericBooleanExpression(v, NumericComparator.LE, high));
+		}
+		if (v.getType().equals(BuiltinTypes.STRING)) {
+			Expression<BigInteger> strLen = StringIntegerExpression.createLength(v);
+			Constant<BigInteger> upperBound = Constant.create(BuiltinTypes.INTEGER, BigInteger.valueOf(bound * 10L));
+			return new NumericBooleanExpression(strLen, NumericComparator.LE, upperBound);
+		}
+		if (v.getType().equals(BuiltinTypes.DOUBLE) || v.getType().equals(BuiltinTypes.FLOAT)) {
+			Expression<Boolean> bound1 = new Negation(new FloatingPointBooleanExpression(FPComparator.FP_IS_NAN, v));
+			Expression<Boolean> bound2 = new Negation(new FloatingPointBooleanExpression(FPComparator.FP_IS_INFINITE, v));
+			return ExpressionUtil.and(bound1, bound2);
+		}
+		return null;
+	}
+
+	/** @return whether some variable of {@code e} is bounded */
+	public boolean isBoundable(Expression<Boolean> e){
 		for (Variable v : ExpressionUtil.freeVariables(e)) {
-			if (v.getType().equals(BuiltinTypes.SINT32)) {
-				return true;
-			}
-			if(v.getType().equals(BuiltinTypes.STRING)){
-				return true;
-			}
-			if(v.getType().equals(BuiltinTypes.DOUBLE)){
+			if (inScope(v) && boundOf(v, 1) != null) {
 				return true;
 			}
 		}

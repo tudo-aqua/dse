@@ -134,7 +134,8 @@ public class ExplorerTest {
         assert e.hasNextValuation();
 
         Valuation v2 = e.getNextValuation();
-        assert v2.getValue(v).equals(0);
+        // any model of !(x == 1) (the solver chooses the value)
+        assert !v2.getValue(v).equals(1);
         PathResult pr2 = new PathResult.OkResult(v2);
         Trace t2 = new Trace(Collections.singletonList(d2), pr2);
         e.addTrace(t2);

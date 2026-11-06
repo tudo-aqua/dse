@@ -15,23 +15,16 @@
 
 package tools.aqua.dse;
 
-import gov.nasa.jpf.constraints.api.SolverContext;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
-import org.stringtemplate.v4.ST;
-import org.stringtemplate.v4.STGroup;
-import org.stringtemplate.v4.STRawGroupDir;
-import tools.aqua.dse.iflow.InformationFlowAnalysis;
 import tools.aqua.dse.paths.PathResult;
 import tools.aqua.dse.trace.Trace;
 import tools.aqua.dse.trace.WitnessAssumption;
-import tools.aqua.dse.witness.WitnessEdge;
-import tools.aqua.dse.witness.WitnessNode;
+import tools.aqua.dse.witness.svcomp.SVCompViolationWitnessFile;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.*;
 
 public class DSE {
@@ -45,13 +38,21 @@ public class DSE {
     }
 
     public void executeAnalysis() {
+        long start = System.currentTimeMillis();
         Explorer explorer = new Explorer(config);
         Executor executor = new Executor(config);
+        // set-up: static analysis, error analysis, and (eager mode) all constructor summaries
+        long setUpDone = System.currentTimeMillis();
+        int paths = 0;
+        boolean assertionReached = false;
 
         List<List<String>> flows = new LinkedList<>();
 
         long timeoutMs = config.getTimeoutSeconds() * 1000L;
         long deadline = timeoutMs > 0 ? System.currentTimeMillis() + timeoutMs : Long.MAX_VALUE;
+        if (config.getSmtProblemManager() != null && config.getSmtProblemManager().getConstructorSummaryManager() != null) {
+            config.getSmtProblemManager().getConstructorSummaryManager().setDeadline(deadline);
+        }
 
         while (explorer.hasNextValuation()) {
             if (System.currentTimeMillis() >= deadline) {
@@ -68,11 +69,22 @@ public class DSE {
             } else {
                 System.out.println("== no trace obtained.");
             }
+            if (trace == null && executor.lastExecutionTimedOut()) {
+                explorer.executionTimedOut();
+                continue;
+            }
             explorer.addTrace(trace);
+            paths++;
+            if (!assertionReached && trace != null && trace.getTraceState() instanceof PathResult.ErrorResult
+                    && "java/lang/AssertionError".equals(((PathResult.ErrorResult) trace.getTraceState()).getExceptionClass())) {
+                assertionReached = true;
+                System.out.println(statistics("first-assertion", start, setUpDone, paths));
+            }
 
             // check if we should save a witness
             checkAndSaveWitness(trace);
         }
+        System.out.println(statistics("end", start, setUpDone, paths));
 
         System.out.println("\u001b[32mdecision tree of the analysed program:");
         System.out.println(explorer.getAnalysis()+"\u001b[0m");
@@ -104,6 +116,19 @@ public class DSE {
 //        System.exit(0);
     }
 
+    /** one line of measurements, e.g. for the experiments with incremental constructor summaries */
+    private String statistics(String event, long start, long setUpDone, int paths) {
+        long now = System.currentTimeMillis();
+        int summarized = -1;
+        int signatures = -1;
+        if (config.getSmtProblemManager() != null && config.getSmtProblemManager().getConstructorSummaryManager() != null) {
+            summarized = config.getSmtProblemManager().getConstructorSummaryManager().summarizedCount();
+            signatures = config.getSmtProblemManager().getConstructorSummaryManager().signatureCount();
+        }
+        return String.format("[dse-stats] event=%s time_ms=%d setup_ms=%d paths=%d summarized=%d signatures=%d",
+                event, now - start, setUpDone - start, paths, summarized, signatures);
+    }
+
     public List<Trace> executeConstructor(String constructor) {
         Explorer explorer = new Explorer(config);
         Executor executor = new Executor(config);
@@ -113,6 +138,9 @@ public class DSE {
 
         long timeoutMs = config.getTimeoutSeconds() * 1000L;
         long deadline = timeoutMs > 0 ? System.currentTimeMillis() + timeoutMs : Long.MAX_VALUE;
+        if (config.getSmtProblemManager() != null && config.getSmtProblemManager().getConstructorSummaryManager() != null) {
+            config.getSmtProblemManager().getConstructorSummaryManager().setDeadline(deadline);
+        }
 
         while (explorer.hasNextValuation()) {
             if (System.currentTimeMillis() >= deadline) {
@@ -126,6 +154,11 @@ public class DSE {
             val.setValue(constrVar, constructor);
 
             Trace trace = executor.execute(val, config);
+            if (trace == null && executor.lastExecutionTimedOut()) {
+                // the summary misses the paths of this execution (incomplete, like a timeout)
+                explorer.executionTimedOut();
+                continue;
+            }
             traces.add(trace);
 
             if (trace != null) {
@@ -152,50 +185,56 @@ public class DSE {
      *
      */
     private void checkAndSaveWitness(Trace trace) {
-        if (!config.isWitness() || savedWitness || trace == null ||
+        if (!this.config.isWitness() || savedWitness || trace == null ||
                 !(trace.getTraceState() instanceof PathResult.ErrorResult) ||
                 !trace.hasWitness()) {
             return;
         }
         PathResult.ErrorResult res = (PathResult.ErrorResult) trace.getTraceState();
-        if (!res.getExceptionClass().equals("java/lang/AssertionError") && !res.getExceptionClass().equals("error encountered")) {
+        // a violation of the checked property: an uncaught RuntimeException for no-runtime-exception, an assertion
+        // violation otherwise
+        boolean violation = (config.getTermination() & Config.TERMINATE_ON_ERROR) > 0
+                ? res.isRuntimeException()
+                : res.getExceptionClass().equals("java/lang/AssertionError") || res.getExceptionClass().equals("error encountered");
+        if (!violation) {
             return;
         }
 
         savedWitness = true;
-
-        List<WitnessNode> nodes = new ArrayList<>();
-        List<WitnessEdge> edges = new ArrayList<>();
-
-        int nodeId = 0;
-        WitnessNode initNode = new WitnessNode(nodeId++);
-        nodes.add(initNode);
-        initNode.addData("entry", "true");
-        WitnessNode curNode = initNode;
-
-        for (WitnessAssumption wa : trace.getWitness()) {
-            String loc = getLineOfCode(wa.getClazz(), wa.getLine());
-            String assumption = computeAssumption(loc, wa);
-
-            WitnessNode prevNode = curNode;
-            curNode = new WitnessNode(nodeId++);
-            nodes.add(curNode);
-            WitnessEdge edge = new WitnessEdge(prevNode, wa, assumption, curNode);
-            edges.add(edge);
-        }
-
-        curNode.addData("violation", "true");
-
-        STGroup group = new STRawGroupDir("witnesses", '$','$');
-        ST st = group.getInstanceOf("witness");
-        st.add("nodes", nodes);
-        st.add("edges", edges);
-        String result = st.render();
-        try {
-            Files.write(Paths.get("witness.graphml"), result.getBytes());
-        } catch (IOException e) {
-            System.err.println("Error writing witness to file: " + e.getMessage());
-        }
+        SVCompViolationWitnessFile wit = SVCompViolationWitnessFile.createViolationWitnessFromTrace(trace, config);
+        wit.writeToFile(Path.of("witness.yml"));
+//        List<WitnessNode> nodes = new ArrayList<>();
+//        List<WitnessEdge> edges = new ArrayList<>();
+//
+//        int nodeId = 0;
+//        WitnessNode initNode = new WitnessNode(nodeId++);
+//        nodes.add(initNode);
+//        initNode.addData("entry", "true");
+//        WitnessNode curNode = initNode;
+//
+//        for (WitnessAssumption wa : trace.getWitness()) {
+//            String loc = getLineOfCode(wa.getClazz(), wa.getLine());
+//            String assumption = computeAssumption(loc, wa);
+//
+//            WitnessNode prevNode = curNode;
+//            curNode = new WitnessNode(nodeId++);
+//            nodes.add(curNode);
+//            WitnessEdge edge = new WitnessEdge(prevNode, wa, assumption, curNode);
+//            edges.add(edge);
+//        }
+//
+//        curNode.addData("violation", "true");
+//
+//        STGroup group = new STRawGroupDir("witnesses", '$','$');
+//        ST st = group.getInstanceOf("witness");
+//        st.add("nodes", nodes);
+//        st.add("edges", edges);
+//        String result = st.render();
+//        try {
+//            Files.write(Paths.get("witness.graphml"), result.getBytes());
+//        } catch (IOException e) {
+//            System.err.println("Error writing witness to file: " + e.getMessage());
+//        }
     }
 
     private String computeAssumption(String lineOfCode, WitnessAssumption wa) {

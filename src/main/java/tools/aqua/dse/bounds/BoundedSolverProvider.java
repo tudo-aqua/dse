@@ -47,7 +47,12 @@ public class BoundedSolverProvider implements ConstraintSolverProvider {
 			type = BoundedSolver.BoundType.fibonacci;
 		}
 
+		BoundedSolver.Scope scope = BoundedSolver.Scope.all;
+		if (config.containsKey("dse.bounds.scope")) {
+			scope = BoundedSolver.Scope.valueOf(config.getProperty("dse.bounds.scope").trim());
+		}
+
 		ConstraintSolver solver = ConstraintSolverFactory.createSolver(dp, config);
-		return new BoundedSolver(solver, bound, iter, type);
+		return new BoundedSolver(solver, bound, iter, type, scope);
 	}
 }
